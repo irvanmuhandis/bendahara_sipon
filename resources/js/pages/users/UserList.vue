@@ -13,6 +13,21 @@ const users = ref({'data': []});
 const editing = ref(false);
 const formValues = ref();
 const form = ref(null);
+const userIdBeingDeleted = ref(null);
+
+const confirmUserDeletion = (id) => {
+    userIdBeingDeleted.value = id;
+    $('#deleteUserModal').modal('show');
+};
+
+const deleteUser = () => {
+    axios.delete(`/api/users/${userIdBeingDeleted.value}`)
+    .then(() => {
+        $('#deleteUserModal').modal('hide');
+        toastr.success('User deleted successfully!');
+        userDeleted(userIdBeingDeleted.value)
+    });
+};
 
 const getUsers = (page = 1) => {
     axios.get(`/api/users?page=${page}`)
@@ -91,7 +106,7 @@ const handleSubmit = (values, actions) => {
 }
 
 const userDeleted = (userId) => {
-    users.value = users.value.filter(user => user.id !== userId);
+    users.value.data = users.value.data.filter(user => user.id !== userId);
 };
 
 const searchQuery = ref(null);
@@ -207,8 +222,11 @@ onMounted(() => {
                             </tr>
                         </thead>
                         <tbody v-if="users.data.length > 0">
-                            <UserListItem v-for="(user, index) in users.data" :key="user.id" :user=user :index=index
-                                @edit-user="editUser" @user-deleted="userDeleted" @toggle-selection="toggleSelection" :select-all="selectAll" />
+                            <UserListItem
+                            v-for="(user, index) in users.data" :key="user.id" :user=user :index=index
+                                @edit-user="editUser"
+                                @confirm-user-deletion="confirmUserDeletion"
+                                @toggle-selection="toggleSelection" :select-all="selectAll" />
                         </tbody>
                         <tbody v-else>
                             <tr>
@@ -221,7 +239,28 @@ onMounted(() => {
             <Bootstrap4Pagination :data="users" @pagination-change-page="getUsers" />
         </div>
     </div>
-
+    <div class="modal fade" id="deleteUserModal" data-backdrop="static" tabindex="-1" role="dialog"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">
+                        <span>Delete User</span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h5>Are you sure you want to delete this user ?</h5>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button @click.prevent="deleteUser" type="button" class="btn btn-primary">Delete User</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="userFormModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
