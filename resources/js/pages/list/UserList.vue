@@ -4,7 +4,7 @@ import { ref, onMounted, reactive, watch } from 'vue';
 import { Form, Field, useResetForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
-import UserListItem from './UserListItem.vue';
+import UserListItem from '../users/UserListItem.vue';
 import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
@@ -86,8 +86,8 @@ const editUser = (user) => {
 const updateUser = (values, { setErrors }) => {
     axios.put('/api/users/' + formValues.value.id, values)
         .then((response) => {
-            const index = users.value.findIndex(user => user.id === response.data.id);
-            users.value[index] = response.data;
+            const index = users.value.data.findIndex(user => user.id === response.data.id);
+            users.value.data[index] = response.data;
             $('#userFormModal').modal('hide');
             toastr.success('User updated successfully!');
         }).catch((error) => {
@@ -174,7 +174,8 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Users</h1>
+                    <h1 class="m-0 text-primary"><strong> Users | Santri</strong></h1>
+                    <p><small>List santri</small></p>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">

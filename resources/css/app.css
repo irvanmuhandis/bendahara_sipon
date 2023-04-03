@@ -1,3 +1,14 @@
-@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback');
-@import 'admin-lte/plugins/fontawesome-free/css/all.min.css';
-@import 'admin-lte/dist/css/adminlte.min.css';
+@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback");
+@import "admin-lte/plugins/fontawesome-free/css/all.min.css";
+@import "admin-lte/dist/css/adminlte.min.css";
+
+@import "datatables.net-bs4/css/dataTables.bootstrap4.min.css";
+@import "datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css";
+
+#myTable2 td, #myTable2 th,#myTable td, #myTable th {
+    font-size: 12px;
+  }
+
+table th{
+    text-align:center !important;
+}

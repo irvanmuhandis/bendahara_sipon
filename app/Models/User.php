@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\Group;
 use App\Enums\RoleType;
+use App\Models\GroupHistory;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -45,19 +47,24 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    protected $appends = [
-        'formatted_created_at',
-    ];
+    // protected $appends = [
+    //     'formatted_created_at',
+    // ];
 
-    public function getFormattedCreatedAtAttribute()
-    {
-        return $this->created_at->format(config('app.date_format'));
-    }
+    // public function getFormattedCreatedAtAttribute()
+    // {
+    //     return $this->created_at->format(config('app.date_format'));
+    // }
 
     public function role(): Attribute
     {
         return Attribute::make(
             get: fn ($value) => RoleType::from($value)->name,
         );
+    }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
     }
 }

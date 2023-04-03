@@ -4,13 +4,35 @@ namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Ramsey\Uuid\Type\Integer;
 
 class UserController extends Controller
 {
     public function index()
     {
-        $users = User::latest()->paginate(3);
+        $users = User::latest()->get();
+
+        return $users;
+    }
+
+    public function bill($id)
+    {
+        $db = DB::table('bills')
+
+        ->join('users', 'users.id', '=', 'bills.user_id')
+        ->join('accounts', 'accounts.id', '=', 'bills.account_id')
+        ->select('bills.*','accounts.account_name','users.name')
+        ->where('bills.user_id','=',$id)
+        ->where('bills.payment_status','<',3)
+        ->get();
+        return $db;
+    }
+
+    public function list()
+    {
+        $users = User::latest()->get();
 
         return $users;
     }
