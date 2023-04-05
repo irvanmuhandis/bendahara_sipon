@@ -55,7 +55,7 @@ class PayController extends Controller
 
     public function store()
     {
-        $dates = request('pay_at');
+        $dates = request('date');
         $date = Carbon::createFromFormat('Y-m-d', $dates);
         // request()->validate([
         //     'user' => 'required',
@@ -63,7 +63,7 @@ class PayController extends Controller
         //     'password' => 'required|min:8',
         //     ''
         // ]);
-        $bills = request('billsId');
+        $bills = request('bill_id');
         $pay = request('payment');
         $remainder = request('remainder');
 
@@ -101,9 +101,9 @@ class PayController extends Controller
                 );
 
             Pay::create([
-                'user_id' => request('userId'),
+                'user_id' => request('user_id'),
                 'payment' => $pay_bll,
-                'wallet_id' => request('walletId'),
+                'wallet_id' => request('wallet_id'),
                 'payable_id' =>  $item['bill_id'],
                 'payable_type' => Bill::class,
                 'created_at' => $date,

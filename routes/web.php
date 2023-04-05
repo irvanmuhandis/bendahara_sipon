@@ -15,6 +15,7 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Attr\DebtStatusController;
 use App\Http\Controllers\Admin\AppointStatusController;
+use App\Http\Controllers\Status\PayStatusController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +41,7 @@ Route::get('/api/pay/search',[PayController::class,'search']);
 Route::get('/api/paydebt',[PayController::class,'indexDebt']);
 Route::get('/api/paybill',[PayController::class,'indexBill']);
 Route::delete('/api/pay',[PayController::class,'bulkDelete']);
+Route::get('/api/pay/status',[PayStatusController::class,'status']);
 
 Route::get('/api/bill/search',[BillController::class,'search']);
 Route::delete('/api/bill',[BillController::class,'bulkDelete']);

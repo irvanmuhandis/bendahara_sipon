@@ -70,7 +70,6 @@ const deletePay = () => {
         });
 };
 
-const { meta } = useField('checked')
 const createPaySchema = yup.object({
     userId: yup.number().required(),
     payment: yup.number().required(),
@@ -87,21 +86,6 @@ const createPaySchema = yup.object({
     return true;
 });
 
-const editPaySchema = yup.object({
-    userId: yup.number().required(),
-    payment: yup.number().required(),
-    pay_at: yup.date().required(),
-    walletId: yup.number().required(),
-    billsId: yup.array().min(1, 'You must select at least one option').of(
-        yup.number()),
-}).test('payment-more-than-total', 'Payment should not more than the total', function (values) {
-    const ttl = total.value;
-    const py = values.payment;
-    if (py > ttl) {
-        throw new yup.ValidationError('Payment should not more than the total', null, 'payment');
-    }
-    return true;
-});
 
 const createPay = (values, { resetForm, setErrors }) => {
     values.remainder = remainder.value;
@@ -121,6 +105,23 @@ const createPay = (values, { resetForm, setErrors }) => {
             }
         })
 };
+
+const editPaySchema = yup.object({
+    userId: yup.number().required(),
+    payment: yup.number().required(),
+    pay_at: yup.date().required(),
+    walletId: yup.number().required(),
+    billsId: yup.array().min(1, 'You must select at least one option').of(
+        yup.number()),
+}).test('payment-more-than-total', 'Payment should not more than the total', function (values) {
+    const ttl = total.value;
+    const py = values.payment;
+    if (py > ttl) {
+        throw new yup.ValidationError('Payment should not more than the total', null, 'payment');
+    }
+    return true;
+});
+
 
 const AddPayBill = () => {
     editing.value = false;
@@ -377,19 +378,22 @@ onMounted(() => {
     <div class="content">
         <div class="container-fluid">
             <div class="card">
-                <div class="card-body">
-                    <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
-                        <i class="fa fa-plus-circle mr-1"></i>
-                        Add New Pay Bill
-                    </button>
-                    <router-link to="/admin/pay/create-bill">
-                        <button class="btn btn-primary"><i class="fa fa-plus-circle mr-1"></i> Add New
+                <div class="card-head row p-3">
+                    <router-link to="/admin/pay/create-bill" class="col-md-6">
+                        <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
                             Add Bill Payment</button>
                     </router-link>
-                    <router-link to="/admin/pay/create-debt">
-                        <button class="btn btn-primary"><i class="fa fa-plus-circle mr-1"></i> Add New
+                    <router-link to="/admin/pay/create-debt" class="col-md-6">
+                        <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
                             Add Debt Payment</button>
                     </router-link>
+
+                </div>
+                <div class="card-body">
+                    <!-- <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
+                        <i class="fa fa-plus-circle mr-1"></i>
+                        Add New Pay Bill
+                    </button> -->
                     <!-- <button id="delete-selected-rows" class="btn btn-danger" type="button" >DELETE ROW</button> -->
 
 

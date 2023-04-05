@@ -115,7 +115,7 @@
                                     </router-link>
                                 </li>
                                 <li class="nav-item">
-                                    <router-link to="/admin/pay" active-class="active" class="nav-link">
+                                    <router-link to="/admin/pay" :class="$route.path.startsWith('/admin/pay')?'active': ''" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-money-bill-wave"></i>
                                         <p>
                                             Pay
