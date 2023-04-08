@@ -21,18 +21,21 @@ class UserController extends Controller
     {
         $db = DB::table('bills')
 
-        ->join('users', 'users.id', '=', 'bills.user_id')
-        ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-        ->select('bills.*','accounts.account_name','users.name')
-        ->where('bills.user_id','=',$id)
-        ->where('bills.payment_status','<',3)
-        ->get();
+            ->join('users', 'users.id', '=', 'bills.user_id')
+            ->join('accounts', 'accounts.id', '=', 'bills.account_id')
+            ->select('bills.*', 'accounts.account_name', 'users.name')
+            ->where('bills.user_id', '=', $id)
+            ->where('bills.payment_status', '<', 3)
+            ->orderBy('users.id', 'asc')
+            ->get();
         return $db;
     }
 
     public function list()
     {
-        $users = User::latest()->get();
+        $users = DB::table('users')
+            ->orderBy('users.id', 'asc')
+            ->get();
 
         return $users;
     }

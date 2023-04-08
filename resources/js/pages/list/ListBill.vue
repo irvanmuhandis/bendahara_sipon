@@ -255,10 +255,12 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="card">
                 <div class="card-body">
-                    <button @click="AddData" type="button" class="mb-2 btn btn-primary">
-                        <i class="fa fa-plus-circle mr-1"></i>
-                        Add New Data
-                    </button>
+                    <div class="row pb-3">
+                    <router-link to="/admin/bill/create" class="col-md-6">
+                        <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New Bill </button>
+                    </router-link>
+
+                </div>
 
 
                     <table id="myTable" class="table table-bordered display hover ">

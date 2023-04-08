@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Debts>
  */
-class DebtsFactory extends Factory
+class AccidentalsFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -34,10 +34,10 @@ class DebtsFactory extends Factory
         }
         return [
             'account_id' => Account::where('account_name','=','Utang')->first()->id,
-            'debt_status' => $status,
-            'debt' => $end,
+            'status' => $status,
+            'amount' => $end,
             'user_id' => User::factory()->create()->id,
-            'debt_remainder' => $remain,
+            'remainder' => $remain,
         ];
     }
 }

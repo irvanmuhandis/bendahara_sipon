@@ -7,7 +7,6 @@ use App\Models\BigBook;
 use App\Models\Pay;
 use App\Models\Bill;
 use App\Models\User;
-use App\Models\Debts;
 use App\Models\Dispen;
 use App\Models\Expense;
 use App\Models\Group;
@@ -131,7 +130,6 @@ class DatabaseSeeder extends Seeder
         User::factory(10)->create();
         DB::table('groups')->insert($grup);
         Bill::factory(20)->create();
-        Debts::factory(20)->create();
         Pay::factory(40)->create();
         Dispen::factory(20)->create();
         Trans::factory(20)->create();
@@ -173,7 +171,7 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now()
             ]);
             $wallet = DB::table('wallets')->where('wallet_type', $exp->wallet->wallet_type)->latest('id')->first();
-            
+
             Wallet::create(
                 [
                     'wallet_type' => $wallet->wallet_type,

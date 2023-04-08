@@ -13,14 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('debts', function (Blueprint $table) {
+        Schema::create('accidentals', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->bigInteger('debt');
-            $table->bigInteger('debt_remainder');
+            $table->bigInteger('amount');
+            $table->bigInteger('remainder');
             $table->integer('account_id');
             $table->foreignId('user_id');
-            $table->tinyInteger('debt_status');
+            $table->tinyInteger('status');
         });
     }
 
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('debts');
+        Schema::dropIfExists('accidentals');
     }
 };

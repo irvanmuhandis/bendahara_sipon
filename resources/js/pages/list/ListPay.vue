@@ -378,7 +378,9 @@ onMounted(() => {
     <div class="content">
         <div class="container-fluid">
             <div class="card">
-                <div class="card-head row p-3">
+
+                <div class="card-body">
+                    <div class="row pb-3">
                     <router-link to="/admin/pay/create-bill" class="col-md-6">
                         <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
                             Add Bill Payment</button>
@@ -389,7 +391,6 @@ onMounted(() => {
                     </router-link>
 
                 </div>
-                <div class="card-body">
                     <!-- <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
                         <i class="fa fa-plus-circle mr-1"></i>
                         Add New Pay Bill

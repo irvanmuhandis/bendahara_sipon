@@ -107,10 +107,10 @@
                             <ul class="nav nav-treeview"
                                 style="background: rgb(255, 255, 255);border:grey solid 2px;border-radius:8px">
                                 <li class="nav-item">
-                                    <router-link to="/admin/debts" active-class="active" class="nav-link">
+                                    <router-link to="/admin/incident" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-piggy-bank"></i>
                                         <p>
-                                            Debts
+                                            Incidentials
                                         </p>
                                     </router-link>
                                 </li>
@@ -123,7 +123,7 @@
                                     </router-link>
                                 </li>
                                 <li class="nav-item">
-                                    <router-link to="/admin/bill" active-class="active" class="nav-link">
+                                    <router-link to="/admin/bill" :class="$route.path.startsWith('/admin/bill')?'active': ''" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-money-check-alt"></i>
                                         <p>
                                             Bill

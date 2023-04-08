@@ -3,19 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Debts;
 use App\Models\Dispen;
+use App\Enums\PayStatus;
 use App\Enums\DebtStatus;
+use App\Models\Incidental;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Status\PayStatusController;
 
-class DebtsController extends Controller
+class IncidentalController extends Controller
 {
     public function index()
     {
-        return Debts::query()->with('user:id,name')
+        return Incidental::query()->with('user:id,name')
             ->when(request('status'), function ($query) {
-                return $query->where('status', DebtStatus::from(request(('status'))));
+                return $query->where('status', PayStatus::from(request(('status'))));
             })
             ->latest()
             ->paginate(3)
@@ -37,7 +39,7 @@ class DebtsController extends Controller
         $debtorName = request('query');
         $status = request('status');
 
-        $debts = Debts::query()
+        $debts = Incidental::query()
             ->with('user:id,name')
             ->when($debtorName, function ($query) use ($debtorName) {
                 return $query->whereHas('user', function ($q) use ($debtorName) {
@@ -45,7 +47,7 @@ class DebtsController extends Controller
                 });
             })
             ->when($status, function ($query) use ($status) {
-                return $query->where('status', DebtStatus::from($status));
+                return $query->where('status', PayStatus::from($status));
             })
             ->paginate(3)->through(fn ($app) => [
                 'id' => $app->id,
@@ -64,19 +66,19 @@ class DebtsController extends Controller
 
     public function bulkDelete()
     {
-        Debts::whereIn('id', request('ids'))->delete();
+        Incidental::whereIn('id', request('ids'))->delete();
 
-        return response()->json(['message' => 'Debts deleted successfully!']);
+        return response()->json(['message' => 'Incidental deleted successfully!']);
     }
 
     public function destroy($debt)
     {
-        Debts::where('id', request('id'))->delete();
+        Incidental::where('id', request('id'))->delete();
 
         return response()->noContent();
     }
 
-    public function update(Debts $debt)
+    public function update(Incidental $debt)
     {
         //     request()->validate([
         //         'name' => 'required',

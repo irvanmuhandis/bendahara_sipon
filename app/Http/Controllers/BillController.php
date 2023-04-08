@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bill;
+use App\Enums\PayStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -14,9 +15,14 @@ class BillController extends Controller
         $bill = DB::table('bills')
             ->join('users', 'users.id', '=', 'bills.user_id')
             ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->select('bills.id','bills.payment_status', 'bills.bill_amount', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
+            ->select('bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
             ->get();
 
+        $bill = $bill->map(function ($item, $key) {
+            $paymentStatus = PayStatus::from($item->payment_status);
+            $item->payment_status = $paymentStatus->names();
+            return $item;
+        });
         return $bill;
     }
 

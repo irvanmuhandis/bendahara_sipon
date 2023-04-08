@@ -21,23 +21,23 @@ class PayFactory extends Factory
     public function definition()
     {
         $id = rand(1, 5);
-        $type = [Debts::class, Bill::class];
-        $choice = $this->faker->randomElement($type);
-        $pay = 0;
-        if ($choice == Debts::class) {
-            $debt = Debts::find($id)->first()->debt;
-            $pay = rand(0, $debt);
-        };
-        if ($choice == Bill::class) {
-            $bill = Bill::find($id)->first()->bill_amount;
-            $pay = rand(0, $bill);
-        }
+        // $type = [Debts::class, Bill::class];
+        // $choice = $this->faker->randomElement($type);
+        // $pay = 0;
+        // if ($choice == Debts::class) {
+        //     $debt = Debts::find($id)->first()->debt;
+        //     $pay = rand(0, $debt);
+        // };
+        // if ($choice == Bill::class) {
+        //     $bill = Bill::find($id)->first()->bill_amount;
+        //     $pay = rand(0, $bill);
+        // }
         return [
-            'payment' => $pay,
+            'payment' => rand(1000,9000),
             'user_id'=>rand(1,10),
             'wallet_id' => Wallet::find(rand(1, 3))->id,
             'payable_id' => $id,
-            'payable_type' => $choice
+            'payable_type' => Bill::class
         ];
     }
 }

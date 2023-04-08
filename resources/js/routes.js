@@ -5,9 +5,10 @@ import UpdateProfile from "./pages/profile/UpdateProfile.vue";
 
 import CreatePayBill from "./pages/pay/PayBill.vue";
 import CreatePayDebt from "./pages/pay/PayDebt.vue";
+import CreateBill from "./pages/bill/CreateBill.vue";
 
 import UserList from "./pages/list/UserList.vue";
-import ListDebts from "./pages/list/ListDebts.vue";
+import ListIncident from "./pages/list/ListIncident.vue";
 import ListAppointments from "./pages/list/ListAppointments.vue";
 import ListDispen from "./pages/list/ListDispen.vue";
 import ListGroup from "./pages/list/ListGroup.vue";
@@ -47,9 +48,9 @@ export default [
     },
 
     {
-        path: "/admin/debts",
-        name: "admin.debts",
-        component: ListDebts,
+        path: "/admin/incident",
+        name: "admin.incident",
+        component: ListIncident,
     },
 
     {
@@ -77,6 +78,11 @@ export default [
         path: "/admin/pay/create-bill",
         name: "admin.pay.create-bill",
         component: CreatePayBill,
+    },
+    {
+        path: "/admin/bill/create",
+        name: "admin.bill.create",
+        component: CreateBill,
     },
     {
         path: "/admin/wallet",
