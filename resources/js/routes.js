@@ -6,6 +6,7 @@ import UpdateProfile from "./pages/profile/UpdateProfile.vue";
 import CreatePayBill from "./pages/pay/PayBill.vue";
 import CreatePayDebt from "./pages/pay/PayDebt.vue";
 import CreateBill from "./pages/bill/CreateBill.vue";
+import CreateGroup from "./pages/group/CreateGroup.vue";
 
 import UserList from "./pages/list/UserList.vue";
 import ListIncident from "./pages/list/ListIncident.vue";
@@ -83,6 +84,11 @@ export default [
         path: "/admin/bill/create",
         name: "admin.bill.create",
         component: CreateBill,
+    },
+    {
+        path: "/admin/group/create",
+        name: "admin.group.create",
+        component: CreateGroup,
     },
     {
         path: "/admin/wallet",

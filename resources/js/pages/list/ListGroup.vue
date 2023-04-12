@@ -235,10 +235,10 @@ onMounted(() => {
             <div class="d-flex justify-content-between mb-3">
                 <div class="d-flex">
 
-                    <button @click="AddGroup" type="button" class="mb-2 btn btn-primary">
+                    <router-link to="/admin/group/create" type="button" class="w-100 mb-2 btn btn-primary">
                         <i class="fa fa-plus-circle mr-1"></i>
                         Add New Group
-                    </button>
+                    </router-link>
 
                     <div v-if="selectedGroup.length > 0">
                         <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">

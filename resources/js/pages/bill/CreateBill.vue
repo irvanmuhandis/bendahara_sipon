@@ -394,7 +394,7 @@ onMounted(() => {
                     <h4 class="mx text-center">List Bill</h4>
                 </div>
                 <div class="card-body">
-                    <table id="myTable" class="display table " style="overflow: auto;width:100%">
+                    <table id="myTable" class="display table table-bordered " style="overflow: auto;width:100%">
                         <thead>
                             <tr>
                                 <th>Created</th>
