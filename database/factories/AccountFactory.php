@@ -25,6 +25,8 @@ class AccountFactory extends Factory
         return [
             'account_name' => $name,
             'account_type' => $type,
+            'created_at'=>now(),
+            'updated_at'=>now()
         ];
     }
 }

@@ -7,40 +7,16 @@ import * as yup from 'yup';
 
 const toastr = useToastr();
 const router = useRouter();
-const form = reactive({
-    title: '',
-    client_id: '',
-    client_date: '',
-    start_time: '',
-    end_time: '',
-    desc: ''
-})
-const formValues = ref(0);
+
 const users = ref([]);
-const user = ref(0);
-const wallets = ref([]);
-const wallet = ref(0);
-const checked = ref([]);
-const total = ref(0);
-const pay = ref([]);
-const remainder = ref([]);
-const userbill = ref([]);
-const pay_status = ref([]);
+const groups = ref([]);
+const accounts = ref([]);
+const groupusers = ref([]);
+
 const formatted = ref();
+const formatted_s = ref();
 
 
-const totalize = () => {
-
-    remainder.value = [];
-    total.value = 0;
-    console.log("bill clicked");
-    console.log(checked.value)
-    checked.value.forEach((id) => {
-        const item = userbill.value.find((item) => item.id === id);
-        total.value = total.value + item.bill_remainder;
-        remainder.value.push(item.bill_remainder);
-    });
-}
 
 const getUser = async () => {
 
@@ -54,57 +30,27 @@ const getUser = async () => {
     }
 }
 
-const getWallet = async () => {
 
-    try {
-        const response = await axios.get(`/api/wallet`)
-        wallets.value = response.data;
-        console.log('wallet added');
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-const getUserbill = async () => {
-    checked.value = [];
-
-    try {
-        const response = await axios.get(`/api/user/bill/${user.value}`);
-        userbill.value = response.data;
-    } catch (error) {
-        console.error(error);
-    }
-};
-
-const createPayBillSchema = yup.object({
-    user_id: yup.number().required(),
-    payment: yup.number().required(),
-    date: yup.date().required(),
-    wallet_id: yup.number().required(),
-    bill_id: yup.array().min(1, 'You must select at least one bill option').of(
-        yup.number()).required(),
-    // bill_id: yup.number().required()
-}).test('payment-more-than-total', 'Payment should not more than the total', function (values) {
-    const ttl = total.value;
-    const py = values.payment;
-    if (py > ttl) {
-        throw new yup.ValidationError('Payment should not more than the total', null, 'payment');
-    }
-    if (checked == []) {
-        throw new yup.ValidationError('Insert atleast 1 bill ', null, 'bill_id');
-    }
-    return true;
+const createBillSchema = yup.object({
+    group: yup.number().required(),
+    price: yup.number().required(),
+    period: yup.date().required(),
+    account: yup.number().required(),
 });
 
+const createBillSchema_s = yup.object({
+    user: yup.number().required(),
+    price: yup.number().required(),
+    period: yup.date().required(),
+    account: yup.number().required(),
+});
 
-const createPay = (values, { resetForm, actions }) => {
+const createBill = (values, { resetForm, actions }) => {
     values.remainder = remainder.value;
 
-    axios.post('/api/pay', values)
+    axios.post('/api/bill', values)
         .then((response) => {
             resetForm();
-            userbill.value = [];
-            total.value = 0;
             formatted.value = [];
             toastr.success('Pay created successfully!');
             getPayBill();
@@ -114,18 +60,43 @@ const createPay = (values, { resetForm, actions }) => {
         })
 };
 
-const walletchange = (event) => {
-    wallet.value = event.target.value;
-    console.log(wallet.value);
-}
-const userchange = (event) => {
-    user.value = event.target.value;
-    getUserbill();
-}
-const getPayStatus = () => {
-    axios.get('/api/pay/status')
+const createBill_s = (values, { resetForm, actions }) => {
+    axios.post('/api/bill_s', values)
         .then((response) => {
-            pay_status.value = response.data;
+            resetForm();
+            formatted_s.value = [];
+            toastr.success('Pay created successfully!');
+            getPayBill();
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+};
+
+
+const groupchange = (event) => {
+    groupusers.value = [];
+    axios.get('/api/users', {
+        params: {
+            group_id: event.target.value
+        }
+    })
+        .then((response) => {
+            groupusers.value = response.data;
+        });
+}
+
+const getAccount = () => {
+    axios.get('/api/account')
+        .then((response) => {
+            accounts.value = response.data;
+        })
+}
+
+const getGroup = () => {
+    axios.get('/api/group')
+        .then((response) => {
+            groups.value = response.data;
         })
 }
 
@@ -133,10 +104,17 @@ const handleChange = (event) => {
     formatted.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
 }
 
+const handleChange_s = (event) => {
+    formatted_s.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+}
 
-const getPayBill = () => {
-    axios.get(`/api/pay`)
+const getBill = () => {
+    if ($.fn.DataTable.isDataTable('#myTable')) {
+        $('#myTable').DataTable().destroy();
+    }
+    axios.get(`/api/bill`)
         .then((response) => {
+
             $("#myTable").DataTable({
                 destroy: true,
                 columnDefs: [
@@ -159,22 +137,16 @@ const getPayBill = () => {
                 columns: [
                     { data: 'created_at' },
                     { data: "name" },
-                    { data: "payment" },
-                    { data: "wallet_name" },
+                    { data: "bill_amount" },
+                    { data: 'bill_remainder' },
+
                     {
-                        data: "payable_type",
-                        render: function (data) {
-                            switch (data) {
-                                case "App\\Models\\Bill":
-                                    return `<span class="badge badge-primary">Bill</span>`;
-                                    break;
-                                case "App\\Models\\Debts":
-                                    return `<span class="badge badge-danger">Debt</span>`;
-                                    break;
-                                default:
-                                    return `<span class="badge badge-secondary">Null</span>`;
-                            }
-                        }
+                        data: "account_name"
+                    },
+                    {
+                        data: "payment_status",
+
+
                     },
                     { data: 'updated_at' },
 
@@ -228,18 +200,16 @@ const getPayBill = () => {
 
 onMounted(() => {
     getUser();
-    getWallet();
-    getPayBill();
-    getPayStatus();
+    getBill();
+    getGroup();
+    getAccount();
 })
 </script>
 <template>
     <div class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0">Create Bill</h1>
-                </div>
+                <div class="col-sm-6"></div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
@@ -257,110 +227,194 @@ onMounted(() => {
 
     <div class="content">
         <div class="container-fluid">
-            <div class="row">
-                <div class="col-12 card">
-                    <div class="card-body">
-                        <Form @submit="createPay" :validation-schema="createPayBillSchema" v-slot:default="{ errors }">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>User</label>
-                                        <Field as="select" @change="userchange" class="form-control"
-                                            :class="{ 'is-invalid': errors.user_id }" name="user_id">
-                                            <option disabled>Pilih Salah Satu</option>
 
-                                            <option v-for="user in users" :value="user.id">{{ user.id + "|" + user.name }}
-                                            </option>
+            <div class="card">
+                <div class="card-header p-2">
+                    <ul class="nav nav-pills">
+                        <li class="nav-item"><a class="nav-link" href="#single" data-toggle="tab">Single Create Bill</a>
+                        </li>
+                        <li class="nav-item"><a class="nav-link active" href="#group" data-toggle="tab">Group Create Bill
+                            </a>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="#range" data-toggle="tab">Group Range Period </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane" id="single">
+                            <Form @submit="createBill_s" :validation-schema="createBillSchema_s"
+                                v-slot:default="{ errors }">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>User</label>
+                                            <Field as="select" @change="userchange" class="form-control"
+                                                :class="{ 'is-invalid': errors.user_id }" name="user">
+                                                <option disabled>Pilih Salah Satu</option>
 
-                                        </Field>
-                                        <span class="invalid-feedback">{{ errors.user_id }}</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Wallet</label>
-                                        <Field as="select" class="form-control" :class="{ 'is-invalid': errors.wallet_id }"
-                                            name="wallet_id">
-                                            <option disabled>Pilih Salah Satu</option>
+                                                <option v-for="user in users" :value="user.id">{{ user.id + "|" + user.name
+                                                }}
+                                                </option>
 
-                                            <option v-for="wallet in wallets" :value="wallet.id">{{ wallet.wallet_name }}
-                                            </option>
-
-                                        </Field>
-                                        <span class="invalid-feedback">{{ errors.wallet_id }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group" >
-                                        <label>Bill</label>
-                                        <div class="row mb-1" v-for="bill in userbill" :key="bill.id">
-                                            <Field  name="bill_id" type="checkbox" @change="totalize" v-model="checked"
-                                                class="col-md-1" :value="bill.id"/>
-                                            <label class="col-md-11">
-                                                {{ bill.account_name }}
-                                                <span class="text-right text-monospace">{{
-                                                    accounting.formatMoney(
-                                                        bill.bill_remainder, "Rp", 0) }}
-                                                    ({{
-                                                        (pay_status.find(obj => obj.value === bill.payment_status)).name
-                                                    }})
-                                                </span>
-                                            </label>
+                                            </Field>
+                                            <span class="invalid-feedback">{{ errors.user }}</span>
                                         </div>
                                     </div>
-
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Payment</label><br>
-                                        <span>Total Bill : {{ accounting.formatMoney(total, "Rp", 0) }}</span>
-                                        <Field type="number" name="payment" @keyup="handleChange"
-                                            :class="{ 'is-invalid': errors.payment }" class="form-control" id="time" />
-                                        <span>{{ formatted }}</span><br>
-                                        <span class="invalid-feedback">{{ errors.bill_id }}</span>
-                                        <span class="invalid-feedback">{{ errors.payment }}</span>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Periodic</label>
+                                            <Field :class="{ 'is-invalid': errors.period }" class="form-control"
+                                                name="period" type="date" />
+                                            <span class="invalid-feedback">{{ errors.period }}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="form-group">
-                                <label for="description">Date</label>
-                                <Field :class="{ 'is-invalid': errors.date }" class="form-control" name="date"
-                                    type="date" />
-                                <span class="invalid-feedback">{{ errors.date }}</span>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                            {{ errors }}
-                        </Form>
-                    </div>
-                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Account</label><br>
+                                            <Field as="select" class="form-control"
+                                                :class="{ 'is-invalid': errors.account }" name="account">
+                                                <option disabled>Pilih Salah Satu</option>
 
+                                                <option v-for="account in accounts" :value="account.id">
+                                                    {{ account.id + ` | ` +
+                                                        account.account_name }}
+                                                </option>
+
+                                            </Field>
+                                            <span class="invalid-feedback">{{ errors.account }}</span>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Price</label>
+                                            <Field :class="{ 'is-invalid': errors.price }" @keyup="handleChange_s"
+                                                class="form-control" name="price" type="number" />
+                                            <p>{{ formatted_s }}</p>
+                                            <span class="invalid-feedback">{{ errors.price }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="w-100 btn btn-primary">Submit</button>
+                                {{ errors }}
+                            </Form>
+                        </div>
+
+                        <div class="tab-pane active" id="group">
+                            <Form @submit="createBill" :validation-schema="createBillSchema" v-slot:default="{ errors }">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Group</label>
+                                            <Field as="select" @change="groupchange" class="form-control"
+                                                :class="{ 'is-invalid': errors.group }" name="group">
+                                                <option disabled>Pilih Salah Satu</option>
+
+                                                <option v-for="group in groups" :value="group.id">{{ group.id + " | " +
+                                                    group.group_name }}
+                                                </option>
+
+                                            </Field>
+                                            <span class="invalid-feedback">{{ errors.group }}</span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Account</label><br>
+                                            <Field as="select" class="form-control"
+                                                :class="{ 'is-invalid': errors.account }" name="account">
+                                                <option disabled>Pilih Salah Satu</option>
+
+                                                <option v-for="account in accounts" :value="account.id">
+                                                    {{ account.id + ` | ` +
+                                                        account.account_name }}
+                                                </option>
+
+                                            </Field>
+                                            <span class="invalid-feedback">{{ errors.account }}</span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Periodic</label>
+                                            <Field :class="{ 'is-invalid': errors.period }" class="form-control"
+                                                name="period" type="date" />
+                                            <span class="invalid-feedback">{{ errors.period }}</span>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Price</label>
+                                            <Field :class="{ 'is-invalid': errors.price }" @keyup="handleChange"
+                                                class="form-control" name="price" type="number" />
+                                            <p>{{ formatted }}</p>
+                                            <span class="invalid-feedback">{{ errors.price }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group"><label> User Group
+                                            </label>
+                                            <table class="table table-sm text-center table-bordered">
+                                                <thead>
+                                                    <tr>
+
+                                                        <th>ID</th>
+                                                        <th>Name</th>
+                                                        <th>Join At</th>
+
+                                                    </tr>
+                                                </thead>
+                                                <tr v-if="groupusers.length === 0">
+                                                    <td colspan="3">No Record</td>
+                                                </tr>
+                                                <tr v-for="user in groupusers">
+                                                    <td>{{ user.id }} </td>
+                                                    <td>{{ user.name }}</td>
+                                                    <td>{{ user.join_at }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <button type="submit" class="w-100 btn btn-primary">Submit</button>
+                                {{ errors }}
+                            </Form>
+
+                        </div>
+
+                        <div class="tab-pane" id="range">
+                            Coming Soon
+                        </div>
+
+                    </div>
+
+                </div>
             </div>
-
-            <div class="row">
-                <div class="col-12 card">
-                    <div class="card-body">
-                        <table id="myTable" class="display table " style="overflow: auto;width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Name</th>
-                                    <th>Pay</th>
-                                    <th>Wallet</th>
-                                    <th>Type</th>
-                                    <th>Update</th>
-                                    <th>Operator</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mx text-center">List Bill</h4>
                 </div>
+                <div class="card-body">
+                    <table id="myTable" class="display table " style="overflow: auto;width:100%">
+                        <thead>
+                            <tr>
+                                <th>Created</th>
+                                <th>Name</th>
+                                <th>Amount</th>
+                                <th>Remainder</th>
+                                <th>Account</th>
+                                <th>Status</th>
+                                <th>Update</th>
+                                <th>Operator</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+
             </div>
         </div>
 

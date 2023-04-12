@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('group_name');
             $table->string('group_desc');
+            $table->timestamps();
         });
     }
 

@@ -58,73 +58,106 @@ class DatabaseSeeder extends Seeder
             [
                 'group_name' => 'Putra',
                 'group_desc' => 'syahriah putra, wifi, madin',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Asatidz',
                 'group_desc' => 'Syahriah putra, wifi',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Beasiswa',
                 'group_desc' => 'Syahriah putra, wifi',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Putri Makwo',
                 'group_desc' => 'Syahriah putri makwo, wifi, madin',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Putri Ndalem',
                 'group_desc' => 'Syahriah putri ndalem, wifi, madin',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Putri Pondok Baru',
                 'group_desc' => 'Syahriah putri ponbar, wifi, madin',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Asatidz Putri Makwo',
                 'group_desc' => 'Syahriah putri makwo, wifi',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Asatidz Putri Ndalem',
                 'group_desc' => 'Syahriah putri ndalem, wifi',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Asatidz Putri Pondok Baru',
-                'group_desc' => 'Syahriah putri ponbar, wifi',
+                'group_desc' => 'Syahriah putri ponbar, wifi', 'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Beasiswa Putri',
                 'group_desc' => 'Syahriah putri, wifi',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Putra Anti Dunia',
                 'group_desc' => 'Syahriah putra, madin',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'group_name' => 'Putri Anti dunia',
                 'group_desc' => 'Syahriah putri, wifi',
+                'created_at' => now(),
+                'updated_at' => now()
             ],
 
         ];
         DB::table('accounts')->insert([
             [
                 'account_name' => 'Utang',
-                'account_type' => 1
+                'account_type' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'account_name' => 'Syahriah',
-                'account_type' => 2
+                'account_type' => 2,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'account_name' => 'Wifi',
-                'account_type' => 2
+                'account_type' => 2,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'account_name' => 'Madin',
-                'account_type' => 2
+                'account_type' => 2,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
                 'account_name' => 'Kebutuhan',
-                'account_type' => 1
+                'account_type' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
             ]
         ]);
         User::factory(10)->create();
@@ -138,7 +171,7 @@ class DatabaseSeeder extends Seeder
             BigBook::create([
                 'wallet_id' => $pay->wallet_id,
                 'bookable_id' => $pay->id,
-                'bookable_type'=>Pay::class,
+                'bookable_type' => Pay::class,
                 'out' => 0,
                 'account_id' => $pay->payable->account->id,
                 'in' => $pay->payment,
@@ -163,7 +196,7 @@ class DatabaseSeeder extends Seeder
             BigBook::create([
                 'wallet_id' => $exp->wallet_id,
                 'bookable_id' => $exp->id,
-                'bookable_type'=>Trans::class,
+                'bookable_type' => Trans::class,
                 'out' => $exp->out,
                 'account_id' => $exp->account_id,
                 'in' => $exp->in,

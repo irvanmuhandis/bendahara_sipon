@@ -6,15 +6,29 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Exception;
 use Ramsey\Uuid\Type\Integer;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::latest()->get();
+        try {
+            $group_id = $request->query('group_id');
 
-        return $users;
+            if ($group_id) {
+                // If group_id is specified, filter accounts by group_id
+                $users = User::where('group_id', $group_id)->get();
+            } else {
+                // Otherwise, return all accounts
+                $users = User::latest()->get();
+            }
+
+            return $users;
+        } catch (Exception $e) {
+            logger($e);
+            return response()->json(['message' => 'Internal server error'], 500);
+        }
     }
 
     public function bill($id)

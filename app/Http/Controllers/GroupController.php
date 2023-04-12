@@ -6,20 +6,32 @@ use App\Models\User;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Error;
 
 class GroupController extends Controller
 {
     public function index()
     {
-        return Group::latest()
-            ->paginate(3)->through(fn ($app) => [
-                'id' => $app->id,
-                'name' => $app->name,
-                'desc' => $app->desc,
-                'created_at' => $app->created_at->format('Y-m-d h:i A'),
-                'updated_at' => $app->updated_at->format('Y-m-d h:i A'),
-            ]);
+        // return Group::latest()
+        //     ->paginate(3)->through(fn ($app) => [
+        //         'id' => $app->id,
+        //         'name' => $app->name,
+        //         'desc' => $app->desc,
+        //         'created_at' => $app->created_at->format('Y-m-d h:i A'),
+        //         'updated_at' => $app->updated_at->format('Y-m-d h:i A'),
+        //     ]);
+
+        $apps = Group::all();
+
+        $data = $apps->map(function ($app) {
+            $app->created_at = $app->created_at->format('Y-m-d h:i A');
+            $app->updated_at = $app->updated_at->format('Y-m-d h:i A');
+            return $app;
+        });
+        return $data;
     }
+
+
 
     public function store()
     {

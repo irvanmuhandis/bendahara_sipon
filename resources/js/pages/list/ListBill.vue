@@ -256,7 +256,7 @@ onMounted(() => {
             <div class="card">
                 <div class="card-body">
                     <div class="row pb-3">
-                    <router-link to="/admin/bill/create" class="col-md-6">
+                    <router-link to="/admin/bill/create" class="col-md-12">
                         <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New Bill </button>
                     </router-link>
 

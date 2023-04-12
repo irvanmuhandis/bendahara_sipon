@@ -8,14 +8,15 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\TransController;
 use App\Http\Controllers\DispenController;
 use App\Http\Controllers\WalletController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BigBookController;
 use App\Http\Controllers\PeriodicController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Attr\DebtStatusController;
-use App\Http\Controllers\Admin\AppointStatusController;
 use App\Http\Controllers\Status\PayStatusController;
+use App\Http\Controllers\Admin\AppointStatusController;
 
 /*
 |--------------------------------------------------------------------------
@@ -45,6 +46,7 @@ Route::get('/api/pay/status',[PayStatusController::class,'status']);
 
 Route::get('/api/bill/search',[BillController::class,'search']);
 Route::delete('/api/bill',[BillController::class,'bulkDelete']);
+Route::post('/api/bill_s',[BillController::class,'store_s']);
 
 Route::get('/api/group/search',[GroupController::class,'search']);
 Route::delete('/api/group',[GroupController::class,'bulkDelete']);
@@ -69,6 +71,8 @@ Route::delete('/api/dispens',[DispenController::class,'bulkDelete']);
 Route::get('/api/periodiclist', [PeriodicController::class, 'list']);
 
 
+Route::resource('/api/account',AccountController::class)
+->only(['index','store','update','destroy']);
 Route::resource('/api/trans',TransController::class)
 ->only(['index','store','update','destroy']);
 Route::resource('/api/bill',BillController::class)
