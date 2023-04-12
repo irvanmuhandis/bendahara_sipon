@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('bill_amount');
             $table->bigInteger('bill_remainder');
-            $table->date('due_date');
+            $table->string('due_date');
             $table->foreignId('user_id');
             $table->foreignId('account_id');
             $table->integer('payment_status');

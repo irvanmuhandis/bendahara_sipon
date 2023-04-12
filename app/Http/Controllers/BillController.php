@@ -17,7 +17,7 @@ class BillController extends Controller
             ->join('users', 'users.id', '=', 'bills.user_id')
             ->join('accounts', 'accounts.id', '=', 'bills.account_id')
             ->select('bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
-            ->get();
+            ->orderBy('bills.id','desc')->get();
 
         $bill = $bill->map(function ($item, $key) {
             $paymentStatus = PayStatus::from($item->payment_status);
@@ -35,19 +35,21 @@ class BillController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
+        $accs = request('account');
 
         $users = User::where('group_id', '=', request('group'))->get();
 
         foreach ($users as $user) {
-
-            Bill::create([
-                'account_id' => request('account'),
-                'user_id' => $user->id,
-                'bill_amount' => request('price'),
-                'bill_remainder' => request('price'),
-                'payment_status' =>  1,
-                'due_date' => request('period'),
-            ]);
+            foreach ($accs as $acc) {
+                $bill = Bill::create([
+                    'account_id' => $acc,
+                    'user_id' => $user->id,
+                    'bill_amount' => request('price'),
+                    'bill_remainder' => request('price'),
+                    'payment_status' =>  1,
+                    'due_date' => request('period'),
+                ]);
+            }
         }
 
         return request();
@@ -60,16 +62,19 @@ class BillController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
+        $accs = request('account');
 
+        foreach ($accs as $acc) {
+            $bill = Bill::create([
+                'account_id' => $acc,
+                'user_id' => request('user'),
+                'bill_amount' => request('price'),
+                'bill_remainder' => request('price'),
+                'payment_status' =>  1,
+                'due_date' => request('period'),
+            ]);
+        }
 
-       $bill = Bill::create([
-            'account_id' => request('account'),
-            'user_id' => request('user'),
-            'bill_amount' => request('price'),
-            'bill_remainder' => request('price'),
-            'payment_status' =>  1,
-            'due_date' => request('period'),
-        ]);
 
 
         return $bill;

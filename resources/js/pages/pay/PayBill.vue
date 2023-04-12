@@ -105,7 +105,7 @@ const createPay = (values, { resetForm, actions }) => {
             resetForm();
             userbill.value = [];
             total.value = 0;
-            formatted.value = [];
+            formatted.value = null;
             toastr.success('Pay created successfully!');
             getPayBill();
         })

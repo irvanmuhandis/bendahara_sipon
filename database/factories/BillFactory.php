@@ -20,7 +20,7 @@ class BillFactory extends Factory
         return [
             'bill_amount' => $num = rand(1000, 10000),
             'bill_remainder' => $num,
-            'due_date' => $this->faker->dateTime('+ 1 month')->format('Y-m-d'),
+            'due_date' => $this->faker->dateTime('+ 1 month')->format('Y-m'),
             'user_id' => rand(1,5),
             'account_id' => rand(1,5),
             'payment_status'=> 1

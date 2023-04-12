@@ -46,14 +46,12 @@ const createBillSchema_s = yup.object({
 });
 
 const createBill = (values, { resetForm, actions }) => {
-    values.remainder = remainder.value;
-
     axios.post('/api/bill', values)
         .then((response) => {
             resetForm();
-            formatted.value = [];
+            formatted.value = null;
             toastr.success('Pay created successfully!');
-            getPayBill();
+            getBill();
         })
         .catch((error) => {
             console.log(error);
@@ -64,9 +62,9 @@ const createBill_s = (values, { resetForm, actions }) => {
     axios.post('/api/bill_s', values)
         .then((response) => {
             resetForm();
-            formatted_s.value = [];
+            formatted_s.value = null;
             toastr.success('Pay created successfully!');
-            getPayBill();
+            getBill();
         })
         .catch((error) => {
             console.log(error);
@@ -236,7 +234,7 @@ onMounted(() => {
                         <li class="nav-item"><a class="nav-link active" href="#group" data-toggle="tab">Group Create Bill
                             </a>
                         </li>
-                        <li class="nav-item"><a class="nav-link" href="#range" data-toggle="tab">Group Range Period </a>
+                        <li class="nav-item"><a class="nav-link" href="#range" data-toggle="tab">Mass Account Group Period </a>
                         </li>
                     </ul>
                 </div>
@@ -265,7 +263,7 @@ onMounted(() => {
                                         <div class="form-group">
                                             <label>Periodic</label>
                                             <Field :class="{ 'is-invalid': errors.period }" class="form-control"
-                                                name="period" type="date" />
+                                                name="period" type="month" />
                                             <span class="invalid-feedback">{{ errors.period }}</span>
                                         </div>
                                     </div>
@@ -274,7 +272,7 @@ onMounted(() => {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Account</label><br>
-                                            <Field as="select" class="form-control"
+                                            <Field as="select" class="form-control" multiple
                                                 :class="{ 'is-invalid': errors.account }" name="account">
                                                 <option disabled>Pilih Salah Satu</option>
 
@@ -324,7 +322,7 @@ onMounted(() => {
                                         </div>
                                         <div class="form-group">
                                             <label>Account</label><br>
-                                            <Field as="select" class="form-control"
+                                            <Field multiple as="select" class="form-control"
                                                 :class="{ 'is-invalid': errors.account }" name="account">
                                                 <option disabled>Pilih Salah Satu</option>
 
@@ -339,8 +337,8 @@ onMounted(() => {
                                         <div class="form-group">
                                             <label>Periodic</label>
                                             <Field :class="{ 'is-invalid': errors.period }" class="form-control"
-                                                name="period" type="date" />
-                                            <span class="invalid-feedback">{{ errors.period }}</span>
+                                                name="period" type="month" />
+                                            <span  class="invalid-feedback">{{ errors.period }}</span>
                                         </div>
                                         <div class="form-group">
                                             <label>Price</label>
