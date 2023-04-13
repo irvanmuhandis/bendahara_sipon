@@ -191,6 +191,12 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        for ($i = 1; $i < 10; $i++) {
+            $user= User::find($i);
+            $grup = Group::find($i);
+            $user->group()->attach($grup);
+        }
+
         $exps = Trans::all();
         foreach ($exps as $exp) {
             BigBook::create([
