@@ -19,4 +19,17 @@ class AccountController extends Controller
         });
         return $data;
     }
+
+    public function allExcept()
+    {
+        $id = request('except');
+        $acc =  Account::where('id','!=',$id)->orderBy('id', 'asc')->get();
+
+        $data = $acc->map(function ($item, $key) {
+            $acc_type = AccountType::from($item->account_type);
+            $item->account_type = $acc_type->name();
+            return $item;
+        });
+        return $data;
+    }
 }

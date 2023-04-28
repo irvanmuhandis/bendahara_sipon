@@ -48,7 +48,7 @@ class UserController extends Controller
     public function list()
     {
         $users = DB::table('users')
-            ->orderBy('users.id', 'asc')
+            ->orderBy('users.name', 'asc')
             ->get();
 
         return $users;

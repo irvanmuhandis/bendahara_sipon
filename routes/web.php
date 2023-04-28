@@ -70,6 +70,7 @@ Route::delete('/api/dispens',[DispenController::class,'bulkDelete']);
 
 Route::get('/api/periodiclist', [PeriodicController::class, 'list']);
 
+Route::get('/api/except', [AccountController::class, 'allExcept']);
 
 Route::resource('/api/account',AccountController::class)
 ->only(['index','store','update','destroy']);

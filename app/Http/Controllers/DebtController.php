@@ -6,16 +6,17 @@ use App\Models\User;
 use App\Models\Dispen;
 use App\Enums\PayStatus;
 use App\Enums\DebtStatus;
-use App\Models\Incidental;
+use App\Models\Debt;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Status\PayStatusController;
 
-class IncidentalController extends Controller
+
+class DebtController extends Controller
 {
     public function index()
     {
-        return Incidental::query()->with('user:id,name')
+        return Debt::query()->with('user:id,name')
             ->when(request('status'), function ($query) {
                 return $query->where('status', PayStatus::from(request(('status'))));
             })
@@ -39,7 +40,7 @@ class IncidentalController extends Controller
         $debtorName = request('query');
         $status = request('status');
 
-        $debts = Incidental::query()
+        $debts = Debt::query()
             ->with('user:id,name')
             ->when($debtorName, function ($query) use ($debtorName) {
                 return $query->whereHas('user', function ($q) use ($debtorName) {
@@ -66,19 +67,19 @@ class IncidentalController extends Controller
 
     public function bulkDelete()
     {
-        Incidental::whereIn('id', request('ids'))->delete();
+        Debt::whereIn('id', request('ids'))->delete();
 
-        return response()->json(['message' => 'Incidental deleted successfully!']);
+        return response()->json(['message' => 'Debt deleted successfully!']);
     }
 
     public function destroy($debt)
     {
-        Incidental::where('id', request('id'))->delete();
+        Debt::where('id', request('id'))->delete();
 
         return response()->noContent();
     }
 
-    public function update(Incidental $debt)
+    public function update(Debt $debt)
     {
         //     request()->validate([
         //         'name' => 'required',

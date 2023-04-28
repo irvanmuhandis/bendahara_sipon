@@ -110,7 +110,7 @@
                                     <router-link to="/admin/incident" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-piggy-bank"></i>
                                         <p>
-                                            Incidentials
+                                            Debt
                                         </p>
                                     </router-link>
                                 </li>

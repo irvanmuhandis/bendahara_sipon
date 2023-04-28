@@ -14,8 +14,13 @@ const accounts = ref([]);
 const groupusers = ref([]);
 
 const formatted = ref();
+const formatMadin = ref();
+const formatSyah = ref();
+const formatWifi = ref();
 const formatted_s = ref();
-
+const switchRange = ref();
+const switchRange_g = ref();
+const switchAcc = ref();
 
 
 const getUser = async () => {
@@ -45,6 +50,22 @@ const createBillSchema_s = yup.object({
     account: yup.number().required(),
 });
 
+const createBillSchema_sr = yup.object({
+    user: yup.number().required(),
+    price: yup.number().required(),
+    period_start: yup.date().required(),
+    period_end: yup.date().required(),
+    account: yup.number().required(),
+});
+
+const createBillSchema_r = yup.object({
+    group: yup.number().required(),
+    price: yup.number().required(),
+    period_start: yup.date().required(),
+    period_end: yup.date().required(),
+    account: yup.number().required(),
+});
+
 const createBill = (values, { resetForm, actions }) => {
     axios.post('/api/bill', values)
         .then((response) => {
@@ -59,7 +80,35 @@ const createBill = (values, { resetForm, actions }) => {
 };
 
 const createBill_s = (values, { resetForm, actions }) => {
-    axios.post('/api/bill_s', values)
+    if (!switchRange) {
+        axios.post('/api/bill_s', values)
+            .then((response) => {
+                resetForm();
+                formatted_s.value = null;
+                toastr.success('Pay created successfully!');
+                getBill();
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+    else {
+        axios.post('/api/bill_sr', values)
+            .then((response) => {
+                resetForm();
+                formatted_s.value = null;
+                toastr.success('Pay created successfully!');
+                getBill();
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+
+    }
+};
+
+const createBill_r = (values, { resetForm, actions }) => {
+    axios.post('/api/bill_r', values)
         .then((response) => {
             resetForm();
             formatted_s.value = null;
@@ -70,7 +119,6 @@ const createBill_s = (values, { resetForm, actions }) => {
             console.log(error);
         })
 };
-
 
 const groupchange = (event) => {
     groupusers.value = [];
@@ -85,7 +133,11 @@ const groupchange = (event) => {
 }
 
 const getAccount = () => {
-    axios.get('/api/account')
+    axios.get('/api/except', {
+        params: {
+            except: 1
+        }
+    })
         .then((response) => {
             accounts.value = response.data;
         })
@@ -99,12 +151,22 @@ const getGroup = () => {
 }
 
 const handleChange = (event) => {
-    formatted.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    if (event.target.name == 'wifi') {
+        formatWifi.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    }
+    else if (event.target.name == 'madin') {
+        formatMadin.value = accounting.formatMoney(event.target.value, 'Rp. ', 0); }
+    else if (event.target.name == 'syah') {
+         formatSyah.value = accounting.formatMoney(event.target.value, 'Rp. ', 0); }
+    else {
+        formatted.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    }
 }
 
 const handleChange_s = (event) => {
     formatted_s.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
 }
+
 
 const getBill = () => {
     if ($.fn.DataTable.isDataTable('#myTable')) {
@@ -229,27 +291,26 @@ onMounted(() => {
             <div class="card">
                 <div class="card-header p-2">
                     <ul class="nav nav-pills">
-                        <li class="nav-item"><a class="nav-link" href="#single" data-toggle="tab">Single Create Bill</a>
+                        <li class="nav-item"><a class="nav-link" href="#single" data-toggle="tab">User Create Bill</a>
                         </li>
                         <li class="nav-item"><a class="nav-link active" href="#group" data-toggle="tab">Group Create Bill
                             </a>
-                        </li>
-                        <li class="nav-item"><a class="nav-link" href="#range" data-toggle="tab">Mass Account Group Period </a>
                         </li>
                     </ul>
                 </div>
                 <div class="card-body">
                     <div class="tab-content">
                         <div class="tab-pane" id="single">
-                            <Form @submit="createBill_s" :validation-schema="createBillSchema_s"
+                            <Form @submit="createBill_s"
+                                :validation-schema="!switchRange ? createBillSchema_s : createBillSchema_sr"
                                 v-slot:default="{ errors }">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>User</label>
-                                            <Field as="select" @change="userchange" class="form-control"
+                                            <Field as="select" multiple @change="userchange" class="form-control"
                                                 :class="{ 'is-invalid': errors.user_id }" name="user">
-                                                <option disabled>Pilih Salah Satu</option>
+                                                <option disabled>Pilih Satu / Lebih</option>
 
                                                 <option v-for="user in users" :value="user.id">{{ user.id + "|" + user.name
                                                 }}
@@ -262,9 +323,32 @@ onMounted(() => {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Periodic</label>
-                                            <Field :class="{ 'is-invalid': errors.period }" class="form-control"
-                                                name="period" type="month" />
-                                            <span class="invalid-feedback">{{ errors.period }}</span>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" v-model="switchRange" class="custom-control-input"
+                                                    id="customSwitch1">
+                                                <label class="font-weight-lighter font-italic custom-control-label"
+                                                    for="customSwitch1">Single/Range</label>
+                                            </div>
+                                            <div v-if="!switchRange">
+                                                <Field @v-if="!switchRange" :class="{ 'is-invalid': errors.period }"
+                                                    class="form-control" name="period" type="month" />
+                                                <span class="invalid-feedback">{{ errors.period }}</span>
+                                            </div>
+                                            <div v-else class="row">
+                                                <div class="col-md-6">
+                                                    <Field :class="{ 'is-invalid': errors.period_start }"
+                                                        class="form-control" name="period_start" type="month" />
+
+                                                    <span class="invalid-feedback">{{ errors.period_start }}</span>
+                                                </div>
+                                                <div class="col-md-6 mt-md-0 mt-2">
+                                                    <Field :class="{ 'is-invalid': errors.period_end }" class="form-control"
+                                                        name="period_end" type="month" />
+
+                                                    <span class="invalid-feedback">{{ errors.period_end }}</span>
+                                                </div>
+                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -272,7 +356,7 @@ onMounted(() => {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Account</label><br>
-                                            <Field as="select" class="form-control" multiple
+                                            <Field as="select" class="form-control"
                                                 :class="{ 'is-invalid': errors.account }" name="account">
                                                 <option disabled>Pilih Salah Satu</option>
 
@@ -304,7 +388,9 @@ onMounted(() => {
                         </div>
 
                         <div class="tab-pane active" id="group">
-                            <Form @submit="createBill" :validation-schema="createBillSchema" v-slot:default="{ errors }">
+                            <Form @submit="createBill"
+                                :validation-schema="!switchRange_g ? createBillSchema : createBillSchema_r"
+                                v-slot:default="{ errors }">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -320,33 +406,96 @@ onMounted(() => {
                                             </Field>
                                             <span class="invalid-feedback">{{ errors.group }}</span>
                                         </div>
-                                        <div class="form-group">
-                                            <label>Account</label><br>
-                                            <Field multiple as="select" class="form-control"
-                                                :class="{ 'is-invalid': errors.account }" name="account">
-                                                <option disabled>Pilih Salah Satu</option>
+                                        <div v-if="!switchAcc" class="">
+                                            <div class="form-group">
+                                                <label>Account</label><br>
+                                                <div class="custom-control custom-switch">
+                                                    <input type="checkbox" v-model="switchAcc" class="custom-control-input"
+                                                        id="customSwitch3">
+                                                    <label class="font-weight-lighter font-italic custom-control-label"
+                                                        for="customSwitch3">Single/Multiple</label>
+                                                </div>
+                                                <Field as="select" class="form-control"
+                                                    :class="{ 'is-invalid': errors.account }" name="account">
+                                                    <option disabled>Pilih Salah Satu</option>
 
-                                                <option v-for="account in accounts" :value="account.id">
-                                                    {{ account.id + ` | ` +
-                                                        account.account_name }}
-                                                </option>
+                                                    <option v-for="account in accounts" :value="account.id">
+                                                        {{ account.id + ` | ` +
+                                                            account.account_name }}
+                                                    </option>
 
-                                            </Field>
-                                            <span class="invalid-feedback">{{ errors.account }}</span>
+                                                </Field>
+                                                <span class="invalid-feedback">{{ errors.account }}</span>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Price</label>
+                                                <Field :class="{ 'is-invalid': errors.price }" @keyup="handleChange"
+                                                    class="form-control" name="price" type="number" />
+                                                <p>{{ formatted }}</p>
+                                                <span class="invalid-feedback">{{ errors.price }}</span>
+                                            </div>
+                                        </div>
+                                        <div v-else class="">
+                                            <div class="form-group">
+                                                <label>Account</label><br>
+                                                <div class="custom-control custom-switch">
+                                                    <input type="checkbox" v-model="switchAcc" class="custom-control-input"
+                                                        id="customSwitch3">
+                                                    <label class="font-weight-lighter font-italic custom-control-label"
+                                                        for="customSwitch3">Single/Multiple</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="text-right text-primary font-weight-normal">Syahriah</label>
+                                                <Field :class="{ 'is-invalid': errors.syah }" @keyup="handleChange"
+                                                    class="form-control" name="syah" type="number" />
+                                                <p>{{ formatSyah }}</p>
+                                                <span class="invalid-feedback">{{ errors.syah }}</span>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="text-right text-primary font-weight-normal">Madin</label>
+                                                <Field :class="{ 'is-invalid': errors.madin }" @keyup="handleChange"
+                                                    class="form-control" name="madin" type="number" />
+                                                <p>{{ formatMadin }}</p>
+                                                <span class="invalid-feedback">{{ errors.madin }}</span>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="text-right text-primary font-weight-normal">Wifi</label>
+                                                <Field :class="{ 'is-invalid': errors.wifi }" @keyup="handleChange"
+                                                    class="form-control" name="wifi" type="number" />
+                                                <p>{{ formatWifi }}</p>
+                                                <span class="invalid-feedback">{{ errors.wifi }}</span>
+                                            </div>
                                         </div>
                                         <div class="form-group">
                                             <label>Periodic</label>
-                                            <Field :class="{ 'is-invalid': errors.period }" class="form-control"
-                                                name="period" type="month" />
-                                            <span  class="invalid-feedback">{{ errors.period }}</span>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" v-model="switchRange_g" class="custom-control-input"
+                                                    id="customSwitch2">
+                                                <label class="font-weight-lighter font-italic custom-control-label"
+                                                    for="customSwitch2">Single/Range</label>
+                                            </div>
+                                            <div v-if="!switchRange_g">
+                                                <Field :class="{ 'is-invalid': errors.period }" class="form-control"
+                                                    name="period" type="month" />
+                                                <span class="invalid-feedback">{{ errors.period }}</span>
+                                            </div>
+                                            <div v-else class="row">
+                                                <div class="col-md-6">
+                                                    <Field :class="{ 'is-invalid': errors.period_start }"
+                                                        class="form-control" name="period_start" type="month" />
+
+                                                    <span class="invalid-feedback">{{ errors.period_start }}</span>
+                                                </div>
+                                                <div class="col-md-6 mt-md-0 mt-2">
+                                                    <Field :class="{ 'is-invalid': errors.period_end }" class="form-control"
+                                                        name="period_end" type="month" />
+
+                                                    <span class="invalid-feedback">{{ errors.period_end }}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label>Price</label>
-                                            <Field :class="{ 'is-invalid': errors.price }" @keyup="handleChange"
-                                                class="form-control" name="price" type="number" />
-                                            <p>{{ formatted }}</p>
-                                            <span class="invalid-feedback">{{ errors.price }}</span>
-                                        </div>
+
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group"><label> User Group
@@ -381,9 +530,7 @@ onMounted(() => {
 
                         </div>
 
-                        <div class="tab-pane" id="range">
-                            Coming Soon
-                        </div>
+
 
                     </div>
 

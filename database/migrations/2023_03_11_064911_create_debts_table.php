@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('accidentals', function (Blueprint $table) {
+        Schema::create('debts', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->bigInteger('amount');
