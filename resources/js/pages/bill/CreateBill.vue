@@ -19,8 +19,9 @@ const formatSyah = ref();
 const formatWifi = ref();
 const formatted_s = ref();
 const switchRange = ref();
+
 const switchRange_g = ref();
-const switchAcc = ref();
+const switchAcc = ref(false);
 
 
 const getUser = async () => {
@@ -43,6 +44,31 @@ const createBillSchema = yup.object({
     account: yup.number().required(),
 });
 
+const createBillSchema_mult = yup.object({
+    group: yup.number().required(),
+    period: yup.date().required(),
+    syah: yup.number().required(),
+    madin: yup.number().required(),
+    wifi: yup.number().required(),
+});
+
+const createBillSchema_r = yup.object({
+    group: yup.number().required(),
+    price: yup.number().required(),
+    period_start: yup.date().required(),
+    period_end: yup.date().required(),
+    account: yup.number().required(),
+});
+
+const createBillSchema_rMult =  yup.object({
+    group: yup.number().required(),
+    period_start: yup.date().required(),
+    period_end: yup.date().required(),
+    syah: yup.number().required(),
+    madin: yup.number().required(),
+    wifi: yup.number().required(),
+});
+
 const createBillSchema_s = yup.object({
     user: yup.number().required(),
     price: yup.number().required(),
@@ -58,30 +84,76 @@ const createBillSchema_sr = yup.object({
     account: yup.number().required(),
 });
 
-const createBillSchema_r = yup.object({
-    group: yup.number().required(),
-    price: yup.number().required(),
-    period_start: yup.date().required(),
-    period_end: yup.date().required(),
-    account: yup.number().required(),
-});
+
 
 const createBill = (values, { resetForm, actions }) => {
-    axios.post('/api/bill', values)
-        .then((response) => {
-            resetForm();
-            formatted.value = null;
-            toastr.success('Pay created successfully!');
-            getBill();
-        })
-        .catch((error) => {
-            console.log(error);
-        })
+    console.log(switchAcc.value);
+    if (!switchRange_g.value) {
+        if (!switchAcc.value) {
+            axios.post('/api/bill-group', values)
+                .then((response) => {
+
+                    resetForm();
+                    formatted.value = null;
+                    toastr.success('Pay created successfully!');
+                    getBill();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        }
+        else {
+            axios.post('/api/bill-group-mult', values)
+                .then((response) => {
+                    resetForm();
+                    formatted.value = null;
+                    formatMadin.value = null;
+                    formatSyah.value = null;
+                    formatWifi.value = null;
+                    toastr.success('Pay created successfully!');
+                    getBill();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        }
+    }
+    else {
+        if (!switchAcc.value) {
+            axios.post('/api/bill-grouprange', values)
+                .then((response) => {
+                    resetForm();
+                    formatted.value = null;
+                    toastr.success('Pay created successfully!');
+                    getBill();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        }
+        else {
+            axios.post('/api/bill-grouprange-mult', values)
+                .then((response) => {
+                    resetForm();
+                    formatted.value = null;
+                    formatMadin.value = null;
+                    formatSyah.value = null;
+                    formatWifi.value = null;
+                    toastr.success('Pay created successfully!');
+                    getBill();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        }
+    }
+
 };
 
 const createBill_s = (values, { resetForm, actions }) => {
-    if (!switchRange) {
-        axios.post('/api/bill_s', values)
+    console.log(switchAcc);
+    if (!switchRange.value) {
+        axios.post('/api/bill-single', values)
             .then((response) => {
                 resetForm();
                 formatted_s.value = null;
@@ -93,7 +165,7 @@ const createBill_s = (values, { resetForm, actions }) => {
             })
     }
     else {
-        axios.post('/api/bill_sr', values)
+        axios.post('/api/bill-singlerange', values)
             .then((response) => {
                 resetForm();
                 formatted_s.value = null;
@@ -105,19 +177,6 @@ const createBill_s = (values, { resetForm, actions }) => {
             })
 
     }
-};
-
-const createBill_r = (values, { resetForm, actions }) => {
-    axios.post('/api/bill_r', values)
-        .then((response) => {
-            resetForm();
-            formatted_s.value = null;
-            toastr.success('Pay created successfully!');
-            getBill();
-        })
-        .catch((error) => {
-            console.log(error);
-        })
 };
 
 const groupchange = (event) => {
@@ -155,9 +214,11 @@ const handleChange = (event) => {
         formatWifi.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
     }
     else if (event.target.name == 'madin') {
-        formatMadin.value = accounting.formatMoney(event.target.value, 'Rp. ', 0); }
+        formatMadin.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    }
     else if (event.target.name == 'syah') {
-         formatSyah.value = accounting.formatMoney(event.target.value, 'Rp. ', 0); }
+        formatSyah.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    }
     else {
         formatted.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
     }
@@ -389,7 +450,7 @@ onMounted(() => {
 
                         <div class="tab-pane active" id="group">
                             <Form @submit="createBill"
-                                :validation-schema="!switchRange_g ? createBillSchema : createBillSchema_r"
+                                :validation-schema="!switchRange_g ? (!switchAcc? createBillSchema:createBillSchema_mult) : (!switchAcc? createBillSchema_r:createBillSchema_rMult)"
                                 v-slot:default="{ errors }">
                                 <div class="row">
                                     <div class="col-md-6">
