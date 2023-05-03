@@ -46,6 +46,8 @@ Route::get('/api/pay/status',[PayStatusController::class,'status']);
 
 Route::get('/api/bill/search',[BillController::class,'search']);
 Route::delete('/api/bill',[BillController::class,'bulkDelete']);
+Route::delete('/api/bill/delHour',[BillController::class,'deleteHour']);
+Route::delete('/api/bill/delDay',[BillController::class,'deleteDay']);
 
 Route::post('/api/bill-single',[BillController::class,'store_single']);
 Route::post('/api/bill-singlerange',[BillController::class,'store_singleRange']);
@@ -53,6 +55,8 @@ Route::post('/api/bill-group',[BillController::class,'store_group']);
 Route::post('/api/bill-grouprange',[BillController::class,'store_groupRange']);
 Route::post('/api/bill-group-mult',[BillController::class,'store_groupMult']);
 Route::post('/api/bill-grouprange-mult',[BillController::class,'store_groupRangeMult']);
+
+
 
 Route::get('/api/group/search',[GroupController::class,'search']);
 Route::delete('/api/group',[GroupController::class,'bulkDelete']);

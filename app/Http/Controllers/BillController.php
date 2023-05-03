@@ -19,7 +19,7 @@ class BillController extends Controller
         $bill = DB::table('bills')
             ->join('users', 'users.id', '=', 'bills.user_id')
             ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->select('bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.due_date','bills.bill_remainder' ,'bills.due_date', 'users.name', 'accounts.account_name')
+            ->select('bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.due_date', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
             ->orderBy('bills.id', 'desc')->get();
 
         $bill = $bill->map(function ($item, $key) {
@@ -255,27 +255,26 @@ class BillController extends Controller
         return response()->json(['message' => 'Bills deleted successfully!']);
     }
 
-    public function deleteWeek()
+    public function deleteDay()
     {
-        // Calculate the date 7 days ago from now
-        $sevenDaysAgo = Carbon::now()->subDays(7);
+        $DaysAgo = Carbon::now()->subDays(request('type'));
 
-        // Delete only the bills created in the last 7 days
-        Bill::where('id', '=', request('id'))
-            ->whereBetween('created_at', [$sevenDaysAgo, Carbon::now()])
+        $del = Bill::whereBetween('created_at', [$DaysAgo, Carbon::now()])
             ->delete();
 
-        return response()->json(['message' => 'Bills deleted successfully!']);
+
+        return response()->json(['message' => $del]);
     }
 
-    public function deleteToday()
+    public function deleteHour()
     {
-        $today = Carbon::now()->subDays(1);
-        Bill::where('id', '=', request('id'))
-            ->whereBetween('created_at', [$today, Carbon::now()])
+
+        $Ago = Carbon::now()->subHours(request('type'));
+
+        $del = Bill::whereBetween('created_at', [$Ago, Carbon::now()])
             ->delete();
 
-        return response()->json(['message' => 'Bills deleted successfully!']);
+        return response()->json(['message' => $del]);
     }
 
     public function destroy(Bill $dispen)

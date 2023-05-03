@@ -26,7 +26,7 @@ const types = [{
 },
 {
     id: 2,
-    name: '3 Jam Terakhir'
+    name: '12 Jam Terakhir'
 },
 {
     id: 3,
@@ -34,7 +34,7 @@ const types = [{
 },
 {
     id: 4,
-    name: 'Kustom'
+    name: 'Tiga Hari Terakhir'
 }
 ];
 
@@ -109,9 +109,71 @@ const delPrompt = (values, action) => {
 
     // Show the modal
     $(modal).modal('show');
-    destroyType.value = values;
-    console.log(destroyType.value);
+    destroyType.value = values.delType;
+    console.log(destroyType);
 }
+
+const delMass = () => {
+    switch (destroyType.value) {
+        case 1:
+            axios.delete('/api/bill/delHour?type=' + 1)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message+" data deleted succesfully");
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        case 2:
+            axios.delete('/api/bill/delHour?type=' + 12)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message+" data deleted succesfully");
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        case 3:
+            axios.delete('/api/bill/delDay?type=' + 1)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message+" data deleted succesfully");
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        case 4:
+            axios.delete('/api/bill/delDay?type=' + 3)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message+" data deleted succesfully");
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        default:
+            console.log('errror');
+            break;
+    }
+    const modal = document.getElementById("myModal");
+
+    // Show the modal
+    $(modal).modal('hide');
+
+
+};
 
 const createBill = (values, { resetForm, actions }) => {
     console.log(switchAcc.value);
@@ -283,7 +345,12 @@ const getBill = () => {
                 data: response.data,
                 responsive: true,
                 columns: [
-                    { data: 'created_at' },
+                    {
+                        data: 'created_at',
+                        render(data) {
+                            return formatDate(data);
+                        }
+                    },
                     { data: "name" },
                     { data: "bill_amount" },
                     {
@@ -298,11 +365,10 @@ const getBill = () => {
                     },
                     {
                         data: "payment_status",
-
-
                     },
-                    { data: 'updated_at' },
-
+                    {
+                        data: 'updated_at'
+                    },
                     {
                         data: 'id',
                         render: (data) => {
@@ -634,7 +700,7 @@ onMounted(() => {
                     <p>
                         <button class="btn btn-primary" type="button" data-toggle="collapse"
                             data-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
-                            Hapus Massal <i class="ml-1 right fas fa-trash"></i>
+                            Hapus Per Waktu <i class="ml-1 right fas fa-trash"></i>
                         </button>
                     </p>
                     <div>
@@ -670,11 +736,13 @@ onMounted(() => {
                                     </div>
                                     <div class="modal-body">
                                         <p>Apakah Kamu Yakin Ingin Menghapus Data {{
-                                            destroyType == null ? "---" : destroyType.delType.name }} ?</p>
+                                            destroyType == null ? "---" : types.filter(item => item.id ==
+                                                destroyType).map(item => item.name)[0] }} ?</p>
+
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary">Save changes</button>
+                                        <button type="button" class="btn btn-primary" @click="delMass">Save changes</button>
                                     </div>
                                 </div>
                             </div>
