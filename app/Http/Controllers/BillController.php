@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use DateTime;
+use Carbon\Carbon;
 use App\Models\Bill;
 use App\Models\User;
+use App\Models\Account;
 use App\Enums\PayStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\Account;
 
 class BillController extends Controller
 {
@@ -18,7 +19,7 @@ class BillController extends Controller
         $bill = DB::table('bills')
             ->join('users', 'users.id', '=', 'bills.user_id')
             ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->select('bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
+            ->select('bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.due_date','bills.bill_remainder' ,'bills.due_date', 'users.name', 'accounts.account_name')
             ->orderBy('bills.id', 'desc')->get();
 
         $bill = $bill->map(function ($item, $key) {
@@ -63,20 +64,18 @@ class BillController extends Controller
         //     'password' => 'required|min:8',
         // ]);
         $users = User::where('group_id', '=', request('group'))->get();
-        $period_start = new DateTime(request('period_start'));
-        $period_end = new DateTime(request('period_end'));
-
-        $period_end->modify('+1 month');
+        $period_start = request('period_start');
+        $period_end = request('period_end');
 
         foreach ($users as $user) {
-            for ($date = $period_start; $date < $period_end; $date->modify('+1 month')) {
+            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
                 $bill = Bill::create([
                     'account_id' =>  request('account'),
                     'user_id' => $user->id,
                     'bill_amount' => request('price'),
                     'bill_remainder' => request('price'),
                     'payment_status' =>  1,
-                    'due_date' => $date,
+                    'due_date' => $month,
                 ]);
             }
         }
@@ -139,26 +138,25 @@ class BillController extends Controller
         //     'password' => 'required|min:8',
         // ]);
         $users = User::where('group_id', '=', request('group'))->get();
-        $period_start = new DateTime(request('period_start'));
-        $period_end = new DateTime(request('period_end'));
+        $period_start = request('period_start');
+        $period_end = request('period_end');
 
-        $period_end->modify('+1 month');
 
         foreach ($users as $user) {
-            for ($date = $period_start; $date < $period_end; $date->modify('+1 month')) {
+            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
                 $bill = Bill::create([
                     'account_id' => Account::where('account_name', '=', 'Madin')->first()->id,
                     'user_id' => $user->id,
                     'bill_amount' => request('madin'),
                     'bill_remainder' => request('madin'),
                     'payment_status' =>  1,
-                    'due_date' => $date,
+                    'due_date' => $month,
                 ]);
             }
         }
 
         foreach ($users as $user) {
-            for ($date = $period_start; $date < $period_end; $date->modify('+1 month')) {
+            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
 
                 $bill = Bill::create([
                     'account_id' =>  Account::where('account_name', '=', 'Syahriah')->first()->id,
@@ -166,20 +164,20 @@ class BillController extends Controller
                     'bill_amount' => request('syah'),
                     'bill_remainder' => request('syah'),
                     'payment_status' =>  1,
-                    'due_date' => $date,
+                    'due_date' => $month,
                 ]);
             }
         }
 
         foreach ($users as $user) {
-            for ($date = $period_start; $date < $period_end; $date->modify('+1 month')) {
+            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
                 $bill = Bill::create([
                     'account_id' =>  Account::where('account_name', '=', 'Wifi')->first()->id,
                     'user_id' => $user->id,
                     'bill_amount' => request('wifi'),
                     'bill_remainder' => request('wifi'),
                     'payment_status' =>  1,
-                    'due_date' => $date,
+                    'due_date' => $month,
                 ]);
             }
         }
@@ -194,17 +192,17 @@ class BillController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-
-        $bill = Bill::create([
-            'account_id' => request('account'),
-            'user_id' => request('user'),
-            'bill_amount' => request('price'),
-            'bill_remainder' => request('price'),
-            'payment_status' =>  1,
-            'due_date' => request('period'),
-        ]);
-
-        return $bill;
+        foreach (request('user') as $user) {
+            $bill = Bill::create([
+                'account_id' => request('account'),
+                'user_id' => $user,
+                'bill_amount' => request('price'),
+                'bill_remainder' => request('price'),
+                'payment_status' =>  1,
+                'due_date' => request('period'),
+            ]);
+        }
+        return request();
     }
 
     public function store_singleRange()
@@ -214,21 +212,21 @@ class BillController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-        $period_start = new DateTime(request('period_start'));
-        $period_end = new DateTime(request('period_end'));
-
-        $period_end->modify('+1 month');
-        for ($date = $period_start; $date < $period_end; $date->modify('+1 month')) {
-            $bill = Bill::create([
-                'account_id' => request('account'),
-                'user_id' => request('user'),
-                'bill_amount' => request('price'),
-                'bill_remainder' => request('price'),
-                'payment_status' =>  1,
-                'due_date' => $date,
-            ]);
+        $period_start = request('period_start');
+        $period_end = request('period_end');
+        foreach (request('user') as $user) {
+            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
+                $bill = Bill::create([
+                    'account_id' => request('account'),
+                    'user_id' => $user,
+                    'bill_amount' => request('price'),
+                    'bill_remainder' => request('price'),
+                    'payment_status' =>  1,
+                    'due_date' => $month,
+                ]);
+            }
         }
-        return $bill;
+        return request();
     }
 
     public function update(Bill $dispen)
@@ -256,6 +254,30 @@ class BillController extends Controller
 
         return response()->json(['message' => 'Bills deleted successfully!']);
     }
+
+    public function deleteWeek()
+    {
+        // Calculate the date 7 days ago from now
+        $sevenDaysAgo = Carbon::now()->subDays(7);
+
+        // Delete only the bills created in the last 7 days
+        Bill::where('id', '=', request('id'))
+            ->whereBetween('created_at', [$sevenDaysAgo, Carbon::now()])
+            ->delete();
+
+        return response()->json(['message' => 'Bills deleted successfully!']);
+    }
+
+    public function deleteToday()
+    {
+        $today = Carbon::now()->subDays(1);
+        Bill::where('id', '=', request('id'))
+            ->whereBetween('created_at', [$today, Carbon::now()])
+            ->delete();
+
+        return response()->json(['message' => 'Bills deleted successfully!']);
+    }
+
     public function destroy(Bill $dispen)
     {
         $dispen->delete();

@@ -10,3 +10,8 @@ export function formatDateTimestamp(value) {
         return moment(String(value)).format('YYYY-MM-DD HH:MM:SS A');
     }
 }
+export function formatMonth(value) {
+    if (value) {
+        return moment(String(value)).format('YYYY-MM');
+    }
+}

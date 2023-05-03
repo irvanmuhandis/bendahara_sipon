@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useToastr } from '../../toastr';
 import { Form, Field, useResetForm, useField, useForm } from 'vee-validate';
 import * as yup from 'yup';
+import { formatDate, formatMonth } from '../../helper.js';
 
 const toastr = useToastr();
 const router = useRouter();
@@ -19,6 +20,23 @@ const formatSyah = ref();
 const formatWifi = ref();
 const formatted_s = ref();
 const switchRange = ref();
+const types = [{
+    id: 1,
+    name: 'Satu Jam Terakhir',
+},
+{
+    id: 2,
+    name: '3 Jam Terakhir'
+},
+{
+    id: 3,
+    name: 'Satu Hari Terakhir'
+},
+{
+    id: 4,
+    name: 'Kustom'
+}
+];
 
 const switchRange_g = ref();
 const switchAcc = ref(false);
@@ -60,7 +78,7 @@ const createBillSchema_r = yup.object({
     account: yup.number().required(),
 });
 
-const createBillSchema_rMult =  yup.object({
+const createBillSchema_rMult = yup.object({
     group: yup.number().required(),
     period_start: yup.date().required(),
     period_end: yup.date().required(),
@@ -84,7 +102,16 @@ const createBillSchema_sr = yup.object({
     account: yup.number().required(),
 });
 
+const destroyType = ref(null);
 
+const delPrompt = (values, action) => {
+    const modal = document.getElementById("myModal");
+
+    // Show the modal
+    $(modal).modal('show');
+    destroyType.value = values;
+    console.log(destroyType.value);
+}
 
 const createBill = (values, { resetForm, actions }) => {
     console.log(switchAcc.value);
@@ -259,7 +286,12 @@ const getBill = () => {
                     { data: 'created_at' },
                     { data: "name" },
                     { data: "bill_amount" },
-                    { data: 'bill_remainder' },
+                    {
+                        data: 'due_date',
+                        render(data) {
+                            return formatMonth(data);
+                        },
+                    },
 
                     {
                         data: "account_name"
@@ -450,7 +482,7 @@ onMounted(() => {
 
                         <div class="tab-pane active" id="group">
                             <Form @submit="createBill"
-                                :validation-schema="!switchRange_g ? (!switchAcc? createBillSchema:createBillSchema_mult) : (!switchAcc? createBillSchema_r:createBillSchema_rMult)"
+                                :validation-schema="!switchRange_g ? (!switchAcc ? createBillSchema : createBillSchema_mult) : (!switchAcc ? createBillSchema_r : createBillSchema_rMult)"
                                 v-slot:default="{ errors }">
                                 <div class="row">
                                     <div class="col-md-6">
@@ -599,16 +631,66 @@ onMounted(() => {
             </div>
             <div class="card">
                 <div class="card-header">
-                    <h4 class="mx text-center">List Bill</h4>
+                    <p>
+                        <button class="btn btn-primary" type="button" data-toggle="collapse"
+                            data-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
+                            Hapus Massal <i class="ml-1 right fas fa-trash"></i>
+                        </button>
+                    </p>
+                    <div>
+                        <div class="collapse " id="collapseWidthExample">
+
+                            <Form @submit="delPrompt" class="row">
+                                <div class="col-md">
+
+                                    <Field as="select" class="form-control" name="delType">
+                                        <option disabled>Pilih Salah Satu</option>
+                                        <option v-for="t in types" :value="t.id">
+                                            {{ t.name }}
+                                        </option>
+                                    </Field>
+
+
+                                </div>
+                                <div class="col-md">
+                                    <button type="submit" class="btn btn-danger">Hapus</button>
+                                </div>
+
+                            </Form>
+                        </div>
+                        <!-- Modal -->
+                        <div class="modal" tabindex="-1" role="dialog" id="myModal">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Modal title</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Apakah Kamu Yakin Ingin Menghapus Data {{
+                                            destroyType == null ? "---" : destroyType.delType.name }} ?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary">Save changes</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
+                    <h4 class="mx text-center"></h4>
+
                     <table id="myTable" class="display table table-bordered " style="overflow: auto;width:100%">
                         <thead>
                             <tr>
                                 <th>Created</th>
                                 <th>Name</th>
                                 <th>Amount</th>
-                                <th>Remainder</th>
+                                <th>Periode</th>
                                 <th>Account</th>
                                 <th>Status</th>
                                 <th>Update</th>
@@ -645,6 +727,7 @@ export default {
         changePage(page) {
             this.search(page);
         },
+
 
 
     },

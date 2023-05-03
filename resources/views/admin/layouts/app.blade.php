@@ -88,21 +88,28 @@
                                 </p>
                             </router-link>
                         </li>
+
                         <li class="nav-item">
-                            <router-link to="/admin/dispens" active-class="active" class="nav-link">
-                                <i class="nav-icon fas fa-scroll"></i>
+                            <router-link to="/admin/trans" active-class="active" class="nav-link">
+                                <i class="nav-icon fas fa-receipt"></i>
                                 <p>
-                                    Dispensations
+                                    Transaction
                                 </p>
                             </router-link>
                         </li>
+                        <li class="nav-item">
+                            <router-link to="/admin/pay" :class="$route.path.startsWith('/admin/pay') ? 'active' : ''"
+                                active-class="active" class="nav-link">
+                                <i class="nav-icon fas fa-money-bill-wave"></i>
+                                <p>
+                                    Pay
+                                </p>
+                            </router-link>
 
-
-
-
+                        </li>
                         <li class="nav-item"><a href="#" class="nav-link"><i
                                     class="nav-icon fas fa-money-bill"></i>
-                                <p> Payment <i class="right fas fa-angle-left"></i></p>
+                                <p> Tagihan <i class="right fas fa-angle-left"></i></p>
                             </a>
                             <ul class="nav nav-treeview"
                                 style="background: rgb(255, 255, 255);border:grey solid 2px;border-radius:8px">
@@ -115,31 +122,18 @@
                                     </router-link>
                                 </li>
                                 <li class="nav-item">
-                                    <router-link to="/admin/pay" :class="$route.path.startsWith('/admin/pay')?'active': ''" active-class="active" class="nav-link">
-                                        <i class="nav-icon fas fa-money-bill-wave"></i>
-                                        <p>
-                                            Pay
-                                        </p>
-                                    </router-link>
-                                </li>
-                                <li class="nav-item">
-                                    <router-link to="/admin/bill" :class="$route.path.startsWith('/admin/bill')?'active': ''" active-class="active" class="nav-link">
+                                    <router-link to="/admin/bill"
+                                        :class="$route.path.startsWith('/admin/bill') ? 'active' : ''"
+                                        active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-money-check-alt"></i>
                                         <p>
                                             Bill
                                         </p>
                                     </router-link>
                                 </li>
-                                <li class="nav-item">
-                                    <router-link to="/admin/trans" active-class="active" class="nav-link">
-                                        <i class="nav-icon fas fa-receipt"></i>
-                                        <p>
-                                            Transaction
-                                        </p>
-                                    </router-link>
-                                </li>
                             </ul>
                         </li>
+
                         <li class="nav-item"><a href="#" class="nav-link"><i
                                     class="nav-icon fas fa-tools"></i>
                                 <p> Setting <i class="right fas fa-angle-left"></i></p>
@@ -171,7 +165,14 @@
                                         </p>
                                     </router-link>
                                 </li>
-
+                                <li class="nav-item">
+                                    <router-link to="/admin/dispens" active-class="active" class="nav-link">
+                                        <i class="nav-icon fas fa-scroll"></i>
+                                        <p>
+                                            Dispensations
+                                        </p>
+                                    </router-link>
+                                </li>
                             </ul>
                         </li>
                         <li class="nav-item">

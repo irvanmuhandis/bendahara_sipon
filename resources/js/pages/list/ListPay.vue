@@ -381,16 +381,16 @@ onMounted(() => {
 
                 <div class="card-body">
                     <div class="row pb-3">
-                    <router-link to="/admin/pay/create-bill" class="col-md-6">
-                        <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
-                            Add Bill Payment</button>
-                    </router-link>
-                    <router-link to="/admin/pay/create-debt" class="col-md-6">
-                        <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
-                            Add Debt Payment</button>
-                    </router-link>
+                        <router-link to="/admin/pay/create-bill" class="col-md-6">
+                            <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
+                                Add Bill Payment</button>
+                        </router-link>
+                        <router-link to="/admin/pay/create-debt" class="col-md-6">
+                            <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
+                                Add Debt Payment</button>
+                        </router-link>
 
-                </div>
+                    </div>
                     <!-- <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
                         <i class="fa fa-plus-circle mr-1"></i>
                         Add New Pay Bill
@@ -446,8 +446,6 @@ onMounted(() => {
             </div>
         </div>
     </div>
-
-
 </template>
 
 <script>
