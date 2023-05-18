@@ -19,6 +19,8 @@ return new class extends Migration
             $table->foreignId('wallet_id');
             $table->timestamps();
             $table->foreignId('user_id');
+            $table->bigInteger('operator_id')->unsigned();
+            $table->foreign('operator_id')->references('id')->on('users');
             $table->integer("payable_id")->nullable();
             $table->string("payable_type")->nullable();
         });

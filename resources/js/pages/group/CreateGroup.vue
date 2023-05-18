@@ -16,7 +16,7 @@ const selectedUser = ref([]);
 
 const formatted = ref();
 const formatted_s = ref();
-const countUser = ref(0);
+const countUser = ref();
 
 
 
@@ -33,7 +33,7 @@ const getUser = async () => {
 }
 
 const count = () =>{
-    countUser = selectedUser.length;
+    countUser.value = selectedUser.length;
 }
 
 const createBillSchema = yup.object({

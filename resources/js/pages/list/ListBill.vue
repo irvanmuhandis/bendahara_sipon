@@ -16,7 +16,133 @@ const wallets = ref([]);
 const editing = ref(false);
 const formValues = ref(null);
 const form = ref(null);
+const types = [{
+    id: 1,
+    name: 'Satu Jam Terakhir',
+},
+{
+    id: 2,
+    name: '12 Jam Terakhir'
+},
+{
+    id: 3,
+    name: 'Satu Hari Terakhir'
+},
+{
+    id: 4,
+    name: '30 Hari Terakhir'
+},
+{
+    id: 5,
+    name: '10 Data Terakhir'
+},
+{
+    id: 6,
+    name: '100 Data Terakhir'
+}
+];
+const destroyType = ref(null);
 
+const delPrompt = (values, action) => {
+    const modal = document.getElementById("myModal");
+
+    // Show the modal
+    $(modal).modal('show');
+    destroyType.value = values.delType;
+    console.log(destroyType);
+}
+
+const delMass = () => {
+    switch (destroyType.value) {
+        case 1:
+            axios.delete('/api/bill/delHour?type=' + 1)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message + " data deleted succesfully");
+                    getData();
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        case 2:
+            axios.delete('/api/bill/delHour?type=' + 12)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message + " data deleted succesfully");
+                    getData();
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        case 3:
+            axios.delete('/api/bill/delDay?type=' + 1)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message + " data deleted succesfully");
+                    getData();
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        case 4:
+            axios.delete('/api/bill/delDay?type=' + 30)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message + " data deleted succesfully");
+                    getData();
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        case 5:
+            axios.delete('/api/bill/del?type=' + 10)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message + " data deleted succesfully");
+                    getData();
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        case 6:
+            axios.delete('/api/bill/del?type=' + 100)
+                .then((response) => {
+
+
+                    toastr.success(response.data.message + " data deleted succesfully");
+                    getData();
+
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+            break;
+        default:
+            console.log('errror');
+            break;
+    }
+    const modal = document.getElementById("myModal");
+
+    // Show the modal
+    $(modal).modal('hide');
+
+
+};
 
 const confirmDataDeletion = (id) => {
     payIdBeingDeleted.value = id;
@@ -180,6 +306,7 @@ const getData = () => {
 
                 data: listBill.value,
                 responsive: true,
+                destroy:true,
                 columns: [
 
                     { data: "id" },
@@ -256,11 +383,66 @@ onMounted(() => {
             <div class="card">
                 <div class="card-body">
                     <div class="row pb-3">
-                    <router-link to="/admin/bill/create" class="col-md-12">
-                        <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New Bill </button>
-                    </router-link>
+                        <div class="col-md-3">
+                            <button class="w-100 btn btn-primary" type="button" data-toggle="collapse"
+                                data-target="#collapseWidthExample" aria-expanded="false"
+                                aria-controls="collapseWidthExample">
+                                Hapus Per Waktu <i class="ml-1 right fas fa-trash"></i>
+                            </button>
 
-                </div>
+                            <div class="collapse mt-2" id="collapseWidthExample">
+
+                                <Form @submit="delPrompt" class="row">
+                                    <div class="col-md">
+
+                                        <Field as="select" class="form-control" name="delType">
+                                            <option disabled>Pilih Salah Satu</option>
+                                            <option v-for="t in types" :value="t.id">
+                                                {{ t.name }}
+                                            </option>
+                                        </Field>
+
+
+                                    </div>
+                                    <div class="col-md">
+                                        <button type="submit" class="btn btn-danger">Hapus</button>
+                                    </div>
+
+                                </Form>
+                            </div>
+                            <!-- Modal -->
+                            <div class="modal" tabindex="-1" role="dialog" id="myModal">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Modal title</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Apakah Kamu Yakin Ingin Menghapus Data {{
+                                                destroyType == null ? "---" : types.filter(item => item.id ==
+                                                    destroyType).map(item => item.name)[0] }} ?</p>
+
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-primary" @click="delMass">Save
+                                                changes</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <router-link to="/admin/bill/create" class="col-md">
+                            <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New Bill
+                            </button>
+                        </router-link>
+
+
+                    </div>
 
 
                     <table id="myTable" class="table table-bordered display hover ">
@@ -279,7 +461,6 @@ onMounted(() => {
                         <tbody>
                         </tbody>
                     </table>
-
                 </div>
             </div>
         </div>

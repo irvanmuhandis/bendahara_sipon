@@ -2,37 +2,51 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Dispen;
-use App\Enums\PayStatus;
-use App\Enums\DebtStatus;
+use Carbon\Carbon;
 use App\Models\Debt;
-use Illuminate\Http\Request;
+use App\Enums\PayStatus;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Status\PayStatusController;
 
 
 class DebtController extends Controller
 {
     public function index()
     {
-        return Debt::query()->with('user:id,name')
-            ->when(request('status'), function ($query) {
-                return $query->where('status', PayStatus::from(request(('status'))));
-            })
-            ->latest()
-            ->paginate(3)
-            ->through(fn ($app) => [
-                'id' => $app->id,
-                'status' => [
-                    'name' => $app->status->name,
-                    'color' => $app->status->color(),
-                ],
-                'user' => $app->user,
-                'title' => $app->title,
-                'debt' => $app->debt,
-                'remainder' => $app->remainder
+        $debt = DB::table('debts')
+            ->join('users', 'users.id', '=', 'debts.user_id')
+            ->join('users as operator', 'operator.id', '=', 'debts.user_id')
+            ->select('debts.created_at','debts.updated_at','debts.id','operator.name as operator', 'users.name as user', 'debts.amount as debt', 'debts.payment_status', 'debts.title', 'debts.remainder')
+            ->orderBy('debts.id', 'desc')->get();
+
+        $debt = $debt->map(function ($item, $key) {
+            $paymentStatus = PayStatus::from($item->payment_status);
+            $item->payment_status = $paymentStatus->names();
+            $item->status_color = $paymentStatus->color();
+            return $item;
+        });
+        return $debt;
+    }
+
+    public function store()
+    {
+        // request()->validate([
+        //     'name' => 'required',
+        //     'email' => 'required|unique:dispens,email',
+        //     'password' => 'required|min:8',
+        // ]);
+        foreach (request('user') as $user) {
+            $bill = Debt::create([
+                'account_id' => 1,
+                'user_id' => $user,
+                'operator_id' => rand(1,3),
+                'amount' => request('price'),
+                'remainder' => request('price'),
+                'payment_status' =>  1,
+                'title' => request('title'),
             ]);
+        }
+        return request();
     }
 
     public function search()
@@ -98,5 +112,39 @@ class DebtController extends Controller
 
         return $debt;
     }
+
+    public function deleteDay()
+    {
+        $DaysAgo = Carbon::now()->subDays(request('type'));
+
+        $del = Debt::whereBetween('created_at', [$DaysAgo, Carbon::now()])
+            ->delete();
+
+
+        return response()->json(['message' => $del]);
+    }
+
+    public function deleteHour()
+    {
+
+        $Ago = Carbon::now()->subHours(request('type'));
+
+        $del = Debt::whereBetween('created_at', [$Ago, Carbon::now()])
+            ->delete();
+
+        return response()->json(['message' => $del]);
+    }
+
+    public function deleteMany()
+    {
+        $data = Debt::orderBy('id', 'desc')->take(request('type'))->get();
+
+        foreach ($data as $row) {
+            $row->delete();
+        }
+
+        return response()->json(['message' => `Last `+request('type')+` rows deleted successfully`]);
+    }
+
 
 }

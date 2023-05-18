@@ -20,6 +20,8 @@ return new class extends Migration
             $table->string('due_date');
             $table->foreignId('user_id');
             $table->foreignId('account_id');
+            $table->bigInteger('operator_id')->unsigned();
+            $table->foreign('operator_id')->references('id')->on('users');
             $table->integer('payment_status');
             $table->timestamps();
         });

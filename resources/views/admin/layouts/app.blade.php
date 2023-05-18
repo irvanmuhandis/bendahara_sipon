@@ -6,9 +6,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CUAN | Bendahara</title>
-    <!-- DataTables -->
-
+    <link rel="icon" type="image/x-icon" href="{{url('/images/cuak.ico')}}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
 </head>
 
 <body class="hold-transition sidebar-mini">
@@ -114,7 +114,7 @@
                             <ul class="nav nav-treeview"
                                 style="background: rgb(255, 255, 255);border:grey solid 2px;border-radius:8px">
                                 <li class="nav-item">
-                                    <router-link to="/admin/incident" active-class="active" class="nav-link">
+                                    <router-link to="/admin/debt" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-piggy-bank"></i>
                                         <p>
                                             Debt

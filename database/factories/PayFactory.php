@@ -35,6 +35,7 @@ class PayFactory extends Factory
         return [
             'payment' => rand(1000,9000),
             'user_id'=>rand(1,10),
+            'operator_id'=>rand(1,3),
             'wallet_id' => Wallet::find(rand(1, 3))->id,
             'payable_id' => $id,
             'payable_type' => Bill::class

@@ -1,45 +1,57 @@
 <script setup>
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToastr } from '../../toastr';
 import { Form, Field, useResetForm, useField, useForm } from 'vee-validate';
-import * as yup from 'yup';
+
+import { Bootstrap4Pagination } from 'laravel-vue-pagination';
+import accounting from 'accounting';
+import { formatDate } from '../../helper';
 
 const toastr = useToastr();
-const router = useRouter();
-const form = reactive({
-    title: '',
-    client_id: '',
-    client_date: '',
-    start_time: '',
-    end_time: '',
-    desc: ''
-})
-const formValues = ref(0);
+
 const users = ref([]);
-const user = ref(0);
 const wallets = ref([]);
-const wallet = ref(0);
-const checked = ref([]);
 const total = ref(0);
-const pay = ref([]);
+
 const remainder = ref([]);
-const userbill = ref([]);
+const userbill = ref({ 'data': [] });
 const pay_status = ref([]);
 const formatted = ref();
+const isLoading = ref(true);
+const init = ref(true);
+const errors = ref({
+    'user': null,
+    'bill': null,
+    'date': null,
+    'wallet_id': null,
+    'payment': null
+});
+const form = ref({
+    'user': null,
+    'bill': [],
+    'date': new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 16),
+    'wallet_id': null,
+    'payment': null
+});
 
 
-const totalize = () => {
 
-    remainder.value = [];
-    total.value = 0;
-    console.log("bill clicked");
-    console.log(checked.value)
-    checked.value.forEach((id) => {
-        const item = userbill.value.find((item) => item.id === id);
-        total.value = total.value + item.bill_remainder;
+const checkLength = computed(() => {
+    return form.value.bill.length;
+});
+const totalize = (event, id) => {
+
+    const item = userbill.value.data.find((item) => item.id === id);
+    if (event.target.checked) {
+        total.value += item.bill_remainder;
         remainder.value.push(item.bill_remainder);
-    });
+    }
+    else {
+        total.value -= item.bill_remainder;
+        remainder.value.unshift(item.bill_remainder);
+    }
+
 }
 
 const getUser = async () => {
@@ -65,61 +77,113 @@ const getWallet = async () => {
     }
 }
 
-const getUserbill = async () => {
-    checked.value = [];
-
+const getUserbill = async (page = 1) => {
+    console.log(form.value.bill);
     try {
-        const response = await axios.get(`/api/user/bill/${user.value}`);
+        const response = await axios.get(`/api/user/bill/${form.value.user.id}?page=${page}`);
         userbill.value = response.data;
+        isLoading.value = false;
     } catch (error) {
         console.error(error);
     }
 };
 
-const createPayBillSchema = yup.object({
-    user_id: yup.number().required(),
-    payment: yup.number().required(),
-    date: yup.date().required(),
-    wallet_id: yup.number().required(),
-    bill_id: yup.array().min(1, 'You must select at least one bill option').of(
-        yup.number()).required(),
-    // bill_id: yup.number().required()
-}).test('payment-more-than-total', 'Payment should not more than the total', function (values) {
-    const ttl = total.value;
-    const py = values.payment;
-    if (py > ttl) {
-        throw new yup.ValidationError('Payment should not more than the total', null, 'payment');
+// const createPayBillSchema = yup.object({
+//     user_id: yup.number().required(),
+//     payment: yup.number().required(),
+//     date: yup.date().required(),
+//     wallet_id: yup.number().required(),
+//     bill_id: yup.array().min(1, 'You must select at least one bill option').of(
+//         yup.number()).required(),
+//     // bill_id: yup.number().required()
+// }).test('payment-more-than-total', 'Payment should not more than the total', function (values) {
+//     const ttl = total.value;
+//     const py = values.payment;
+//     if (py > ttl) {
+//         throw new yup.ValidationError('Payment should not more than the total', null, 'payment');
+//     }
+//     if (form.bill == []) {
+//         throw new yup.ValidationError('Insert atleast 1 bill ', null, 'bill_id');
+//     }
+//     return true;
+// });
+const clearform = () => {
+    for (const key in errors.value) {
+        errors.value[key] = null;
     }
-    if (checked == []) {
-        throw new yup.ValidationError('Insert atleast 1 bill ', null, 'bill_id');
+    for (const key in form.value) {
+        form.value[key] = null;
     }
-    return true;
-});
+}
 
+const validateBill = () => {
+    var err = 0;
 
-const createPay = (values, { resetForm, actions }) => {
-    values.remainder = remainder.value;
+    for (const key in errors.value) {
+        errors.value[key] = null;
+    }
+    if (form.value.user == null) {
+        errors.value.user = 'Pilih User ';
+        err += 1;
+    }
+    if (form.value.bill.length == 0) {
+        errors.value.bill = 'Pilih Bill '
+        err += 1;
+    }
+    if (form.value.payment == null) {
+        errors.value.payment = 'Masukkan jumlah pembayaran '
+        err += 1;
+    }
+    if (form.value.wallet_id == null) {
+        errors.value.wallet_id = 'Pilih dompet '
+        err += 1;
+    }
+    if (form.value.date == null) {
+        errors.value.date = 'Pilih tanggal '
+        err += 1;
+    }
+    if (form.value.payment > total.value) {
+        errors.value.payment = 'Pembayaran tidak boleh lebih dari total '
+        err += 1;
+    }
 
-    axios.post('/api/pay', values)
-        .then((response) => {
-            resetForm();
-            userbill.value = [];
-            total.value = 0;
-            formatted.value = null;
-            toastr.success('Pay created successfully!');
-            getPayBill();
-        })
-        .catch((error) => {
-            console.log(error);
-        })
+    if (err == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+const createPay = (event) => {
+    event.preventDefault();
+    form.value.remainder = remainder.value;
+    if (validateBill()) {
+        axios.post('/api/pay/bill', form.value)
+            .then((response) => {
+                clearform();
+                isLoading.value = true;
+                userbill.value = [];
+                total.value = 0;
+                formatted.value = null;
+                toastr.success('Pay created successfully!');
+                getPayBill();
+            })
+            .catch((error) => {
+                console.log(error);
+                toastr.error(error);
+            })
+    }
 };
 
-const walletchange = (event) => {
-    wallet.value = event.target.value;
-    console.log(wallet.value);
-}
+
 const userchange = (event) => {
-    user.value = event.target.value;
+    isLoading.value = true;
+    init.value = false;
+    console.log('user changed');
+    total.value = 0;
+    form.value.bill = [];
+    remainder.value = [];
     getUserbill();
 }
 const getPayStatus = () => {
@@ -135,7 +199,7 @@ const handleChange = (event) => {
 
 
 const getPayBill = () => {
-    axios.get(`/api/pay`)
+    axios.get(`/api/paybill`)
         .then((response) => {
             $("#myTable").DataTable({
                 destroy: true,
@@ -157,25 +221,16 @@ const getPayBill = () => {
                 data: response.data,
                 responsive: true,
                 columns: [
-                    { data: 'created_at' },
+                    {
+                        data: 'created_at',
+                        render: function (data) {
+                            return formatDate(data);
+                        }
+                    },
                     { data: "name" },
                     { data: "payment" },
                     { data: "wallet_name" },
-                    {
-                        data: "payable_type",
-                        render: function (data) {
-                            switch (data) {
-                                case "App\\Models\\Bill":
-                                    return `<span class="badge badge-primary">Bill</span>`;
-                                    break;
-                                case "App\\Models\\Debts":
-                                    return `<span class="badge badge-danger">Debt</span>`;
-                                    break;
-                                default:
-                                    return `<span class="badge badge-secondary">Null</span>`;
-                            }
-                        }
-                    },
+                    { data: "account_name" },
                     { data: 'updated_at' },
 
                     {
@@ -238,7 +293,7 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0">Create Payment Bill</h1>
+                    <RouterLink to="/admin/pay"><i class="fa fa-arrow-left"></i><strong> Kembali</strong></RouterLink>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -259,79 +314,97 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12 card">
+                    <div class="text-center card-header">
+                        <h3 class="m-0">Create Payment Bill</h3>
+                    </div>
                     <div class="card-body">
-                        <Form @submit="createPay" :validation-schema="createPayBillSchema" v-slot:default="{ errors }">
+                        <form @submit="createPay">
                             <div class="row">
                                 <div class="col-md-6">
+
                                     <div class="form-group">
-                                        <label>User</label>
-                                        <Field as="select" @change="userchange" class="form-control"
-                                            :class="{ 'is-invalid': errors.user_id }" name="user_id">
-                                            <option disabled>Pilih Salah Satu</option>
 
-                                            <option v-for="user in users" :value="user.id">{{ user.id + "|" + user.name }}
-                                            </option>
-
-                                        </Field>
-                                        <span class="invalid-feedback">{{ errors.user_id }}</span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Wallet</label>
-                                        <Field as="select" class="form-control" :class="{ 'is-invalid': errors.wallet_id }"
-                                            name="wallet_id">
-                                            <option disabled>Pilih Salah Satu</option>
-
-                                            <option v-for="wallet in wallets" :value="wallet.id">{{ wallet.wallet_name }}
-                                            </option>
-
-                                        </Field>
-                                        <span class="invalid-feedback">{{ errors.wallet_id }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group" >
                                         <label>Bill</label>
-                                        <div class="row mb-1" v-for="bill in userbill" :key="bill.id">
-                                            <Field  name="bill_id" type="checkbox" @change="totalize" v-model="checked"
-                                                class="col-md-1" :value="bill.id"/>
-                                            <label class="col-md-11">
-                                                {{ bill.account_name }}
-                                                <span class="text-right text-monospace">{{
-                                                    accounting.formatMoney(
-                                                        bill.bill_remainder, "Rp", 0) }}
-                                                    ({{
-                                                        (pay_status.find(obj => obj.value === bill.payment_status)).name
-                                                    }})
-                                                </span>
-                                            </label>
+                                        <div v-if="checkLength != 0">
+                                            <i> {{ checkLength }} bill dipilih</i>
+                                        </div>
+                                        <div v-if="isLoading" class="text-center">
+                                            <div class="spinner-border row text-primary mx-auto" role="status"></div>
+                                            <div v-if="init" class="h6">Pilih User Terlebih Dahulu</div>
+                                        </div>
+                                        <div v-else>
+                                            <div v-for="bill in userbill.data" :key="bill.id">
+                                                <input type="checkbox" @change="totalize($event, bill.id)"
+                                                    v-model="form.bill" :value="bill.id" />
+                                                <label class="ml-2">
+                                                    {{ bill.account_name }} | {{ bill.due_date }}
+                                                    <span class="text-right text-monospace">
+                                                        <div :class="'badge badge-' + bill.color">{{
+                                                            (pay_status.find(obj => obj.value === bill.payment_status)).name
+                                                        }}</div>
+                                                        {{
+                                                            accounting.formatMoney(
+                                                                bill.bill_remainder, "Rp", 0) }}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                            <Bootstrap4Pagination :data="userbill" @pagination-change-page="getUserbill" />
+                                            <input type="text" class="d-none is-invalid">
+                                            <span class="invalid-feedback">{{ errors.bill }}</span>
                                         </div>
                                     </div>
 
-                                </div>
 
+                                </div>
                                 <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label>User</label>
+                                        <VueMultiselect v-model="form.user" :option-height="9" @input="userchange"
+                                            @remove="userchange" @select="userchange" :options="users"
+                                            :class="{ 'is-invalid': errors.user }" :close-on-select="true"
+                                            placeholder="Pilih Satu / Lebih" label="name" track-by="id"
+                                            :show-labels="false">
+                                            <template v-slot:option="{ option }">
+                                                <div>{{ option.name }} - {{ option.id }} </div>
+                                            </template>
+                                        </VueMultiselect>
+                                        <span class="invalid-feedback">{{ errors.user }}</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Wallet</label>
+                                        <VueMultiselect v-model="form.wallet_id" :option-height="9" :options="wallets"
+                                            :class="{ 'is-invalid': errors.wallet_id }" :close-on-select="true"
+                                            placeholder="Pilih Satu / Lebih" label="wallet_name" track-by="id"
+                                            :show-labels="false">
+                                            <template v-slot:option="{ option }">
+                                                <div>{{ option.wallet_name }} - {{ option.id }} </div>
+                                            </template>
+                                        </VueMultiselect>
+
+                                        <span class="invalid-feedback">{{ errors.wallet_id }}</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="description">Date</label>
+                                        <input :class="{ 'is-invalid': errors.date }" class="form-control"
+                                            v-model="form.date" type="datetime-local" />
+                                        <span class="invalid-feedback">{{ errors.date }}</span>
+                                    </div>
                                     <div class="form-group">
                                         <label>Payment</label><br>
                                         <span>Total Bill : {{ accounting.formatMoney(total, "Rp", 0) }}</span>
-                                        <Field type="number" name="payment" @keyup="handleChange"
+
+                                        <input type="number" v-model="form.payment" @keyup="handleChange"
                                             :class="{ 'is-invalid': errors.payment }" class="form-control" id="time" />
-                                        <span>{{ formatted }}</span><br>
-                                        <span class="invalid-feedback">{{ errors.bill_id }}</span>
                                         <span class="invalid-feedback">{{ errors.payment }}</span>
+                                        <span>{{ formatted }}</span><br>
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label for="description">Date</label>
-                                <Field :class="{ 'is-invalid': errors.date }" class="form-control" name="date"
-                                    type="date" />
-                                <span class="invalid-feedback">{{ errors.date }}</span>
+                            <div class="row">
+                                <div class="col">
+                                    <button type="submit" class="btn btn-primary w-100">Submit</button>
+                                </div>
                             </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
                             {{ errors }}
                         </Form>
                     </div>
@@ -367,30 +440,4 @@ onMounted(() => {
     </div>
 </template>
 
-<script>
 
-
-
-import accounting from 'accounting';
-export default {
-    // computed property to retrieve current page number
-    computed: {
-        currentPage() {
-            return this.listpays.current_page;
-        }
-    },
-
-    // methods to handle pagination events
-    methods: {
-        changePage(page) {
-            this.search(page);
-        },
-
-
-    },
-
-}
-
-
-
-</script>

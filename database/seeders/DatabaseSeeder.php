@@ -6,12 +6,14 @@ use App\Models\Account;
 use App\Models\BigBook;
 use App\Models\Pay;
 use App\Models\Bill;
+use App\Models\Debt;
 use App\Models\User;
 use App\Models\Dispen;
 use App\Models\Expense;
 use App\Models\Group;
 use App\Models\GroupHistory;
 use App\Models\Periodic;
+use App\Models\statusColor;
 use App\Models\Trans;
 use App\Models\Wallet;
 use Illuminate\Database\Seeder;
@@ -160,10 +162,28 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now()
             ]
         ]);
-        User::factory(10)->create();
+        $status = [
+            [
+                'status_id' => 1,
+                'color' => 'danger'
+            ],
+            [
+                'status_id' => 2,
+                'color' => 'warning'
+            ], [
+                'status_id' => 3,
+                'color' => 'success'
+            ], [
+                'status_id' => 4,
+                'color' => 'primary'
+            ]
+        ];
+        DB::table('status_colors')->insert($status);
+        User::factory(25)->create();
         DB::table('groups')->insert($grup);
-        Bill::factory(20)->create();
+        Bill::factory(200)->create();
         Pay::factory(40)->create();
+        Debt::factory(400)->create();
         Dispen::factory(20)->create();
         Trans::factory(20)->create();
         $pays = Pay::all();
@@ -191,11 +211,11 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        for ($i = 1; $i < 10; $i++) {
-            $user= User::find($i);
-            $grup = Group::find($i);
-            $user->group()->attach($grup);
-        }
+        // for ($i = 1; $i < 10; $i++) {
+        //     $user= User::find($i);
+        //     $grup = Group::find($i);
+        //     $user->group()->attach($grup);
+        // }
 
         $exps = Trans::all();
         foreach ($exps as $exp) {

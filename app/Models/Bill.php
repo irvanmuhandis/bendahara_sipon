@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Bill extends Model
 {
     use HasFactory;
-    protected $fillable = ['bill_amount','bill_remainder','due_date','user_id','account_id','payment_status'];
+    protected $guarded = [];
 
 
     public function pay()

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Exception;
 use App\Models\User;
+use App\Enums\PayStatus;
 use Illuminate\Http\Request;
+use Ramsey\Uuid\Type\Integer;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Exception;
-use Ramsey\Uuid\Type\Integer;
 
 class UserController extends Controller
 {
@@ -37,12 +38,29 @@ class UserController extends Controller
 
             ->join('users', 'users.id', '=', 'bills.user_id')
             ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->select('bills.*', 'accounts.account_name', 'users.name')
+            ->join('status_colors','status_colors.status_id','=','bills.payment_status')
+            ->select('bills.*', 'accounts.account_name', 'users.name','status_colors.color')
             ->where('bills.user_id', '=', $id)
             ->where('bills.payment_status', '<', 3)
-            ->orderBy('users.id', 'asc')
-            ->get();
-        return $db;
+            ->orderBy('bills.due_date', 'desc')
+            ->latest()->paginate(9);
+
+        return response()->json($db);
+    }
+
+    public function debt($id)
+    {
+        $db = DB::table('debts')
+            ->join('users', 'users.id', '=', 'debts.user_id')
+            ->join('accounts', 'accounts.id', '=', 'debts.account_id')
+            ->join('status_colors','status_colors.status_id','=','debts.payment_status')
+            ->select('debts.*', 'accounts.account_name', 'users.name','status_colors.color')
+            ->where('debts.user_id', '=', $id)
+            ->where('debts.payment_status', '<', 3)
+            ->orderBy('debts.created_at', 'desc')
+            ->latest()->paginate(7);
+
+        return response()->json($db);
     }
 
     public function list()

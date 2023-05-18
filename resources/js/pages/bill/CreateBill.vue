@@ -2,13 +2,14 @@
 import { reactive, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToastr } from '../../toastr';
-import { Form, Field, useResetForm, useField, useForm } from 'vee-validate';
+import { Form, Field, useResetForm, useField, useForm, validate } from 'vee-validate';
 import * as yup from 'yup';
 import { formatDate, formatMonth } from '../../helper.js';
+import accounting from 'accounting';
 
 const toastr = useToastr();
 const router = useRouter();
-
+const user = ref([]);
 const users = ref([]);
 const groups = ref([]);
 const accounts = ref([]);
@@ -20,27 +21,27 @@ const formatSyah = ref();
 const formatWifi = ref();
 const formatted_s = ref();
 const switchRange = ref();
-const types = [{
-    id: 1,
-    name: 'Satu Jam Terakhir',
-},
-{
-    id: 2,
-    name: '12 Jam Terakhir'
-},
-{
-    id: 3,
-    name: 'Satu Hari Terakhir'
-},
-{
-    id: 4,
-    name: 'Tiga Hari Terakhir'
-}
-];
+
 
 const switchRange_g = ref();
 const switchAcc = ref(false);
 
+const errors = ref({
+    'user': null,
+    'period': null,
+    'period_start': null,
+    'period_end': null,
+    'price': null,
+    'account': null
+});
+const form = ref({
+    'user': [],
+    'period': null,
+    'period_start': null,
+    'period_end': null,
+    'price': null,
+    'account': null
+});
 
 const getUser = async () => {
 
@@ -48,6 +49,8 @@ const getUser = async () => {
         const response = await axios.get(`/api/userlist`)
         users.value = response.data;
         console.log('user added');
+
+
 
     } catch (error) {
         console.error(error);
@@ -87,93 +90,8 @@ const createBillSchema_rMult = yup.object({
     wifi: yup.number().required(),
 });
 
-const createBillSchema_s = yup.object({
-    user: yup.number().required(),
-    price: yup.number().required(),
-    period: yup.date().required(),
-    account: yup.number().required(),
-});
-
-const createBillSchema_sr = yup.object({
-    user: yup.number().required(),
-    price: yup.number().required(),
-    period_start: yup.date().required(),
-    period_end: yup.date().required(),
-    account: yup.number().required(),
-});
-
-const destroyType = ref(null);
-
-const delPrompt = (values, action) => {
-    const modal = document.getElementById("myModal");
-
-    // Show the modal
-    $(modal).modal('show');
-    destroyType.value = values.delType;
-    console.log(destroyType);
-}
-
-const delMass = () => {
-    switch (destroyType.value) {
-        case 1:
-            axios.delete('/api/bill/delHour?type=' + 1)
-                .then((response) => {
 
 
-                    toastr.success(response.data.message+" data deleted succesfully");
-
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-            break;
-        case 2:
-            axios.delete('/api/bill/delHour?type=' + 12)
-                .then((response) => {
-
-
-                    toastr.success(response.data.message+" data deleted succesfully");
-
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-            break;
-        case 3:
-            axios.delete('/api/bill/delDay?type=' + 1)
-                .then((response) => {
-
-
-                    toastr.success(response.data.message+" data deleted succesfully");
-
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-            break;
-        case 4:
-            axios.delete('/api/bill/delDay?type=' + 3)
-                .then((response) => {
-
-
-                    toastr.success(response.data.message+" data deleted succesfully");
-
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-            break;
-        default:
-            console.log('errror');
-            break;
-    }
-    const modal = document.getElementById("myModal");
-
-    // Show the modal
-    $(modal).modal('hide');
-
-
-};
 
 const createBill = (values, { resetForm, actions }) => {
     console.log(switchAcc.value);
@@ -238,33 +156,97 @@ const createBill = (values, { resetForm, actions }) => {
     }
 
 };
+const clearform = () =>{
+    for (const key in errors.value) {
+        errors.value[key] = null;
+    }
+    for (const key in form.value) {
+        form.value[key] = null;
+    }
+}
 
-const createBill_s = (values, { resetForm, actions }) => {
-    console.log(switchAcc);
+const validateBill = () => {
+    var err = 0;
+
+    for (const key in errors.value) {
+        errors.value[key] = null;
+    }
+    if (form.value.user.length == 0) {
+        errors.value.user = 'Pilih User ';
+        err += 1;
+    }
+    if (form.value.account == null) {
+        errors.value.account = 'Pilih akun '
+        err += 1;
+    }
+    if (form.value.price == null) {
+        errors.value.price = 'Pilih price '
+        err += 1;
+    }
+
     if (!switchRange.value) {
-        axios.post('/api/bill-single', values)
-            .then((response) => {
-                resetForm();
-                formatted_s.value = null;
-                toastr.success('Pay created successfully!');
-                getBill();
-            })
-            .catch((error) => {
-                console.log(error);
-            })
+        if (form.value.period == null) {
+            errors.value.period = 'Pilih Period '
+            err += 1;
+        }
     }
     else {
-        axios.post('/api/bill-singlerange', values)
-            .then((response) => {
-                resetForm();
-                formatted_s.value = null;
-                toastr.success('Pay created successfully!');
-                getBill();
-            })
-            .catch((error) => {
-                console.log(error);
-            })
+        if (form.value.period_start == null) {
+            errors.value.period_start = 'Pilih Periode Awal '
+            err += 1;
+        }
+        if (form.value.period_end == null) {
+            errors.value.period_end = 'Pilih Periode Akhir '
+            err += 1;
+        }
+    }
 
+    if (err == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+
+const createBill_s = (event) => {
+
+    console.log(switchAcc);
+    console.log(user.value);
+    console.log(form.value);
+    console.log(errors.value);
+    event.preventDefault();
+    form.value.user = user.value.map(user => {
+        return user.id;
+    });
+    if (validateBill()) {
+        form.value.operator = 1;
+        if (!switchRange.value) {
+            axios.post('/api/bill-single', form.value)
+                .then(() => {
+                    formatted_s.value = null;
+                    clearform();
+                    toastr.success('Pay created successfully!');
+                    getBill();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        }
+        else {
+            axios.post('/api/bill-singlerange', form.value)
+                .then(() => {
+                    formatted_s.value = null;
+                    clearform();
+                    toastr.success('Pay created successfully!');
+                    getBill();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+
+        }
     }
 };
 
@@ -370,10 +352,7 @@ const getBill = () => {
                         data: 'updated_at'
                     },
                     {
-                        data: 'id',
-                        render: (data) => {
-                            return 'Muhan';
-                        }
+                        data: 'operator'
                     },
                     {
                         data: ['id'],
@@ -417,6 +396,7 @@ const getBill = () => {
     });
 }
 
+
 onMounted(() => {
     getUser();
     getBill();
@@ -428,7 +408,10 @@ onMounted(() => {
     <div class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
-                <div class="col-sm-6"></div>
+                <div class="col-sm-6">
+                    <RouterLink to="/admin/bill"><i class="fa fa-arrow-left"></i><strong> Kembali</strong></RouterLink>
+                </div>
+
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
@@ -460,22 +443,20 @@ onMounted(() => {
                 <div class="card-body">
                     <div class="tab-content">
                         <div class="tab-pane" id="single">
-                            <Form @submit="createBill_s"
-                                :validation-schema="!switchRange ? createBillSchema_s : createBillSchema_sr"
-                                v-slot:default="{ errors }">
+
+                            <form @submit="createBill_s">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>User</label>
-                                            <Field as="select" multiple @change="userchange" class="form-control"
-                                                :class="{ 'is-invalid': errors.user_id }" name="user">
-                                                <option disabled>Pilih Satu / Lebih</option>
-
-                                                <option v-for="user in users" :value="user.id">{{ user.id + "|" + user.name
-                                                }}
-                                                </option>
-
-                                            </Field>
+                                            <VueMultiselect v-model="user" :option-height="9" :options="users"
+                                                :class="{ 'is-invalid': errors.user }" :multiple="true"
+                                                :close-on-select="true" placeholder="Pilih Satu / Lebih" label="name"
+                                                track-by="id" :show-labels="false">
+                                                <template v-slot:option="{ option }">
+                                                    <div>{{ option.name }} - {{ option.id }} </div>
+                                                </template>
+                                            </VueMultiselect>
                                             <span class="invalid-feedback">{{ errors.user }}</span>
                                         </div>
                                     </div>
@@ -489,20 +470,21 @@ onMounted(() => {
                                                     for="customSwitch1">Single/Range</label>
                                             </div>
                                             <div v-if="!switchRange">
-                                                <Field @v-if="!switchRange" :class="{ 'is-invalid': errors.period }"
-                                                    class="form-control" name="period" type="month" />
+                                                <input @v-if="!switchRange" :class="{ 'is-invalid': errors.period }"
+                                                    class="form-custom" v-model="form.period" type="month" />
                                                 <span class="invalid-feedback">{{ errors.period }}</span>
                                             </div>
                                             <div v-else class="row">
                                                 <div class="col-md-6">
-                                                    <Field :class="{ 'is-invalid': errors.period_start }"
-                                                        class="form-control" name="period_start" type="month" />
+                                                    <input class="form-custom"
+                                                        :class="{ 'is-invalid': errors.period_start }"
+                                                        v-model="form.period_start" type="month" />
 
                                                     <span class="invalid-feedback">{{ errors.period_start }}</span>
                                                 </div>
                                                 <div class="col-md-6 mt-md-0 mt-2">
-                                                    <Field :class="{ 'is-invalid': errors.period_end }" class="form-control"
-                                                        name="period_end" type="month" />
+                                                    <input class="form-custom" :class="{ 'is-invalid': errors.period_end }"
+                                                        v-model="form.period_end" type="month" />
 
                                                     <span class="invalid-feedback">{{ errors.period_end }}</span>
                                                 </div>
@@ -515,16 +497,14 @@ onMounted(() => {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Account</label><br>
-                                            <Field as="select" class="form-control"
-                                                :class="{ 'is-invalid': errors.account }" name="account">
-                                                <option disabled>Pilih Salah Satu</option>
-
-                                                <option v-for="account in accounts" :value="account.id">
-                                                    {{ account.id + ` | ` +
-                                                        account.account_name }}
-                                                </option>
-
-                                            </Field>
+                                            <VueMultiselect v-model="form.account" :option-height="9" :options="accounts"
+                                                :class="{ 'is-invalid': errors.account }" :multiple="true"
+                                                :close-on-select="true" placeholder="Pilih Satu / Lebih" label="account_name"
+                                                track-by="id" :show-labels="false">
+                                                <template v-slot:option="{ option }">
+                                                    <div>{{ option.account_name }} - {{ option.id }} </div>
+                                                </template>
+                                            </VueMultiselect>
                                             <span class="invalid-feedback">{{ errors.account }}</span>
                                         </div>
 
@@ -533,18 +513,19 @@ onMounted(() => {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Price</label>
-                                            <Field :class="{ 'is-invalid': errors.price }" @keyup="handleChange_s"
-                                                class="form-control" name="price" type="number" />
-                                            <p>{{ formatted_s }}</p>
+                                            <input @keyup="handleChange_s" class="form-custom"
+                                                :class="{ 'is-invalid': errors.price }" v-model="form.price"
+                                                type="number" />
                                             <span class="invalid-feedback">{{ errors.price }}</span>
+                                            <p>{{ formatted_s }}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <button type="submit" class="w-100 btn btn-primary">Submit</button>
-                                {{ errors }}
-                            </Form>
+                            </form>
                         </div>
+
 
                         <div class="tab-pane active" id="group">
                             <Form @submit="createBill"
@@ -696,63 +677,13 @@ onMounted(() => {
                 </div>
             </div>
             <div class="card">
-                <div class="card-header">
-                    <p>
-                        <button class="btn btn-primary" type="button" data-toggle="collapse"
-                            data-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
-                            Hapus Per Waktu <i class="ml-1 right fas fa-trash"></i>
-                        </button>
-                    </p>
-                    <div>
-                        <div class="collapse " id="collapseWidthExample">
-
-                            <Form @submit="delPrompt" class="row">
-                                <div class="col-md">
-
-                                    <Field as="select" class="form-control" name="delType">
-                                        <option disabled>Pilih Salah Satu</option>
-                                        <option v-for="t in types" :value="t.id">
-                                            {{ t.name }}
-                                        </option>
-                                    </Field>
-
-
-                                </div>
-                                <div class="col-md">
-                                    <button type="submit" class="btn btn-danger">Hapus</button>
-                                </div>
-
-                            </Form>
-                        </div>
-                        <!-- Modal -->
-                        <div class="modal" tabindex="-1" role="dialog" id="myModal">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Modal title</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Apakah Kamu Yakin Ingin Menghapus Data {{
-                                            destroyType == null ? "---" : types.filter(item => item.id ==
-                                                destroyType).map(item => item.name)[0] }} ?</p>
-
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary" @click="delMass">Save changes</button>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="card-body">
+                    <div class="row-md">
+                        <div class="col-md">
+                            <h1></h1>
                         </div>
                     </div>
-                </div>
-                <div class="card-body">
-                    <h4 class="mx text-center"></h4>
-
-                    <table id="myTable" class="display table table-bordered " style="overflow: auto;width:100%">
+                    <table id="myTable" class="display table " style="overflow: auto;width:100%">
                         <thead>
                             <tr>
                                 <th>Created</th>
@@ -777,31 +708,4 @@ onMounted(() => {
     </div>
 </template>
 
-<script>
 
-
-
-import accounting from 'accounting';
-export default {
-    // computed property to retrieve current page number
-    computed: {
-        currentPage() {
-            return this.listpays.current_page;
-        }
-    },
-
-    // methods to handle pagination events
-    methods: {
-        changePage(page) {
-            this.search(page);
-        },
-
-
-
-    },
-
-}
-
-
-
-</script>

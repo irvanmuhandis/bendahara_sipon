@@ -18,8 +18,9 @@ class BillController extends Controller
     {
         $bill = DB::table('bills')
             ->join('users', 'users.id', '=', 'bills.user_id')
+            ->join('users as operator', 'operator.id', '=', 'bills.operator_id')
             ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->select('bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.due_date', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
+            ->select('operator.name as operator','bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.due_date', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
             ->orderBy('bills.id', 'desc')->get();
 
         $bill = $bill->map(function ($item, $key) {
@@ -75,7 +76,7 @@ class BillController extends Controller
                     'bill_amount' => request('price'),
                     'bill_remainder' => request('price'),
                     'payment_status' =>  1,
-                    'due_date' => $month,
+                    'due_date' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -150,7 +151,7 @@ class BillController extends Controller
                     'bill_amount' => request('madin'),
                     'bill_remainder' => request('madin'),
                     'payment_status' =>  1,
-                    'due_date' => $month,
+                    'due_date' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -164,7 +165,7 @@ class BillController extends Controller
                     'bill_amount' => request('syah'),
                     'bill_remainder' => request('syah'),
                     'payment_status' =>  1,
-                    'due_date' => $month,
+                    'due_date' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -177,7 +178,7 @@ class BillController extends Controller
                     'bill_amount' => request('wifi'),
                     'bill_remainder' => request('wifi'),
                     'payment_status' =>  1,
-                    'due_date' => $month,
+                    'due_date' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -195,6 +196,7 @@ class BillController extends Controller
         foreach (request('user') as $user) {
             $bill = Bill::create([
                 'account_id' => request('account'),
+                'operator_id' => request('operator'),
                 'user_id' => $user,
                 'bill_amount' => request('price'),
                 'bill_remainder' => request('price'),
@@ -219,10 +221,11 @@ class BillController extends Controller
                 $bill = Bill::create([
                     'account_id' => request('account'),
                     'user_id' => $user,
+                    'operator_id' => request('operator'),
                     'bill_amount' => request('price'),
                     'bill_remainder' => request('price'),
                     'payment_status' =>  1,
-                    'due_date' => $month,
+                    'due_date' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -275,6 +278,17 @@ class BillController extends Controller
             ->delete();
 
         return response()->json(['message' => $del]);
+    }
+
+    public function deleteMany()
+    {
+        $data = Bill::orderBy('id', 'desc')->take(request('type'))->get();
+
+        foreach ($data as $row) {
+            $row->delete();
+        }
+
+        return response()->json(['message' => `Last `+request('type')+` rows deleted successfully`]);
     }
 
     public function destroy(Bill $dispen)

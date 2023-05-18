@@ -34,9 +34,11 @@ class DebtFactory extends Factory
         }
         return [
             'account_id' => Account::where('account_name','=','Utang')->first()->id,
-            'status' => $status,
+            'payment_status' => $status,
+            'title' => 'Utang',
+            'operator_id'=>rand(1,3),
             'amount' => $end,
-            'user_id' => User::factory()->create()->id,
+            'user_id' => rand(1,User::count()),
             'remainder' => $remain,
         ];
     }
