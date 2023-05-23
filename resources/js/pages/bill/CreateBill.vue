@@ -252,7 +252,7 @@ const createBill_s = (event) => {
 
 const groupchange = (event) => {
     groupusers.value = [];
-    axios.get('/api/users', {
+    axios.get('/api/user/group', {
         params: {
             group_id: event.target.value
         }
@@ -274,7 +274,7 @@ const getAccount = () => {
 }
 
 const getGroup = () => {
-    axios.get('/api/group')
+    axios.get('/api/group/list')
         .then((response) => {
             groups.value = response.data;
         })

@@ -246,7 +246,7 @@ const getPay = () => {
                                 case "App\\Models\\Bill":
                                     return `<span class="badge badge-primary">Bill</span>`;
                                     break;
-                                case "App\\Models\\Debts":
+                                case "App\\Models\\Debt":
                                     return `<span class="badge badge-danger">Debt</span>`;
                                     break;
                                 default:

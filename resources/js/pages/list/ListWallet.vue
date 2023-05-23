@@ -9,7 +9,7 @@ import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
-const listwallets = ref({ 'data': [] });
+const listwallets = ref({ 'data': [{ 'id': 0 }] });
 const users = ref([]);
 const editing = ref(false);
 const formValues = ref(null);
@@ -26,7 +26,7 @@ const confirmWalletDeletion = (id) => {
 
 const deleteWallet = () => {
     console.log(walletIdBeingDeleted.value);
-    axios.delete(`/api/wallet/${walletIdBeingDeleted.value}`,{
+    axios.delete(`/api/wallet/${walletIdBeingDeleted.value}`, {
         data: {
             id: walletIdBeingDeleted.value
         }
@@ -54,21 +54,13 @@ const bulkDelete = () => {
 
 
 const createWalletSchema = yup.object({
-    user_id: yup.string().required(),
-    status: yup.number().required(),
-    wallet: yup.number().required(),
-    remainder: yup.number().required(),
-    title: yup.string().required()
+    saldo: yup.number().required(),
+    name: yup.string().required()
 });
 
 const editWalletSchema = yup.object({
-    user_id: yup.string().required(),
-    wallet: yup.number().required(),
-    remainder: yup.number().required(),
-    title: yup.string().required(),
-    status: yup.number().when((status, schema) => {
-        return status ? schema.required() : schema;
-    }),
+    saldo: yup.number().required(),
+    name: yup.string().required()
 });
 
 const createWallet = (values, { resetForm, setErrors }) => {
@@ -88,6 +80,7 @@ const createWallet = (values, { resetForm, setErrors }) => {
 
 const AddWallet = () => {
     editing.value = false;
+    formValues.value = {};
     $('#walletFormModal').modal('show');
 };
 
@@ -96,23 +89,18 @@ const AddWallet = () => {
 const editWallet = (wallet) => {
     editing.value = true;
     form.value.resetForm();
-    getUser();
     $('#walletFormModal').modal('show');
     formValues.value = {
         id: wallet.id,
-        remainder: wallet.remainder,
-        user_id: wallet.user_id,
-        status: wallet.status,
-        title: wallet.title,
-        wallet: wallet.wallet
+        name: wallet.wallet_name,
+        saldo: wallet.saldo,
     };
 };
 
 const updateWallet = (values, { setErrors }) => {
+    values.id = formValues.value.id;
     axios.put('/api/wallet/' + formValues.value.id, values)
         .then((response) => {
-            // const index = wallets.value.data.findIndex(wallet => wallet.id === response.id);
-            // listwallets.value.data[index] = response.data;
             getWallet();
             $('#walletFormModal').modal('hide');
             toastr.success('Wallet updated successfully!');
@@ -189,6 +177,7 @@ const getWallet = (page = 1) => {
 
     axios.get(`/api/wallet?page=${page}`).then((response) => {
         listwallets.value = response.data;
+        console.log(listwallets.value.data);
         selectedWallet.value = [];
         selectAll.value = false;
     })
@@ -249,7 +238,7 @@ onMounted(() => {
 
                     <div class="card">
                         <div class="card-body">
-                            <table  class="display table table-bordered dataTables">
+                            <table class="display table table-bordered dataTables">
                                 <thead>
                                     <tr>
                                         <th><input type="checkbox" v-model="selectAll" @change="selectAllWallets" /></th>
@@ -262,18 +251,19 @@ onMounted(() => {
 
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(wallet, index) in listwallets.data" :key="wallet.id">
-                                        <td><input type="checkbox" :checked="selectAll" @change="toggleSelection(wallet)" /></td>
-                                        <td>{{ wallet.name }}</td>
-                                        <td>{{ wallet.saldo }}</td>
-                                        <td>{{ wallet.created_at }}</td>
-                                        <td>{{ wallet.updated_at }}</td>
-                                        <td>
-                                            <a href="#" @click="editWallet(wallet)">
+                                    <tr  v-for="(wal) in listwallets.data" :key="wal.id">
+                                        <td class="text-center"><input type="checkbox" :checked="selectAll" @change="toggleSelection(wallet)" />
+                                        </td>
+                                        <td>{{ wal.wallet_name }}</td>
+                                        <td>{{ wal.saldo }}</td>
+                                        <td>{{ wal.created_at }}</td>
+                                        <td>{{ wal.updated_at }}</td>
+                                        <td class="text-center">
+                                            <a href="#" @click="editWallet(wal)">
                                                 <i class="fa fa-edit mr-2"></i>
                                             </a>
 
-                                            <a href="#" @click="confirmWalletDeletion(wallet.id)">
+                                            <a href="#" @click="confirmWalletDeletion(wal.id)">
                                                 <i class="fa fa-trash text-danger"></i>
                                             </a>
                                         </td>
@@ -329,40 +319,21 @@ onMounted(() => {
                 <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editWalletSchema : createWalletSchema"
                     v-slot="{ errors }" :initial-values="formValues">
                     <div class="modal-body">
+
+
                         <div class="form-wallet">
-                            <label>Name User</label>
-                            <Field name="title" type="text" class="form-control " :class="{ 'is-invalid': errors.title }"
+                            <label for="desc">Nama Dompet</label>
+                            <Field name="name" type="text" class="form-control " :class="{ 'is-invalid': errors.name }"
                                 id="desc" aria-describedby="nameHelp" placeholder="Enter description" />
-
-                            <span class="invalid-feedback">{{ errors.user_id }}</span>
+                            <span class="invalid-feedback">{{ errors.name }}</span>
                         </div>
 
                         <div class="form-wallet">
-                            <label for="desc">Title</label>
-                            <Field name="title" type="text" class="form-control " :class="{ 'is-invalid': errors.title }"
-                                id="desc" aria-describedby="nameHelp" placeholder="Enter description" />
-                            <span class="invalid-feedback">{{ errors.title }}</span>
-                        </div>
-
-                        <div class="form-wallet">
-                            <label>Pay At</label>
-                            <Field name="wallet" type="number" class="form-control " :class="{ 'is-invalid': errors.wallet }"
-                                id="pay_at" aria-describedby="nameHelp" placeholder="Enter Pay Date" />
-                            <span class="invalid-feedback">{{ errors.wallet }}</span>
-                        </div>
-
-                        <div class="form-wallet">
-                            <label>Remainder</label>
-                            <Field name="remainder" type="number" class="form-control "
-                                :class="{ 'is-invalid': errors.remainder }" id="pay_at" aria-describedby="nameHelp"
+                            <label>Saldo</label>
+                            <Field name="saldo" type="number" class="form-control "
+                                :class="{ 'is-invalid': errors.saldo }" id="pay_at" aria-describedby="nameHelp"
                                 placeholder="Enter Pay Date" />
-                            <span class="invalid-feedback">{{ errors.remainder }}</span>
-                        </div>
-
-                        <div class="form-wallet">
-                            <label>Status</label>
-
-                            <span class="invalid-feedback">{{ errors.status }}</span>
+                            <span class="invalid-feedback">{{ errors.saldo }}</span>
                         </div>
                     </div>
                     <div class="modal-footer">

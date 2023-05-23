@@ -24,14 +24,14 @@ const errors = ref({
     'user': null,
     'bill': null,
     'date': null,
-    'wallet_id': null,
+    'wallet': null,
     'payment': null
 });
 const form = ref({
     'user': null,
     'bill': [],
     'date': new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 16),
-    'wallet_id': null,
+    'wallet': null,
     'payment': null
 });
 
@@ -88,25 +88,7 @@ const getUserbill = async (page = 1) => {
     }
 };
 
-// const createPayBillSchema = yup.object({
-//     user_id: yup.number().required(),
-//     payment: yup.number().required(),
-//     date: yup.date().required(),
-//     wallet_id: yup.number().required(),
-//     bill_id: yup.array().min(1, 'You must select at least one bill option').of(
-//         yup.number()).required(),
-//     // bill_id: yup.number().required()
-// }).test('payment-more-than-total', 'Payment should not more than the total', function (values) {
-//     const ttl = total.value;
-//     const py = values.payment;
-//     if (py > ttl) {
-//         throw new yup.ValidationError('Payment should not more than the total', null, 'payment');
-//     }
-//     if (form.bill == []) {
-//         throw new yup.ValidationError('Insert atleast 1 bill ', null, 'bill_id');
-//     }
-//     return true;
-// });
+
 const clearform = () => {
     for (const key in errors.value) {
         errors.value[key] = null;
@@ -134,8 +116,8 @@ const validateBill = () => {
         errors.value.payment = 'Masukkan jumlah pembayaran '
         err += 1;
     }
-    if (form.value.wallet_id == null) {
-        errors.value.wallet_id = 'Pilih dompet '
+    if (form.value.wallet == null) {
+        errors.value.wallet = 'Pilih dompet '
         err += 1;
     }
     if (form.value.date == null) {
@@ -158,13 +140,16 @@ const validateBill = () => {
 const createPay = (event) => {
     event.preventDefault();
     form.value.remainder = remainder.value;
+    form.value.user = form.value.user.id;
+    form.value.wallet = form.value.wallet.id;
     if (validateBill()) {
         axios.post('/api/pay/bill', form.value)
-            .then((response) => {
-                clearform();
+            .then(() => {
                 isLoading.value = true;
                 userbill.value = [];
                 total.value = 0;
+                form.value.bill = [];
+                form.value.payment = null;
                 formatted.value = null;
                 toastr.success('Pay created successfully!');
                 getPayBill();
@@ -372,8 +357,8 @@ onMounted(() => {
                                     </div>
                                     <div class="form-group">
                                         <label>Wallet</label>
-                                        <VueMultiselect v-model="form.wallet_id" :option-height="9" :options="wallets"
-                                            :class="{ 'is-invalid': errors.wallet_id }" :close-on-select="true"
+                                        <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets"
+                                            :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
                                             placeholder="Pilih Satu / Lebih" label="wallet_name" track-by="id"
                                             :show-labels="false">
                                             <template v-slot:option="{ option }">
@@ -381,7 +366,7 @@ onMounted(() => {
                                             </template>
                                         </VueMultiselect>
 
-                                        <span class="invalid-feedback">{{ errors.wallet_id }}</span>
+                                        <span class="invalid-feedback">{{ errors.wallet }}</span>
                                     </div>
                                     <div class="form-group">
                                         <label for="description">Date</label>

@@ -6,24 +6,13 @@ use App\Models\User;
 use App\Models\Dispen;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class DispenController extends Controller
 {
     public function index()
     {
-        return Dispen::query()->with('user:id')
-            ->latest()
-            ->paginate(3)
-            ->through(fn ($app) => [
-                'id' => $app->id,
-                'desc' => $app->desc,
-                'pay_at' => $app->pay_at,
-                'periode' => $app->periode,
-                'user_id' => $app->user_id,
-                'updated_at' => $app->updated_at,
-                'created_at' => $app->created_at,
-                'user_name' => $app->user_name
-            ]);
+        return Dispen::with('user')->paginate(5);
     }
 
     public function store()
@@ -33,18 +22,17 @@ class DispenController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-        $user = User::where('id', '=', request('userId'))->first();
+
         $dispen = Dispen::create([
-            'user_name' => $user->name,
             'user_id' => request('userId'),
-            'periode' => request('periode'),
+            'dispen_periode' => request('periode'),
             'pay_at' => request('pay_at'),
-            'desc' => request('desc')
+            'dispen_desc' => request('desc')
         ]);
         return $dispen;
     }
 
-    public function update(Dispen $dispen)
+    public function update()
     {
         //     request()->validate([
         //         'name' => 'required',
@@ -52,17 +40,16 @@ class DispenController extends Controller
         //         'password' => 'sometimes|min:8',
         //     ]);
 
-        $name = User::where('id', '=', request('userId'))->first()->name;
+        $data = Dispen::where('id', '=', request('id'))->first();
 
-        $dispen->update([
-            'user_name' => $name,
+        $data->update([
             'user_id' => request('userId'),
-            'periode' => request('periode'),
+            'dispen_periode' => request('periode'),
             'pay_at' => request('pay_at'),
-            'desc' => request('desc')
+            'dispen_desc' => request('desc')
         ]);
 
-        return $dispen;
+        return $data;
     }
     public function bulkDelete()
     {
@@ -89,10 +76,8 @@ class DispenController extends Controller
     public function search()
     {
         $searchQuery = request('query');
-        $dispens = Dispen::where('user_name', 'like', "%{$searchQuery}%")->latest()->paginate(3);
+        $dispens = DB::table('dispens')->join('users', 'users.id', '=', 'dispens.user_id')->where('users.name', 'like', "%{$searchQuery}%")->paginate(5);
 
-        return response()->json($dispens);
+        return $dispens;
     }
-
-
 }

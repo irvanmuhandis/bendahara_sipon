@@ -21,13 +21,13 @@ const remainder = ref([]);
 const errors = ref({
     'user': null,
     'debt': null,
-    'wallet_id': null,
+    'wallet': null,
     'payment': null
 });
 const form = ref({
     'user': null,
     'debt': [],
-    'wallet_id': null,
+    'wallet': null,
     'payment': null
 });
 
@@ -52,6 +52,7 @@ const totalize = (event, id) => {
     console.log("bill clicked");
     console.log(remainder.value);
 }
+
 const clearform = () => {
     for (const key in errors.value) {
         errors.value[key] = null;
@@ -61,15 +62,21 @@ const clearform = () => {
     }
 }
 
+
+
 const createPay = (event) => {
     event.preventDefault();
     form.value.remainder = remainder.value;
+    form.value.user = form.value.user.id;
+    form.value.wallet = form.value.wallet.id;
     if (valid()) {
         axios.post('/api/pay/debt', form.value)
             .then((response) => {
-                clearForm();
+
                 isLoading.value = true;
                 userdebt.value = [];
+                form.value.debt = [];
+                form.value.payment = null;
                 total.value = 0;
                 formatted.value = null;
                 toastr.success('Pay created successfully!');
@@ -101,8 +108,8 @@ const valid = () => {
         errors.value.payment = 'Masukkan jumlah pembayaran '
         err += 1;
     }
-    if (form.value.wallet_id == null) {
-        errors.value.wallet_id = 'Pilih dompet '
+    if (form.value.wallet == null) {
+        errors.value.wallet = 'Pilih dompet '
         err += 1;
     }
     if (form.value.payment > total.value) {
@@ -310,7 +317,7 @@ onMounted(() => {
                                             </div>
                                             <Bootstrap4Pagination :data="userdebt" @pagination-change-page="getUserdebt" />
                                             <input type="text" class="d-none is-invalid">
-                                            <span class="invalid-feedback">{{ errors.debt_id }}</span>
+                                            <span class="invalid-feedback">{{ errors.debt }}</span>
                                         </div>
                                     </div>
 
@@ -332,8 +339,8 @@ onMounted(() => {
                                     </div>
                                     <div class="form-group">
                                         <label>Wallet</label>
-                                        <VueMultiselect v-model="form.wallet_id" :option-height="9" :options="wallets"
-                                            :class="{ 'is-invalid': errors.wallet_id }" :close-on-select="true"
+                                        <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets"
+                                            :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
                                             placeholder="Pilih Satu / Lebih" label="wallet_name" track-by="id"
                                             :show-labels="false">
                                             <template v-slot:option="{ option }">
@@ -341,7 +348,7 @@ onMounted(() => {
                                             </template>
                                         </VueMultiselect>
 
-                                        <span class="invalid-feedback">{{ errors.wallet_id }}</span>
+                                        <span class="invalid-feedback">{{ errors.wallet }}</span>
                                     </div>
                                     <div class="form-group">
                                         <label>Payment</label><br>

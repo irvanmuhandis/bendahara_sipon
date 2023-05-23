@@ -11,11 +11,12 @@ class Group extends Model
 {
     use HasFactory;
 
+    protected $guarded = [];
     // group user nanti ditampilin di setiap rekord pay , adi tau saat pembayaran dia di group apa
 
     public function user()
     {
-        return $this->belongsToMany(User::class, 'group_user');
+        return $this->hasMany(User::class);
     }
 
     public function bill()

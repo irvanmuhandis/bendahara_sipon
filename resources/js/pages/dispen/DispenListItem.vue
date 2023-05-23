@@ -22,11 +22,10 @@ const toggleSelection = () => {
 <template>
     <tr>
         <td><input type="checkbox" :checked="selectAll" @change="toggleSelection" /></td>
-        <td>{{ index + 1 }}</td>
-        <td>{{ dispen.user_name }}</td>
-        <td>{{ formatDate(dispen.periode) }}</td>
+        <td>{{ dispen.user.name }}</td>
+        <td>{{ dispen.dispen_periode }}</td>
         <td>{{ formatDate(dispen.pay_at) }}</td>
-        <td>{{ dispen.desc }}</td>
+        <td>{{ dispen.dispen_desc }}</td>
         <td>{{ formatDateTimestamp(dispen.updated_at) }}</td>
         <td>{{ formatDateTimestamp(dispen.created_at) }}</td>
         <td>

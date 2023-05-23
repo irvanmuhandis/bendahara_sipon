@@ -65,7 +65,7 @@ class PayController extends Controller
         //     'password' => 'required|min:8',
         //     ''
         // ]);
-        $bills = request('bill_id');
+        $bills = request('bill');
         $pay = request('payment');
         $remainder = request('remainder');
 
@@ -74,13 +74,15 @@ class PayController extends Controller
         $bill_rem = 0;
 
         $map = collect($remainder)->reduce(function ($carry, $item, $index) use ($bills) {
-            $carry[] = ['remainder' => $item, 'bill_id' => $bills[$index]];
+            $carry[] = ['remainder' => $item, 'bill' => $bills[$index]];
             return $carry;
         }, []);
 
         usort($map, function ($a, $b) {
             return $a['remainder'] <=> $b['remainder'];
         });
+
+        $log = [];
 
         foreach ($map as $item) {
 
@@ -94,7 +96,7 @@ class PayController extends Controller
                 $status = 2;
                 $bill_rem = $item['remainder'] - $pay;
             }
-            DB::table('bills')->where('id', '=', $item['bill_id'])
+            DB::table('bills')->where('id', '=', $item['bill'])
                 ->update(
                     [
                         'payment_status' => $status,
@@ -102,19 +104,23 @@ class PayController extends Controller
                     ]
                 );
 
-            Pay::create([
-                'user_id' => request('user_id'),
+            $i =  Pay::create([
+                'user_id' => request('user'),
                 'payment' => $pay_bll,
-                'wallet_id' => request('wallet_id'),
-                'payable_id' =>  $item['bill_id'],
+                'wallet_id' => request('wallet'),
+                'payable_id' =>  $item['bill'],
                 'payable_type' => Bill::class,
                 'operator_id' => rand(1, 5),
                 'created_at' => $date,
                 'updated_at' => $date
             ]);
+            array_push($log, $i);
+            $p = DB::table('bills')->where('id', '=', $item['bill'])->first();
+
+            array_push($log, $p);
         }
 
-        return request();
+        return $log;
     }
 
     public function store_debt()
@@ -125,16 +131,17 @@ class PayController extends Controller
         //     'password' => 'required|min:8',
         //     ''
         // ]);
-        $bills = request('debt_id');
+        $bills = request('debt');
         $pay = request('payment');
         $remainder = request('remainder');
 
+        $log = [];
         $pay_bll = 0;
         $status = 0;
         $bill_rem = 0;
 
         $map = collect($remainder)->reduce(function ($carry, $item, $index) use ($bills) {
-            $carry[] = ['remainder' => $item, 'debt_id' => $bills[$index]];
+            $carry[] = ['remainder' => $item, 'debt' => $bills[$index]];
             return $carry;
         }, []);
 
@@ -154,27 +161,32 @@ class PayController extends Controller
                 $status = 2;
                 $bill_rem = $item['remainder'] - $pay;
             }
-            DB::table('bills')->where('id', '=', $item['debt_id'])
+            DB::table('debts')->where('id', '=', $item['debt'])
                 ->update(
                     [
                         'payment_status' => $status,
-                        'bill_remainder' => $bill_rem
+                        'remainder' => $bill_rem
                     ]
                 );
 
-            Pay::create([
-                'user_id' => request('user_id'),
+            $q = Pay::create([
+                'user_id' => request('user'),
                 'payment' => $pay_bll,
-                'wallet_id' => request('wallet_id'),
-                'payable_id' =>  $item['debt_id'],
+                'wallet_id' => request('wallet'),
+                'payable_id' =>  $item['debt'],
                 'payable_type' => Debt::class,
                 'operator_id' => rand(1, 5),
                 'created_at' => Carbon::now('Asia/Jakarta'),
                 'updated_at' => Carbon::now('Asia/Jakarta')
             ]);
-        }
+            array_push($log, $q);
 
-        return request();
+            $p = DB::table('debts')->where('id', '=', $item['debt'])->first();
+
+            array_push($log, $p);
+        }
+ array_push($log, $map);
+        return $log;
     }
 
     public function update(Pay $dispen)

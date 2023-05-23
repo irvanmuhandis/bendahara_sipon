@@ -12,10 +12,16 @@ use App\Http\Controllers\Controller;
 
 class UserController extends Controller
 {
-    public function index(Request $request)
+    public function index()
+    {
+        $users = User::latest()->paginate(20);
+        return $users;
+    }
+
+    public function group(Request $request)
     {
         try {
-            $group_id = $request->query('group_id');
+            $group_id = request('group_id');
 
             if ($group_id) {
                 // If group_id is specified, filter accounts by group_id
@@ -32,14 +38,15 @@ class UserController extends Controller
         }
     }
 
+
     public function bill($id)
     {
         $db = DB::table('bills')
 
             ->join('users', 'users.id', '=', 'bills.user_id')
             ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->join('status_colors','status_colors.status_id','=','bills.payment_status')
-            ->select('bills.*', 'accounts.account_name', 'users.name','status_colors.color')
+            ->join('status_colors', 'status_colors.status_id', '=', 'bills.payment_status')
+            ->select('bills.*', 'accounts.account_name', 'users.name', 'status_colors.color')
             ->where('bills.user_id', '=', $id)
             ->where('bills.payment_status', '<', 3)
             ->orderBy('bills.due_date', 'desc')
@@ -53,8 +60,8 @@ class UserController extends Controller
         $db = DB::table('debts')
             ->join('users', 'users.id', '=', 'debts.user_id')
             ->join('accounts', 'accounts.id', '=', 'debts.account_id')
-            ->join('status_colors','status_colors.status_id','=','debts.payment_status')
-            ->select('debts.*', 'accounts.account_name', 'users.name','status_colors.color')
+            ->join('status_colors', 'status_colors.status_id', '=', 'debts.payment_status')
+            ->select('debts.*', 'accounts.account_name', 'users.name', 'status_colors.color')
             ->where('debts.user_id', '=', $id)
             ->where('debts.payment_status', '<', 3)
             ->orderBy('debts.created_at', 'desc')

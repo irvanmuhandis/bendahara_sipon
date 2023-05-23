@@ -12,15 +12,18 @@ class GroupController extends Controller
 {
     public function index()
     {
-        // return Group::latest()
-        //     ->paginate(3)->through(fn ($app) => [
-        //         'id' => $app->id,
-        //         'name' => $app->name,
-        //         'desc' => $app->desc,
-        //         'created_at' => $app->created_at->format('Y-m-d h:i A'),
-        //         'updated_at' => $app->updated_at->format('Y-m-d h:i A'),
-        //     ]);
+        return Group::latest()
+            ->paginate(10)->through(fn ($app) => [
+                'id' => $app->id,
+                'group_name' => $app->group_name,
+                'desc' => $app->group_desc,
+                'created_at' => $app->created_at->format('Y-m-d h:i A'),
+                'updated_at' => $app->updated_at->format('Y-m-d h:i A'),
+            ]);
+    }
 
+    public function list()
+    {
         $apps = Group::all();
 
         $data = $apps->map(function ($app) {
@@ -31,6 +34,30 @@ class GroupController extends Controller
         return $data;
     }
 
+    public function user()
+    {
+        $apps = Group::with('user')->paginate(5);
+        return $apps;
+    }
+
+    public function show($id)
+    {
+        $grup = Group::where('id', '=', $id)->get();
+        return $grup;
+    }
+
+    public function link()
+    {
+        $array = [];
+        $users = request('user');
+        foreach ($users as $user) {
+            $data = User::find($user);
+            $data->group_id = request('group');
+            $data->save();
+            array_push($array, $data);
+        }
+        return $array;
+    }
 
 
     public function store()
@@ -42,7 +69,6 @@ class GroupController extends Controller
         // ]);
         $user = User::where('id', '=', request('userId'))->first();
         $dispen = Group::create([
-            'user_name' => $user->name,
             'user_id' => request('userId'),
             'periode' => request('periode'),
             'pay_at' => request('pay_at'),
@@ -51,7 +77,7 @@ class GroupController extends Controller
         return $dispen;
     }
 
-    public function update(Group $dispen)
+    public function update()
     {
         //     request()->validate([
         //         'name' => 'required',
@@ -59,17 +85,14 @@ class GroupController extends Controller
         //         'password' => 'sometimes|min:8',
         //     ]);
 
-        $name = User::where('id', '=', request('userId'))->first()->name;
+        $grup = Group::where('id', '=', request('id'))->first();
 
-        $dispen->update([
-            'user_name' => $name,
-            'user_id' => request('userId'),
-            'periode' => request('periode'),
-            'pay_at' => request('pay_at'),
-            'desc' => request('desc')
+        $grup->update([
+            'group_name' => request('name'),
+            'group_desc' => request('desc')
         ]);
 
-        return $dispen;
+        return $grup;
     }
     public function bulkDelete()
     {
@@ -77,11 +100,11 @@ class GroupController extends Controller
 
         return response()->json(['message' => 'Groups deleted successfully!']);
     }
-    public function destroy(Group $dispen)
+    public function destroy($id)
     {
-        $dispen->delete();
+        $RES = Group::where('id', '=', $id)->first()->delete();
 
-        return response()->noContent();
+        return $RES;
     }
 
     public function changeRole(Group $dispen)
@@ -97,7 +120,7 @@ class GroupController extends Controller
     {
         $searchQuery = request('query');
 
-        $group = Group::where('name', 'like', "%{$searchQuery}%")->latest()->paginate(3);
+        $group = Group::where('group_name', 'like', "%{$searchQuery}%")->latest()->paginate(10);
         return response()->json($group);
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Dispen extends Model
 {
     use HasFactory;
-    protected $fillable = ['pay_at', 'periode', 'desc','user_id','user_name'];
+    protected $fillable = ['pay_at', 'dispen_periode', 'dispen_desc','user_id'];
 
     public function user()
     {

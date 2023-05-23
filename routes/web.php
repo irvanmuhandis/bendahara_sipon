@@ -59,10 +59,14 @@ Route::post('/api/bill-grouprange',[BillController::class,'store_groupRange']);
 Route::post('/api/bill-group-mult',[BillController::class,'store_groupMult']);
 Route::post('/api/bill-grouprange-mult',[BillController::class,'store_groupRangeMult']);
 
+Route::get('/api/wallet/search',[WalletController::class,'search']);
 
 
 Route::get('/api/group/search',[GroupController::class,'search']);
 Route::delete('/api/group',[GroupController::class,'bulkDelete']);
+Route::get('/api/group/list', [GroupController::class, 'list']);
+Route::get('/api/group/user', [GroupController::class, 'user']);
+Route::put('/api/group/link', [GroupController::class, 'link']);
 
 Route::get('/api/debt/search',[DebtController::class,'search']);
 Route::delete('/api/debt',[DebtController::class,'bulkDelete']);
@@ -72,12 +76,13 @@ Route::get('/api/appointments', [AppointmentController::class, 'index']);
 Route::post('/api/appointments/create', [AppointmentController::class, 'store']);
 
 Route::get('/api/userlist', [UserController::class, 'list']);
+Route::get('/api/user/group', [UserController::class, 'group']);
 Route::get('/api/user/bill/{id}', [UserController::class, 'bill']);
 Route::get('/api/user/debt/{id}', [UserController::class, 'debt']);
-
 Route::get('/api/users/search', [UserController::class, 'search']);
 Route::patch('/api/users/{user}/change-role', [UserController::class, 'changeRole']);
 Route::delete('/api/users', [UserController::class, 'bulkDelete']);
+
 
 Route::get('/api/dispens/search',[DispenController::class,'search']);
 Route::delete('/api/dispens',[DispenController::class,'bulkDelete']);

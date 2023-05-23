@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, watch } from 'vue';
-import { Form, Field, useResetForm } from 'vee-validate';
+import { Form, Field, useResetForm,useForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import DispenListItem from '../dispen/DispenListItem.vue';
@@ -9,6 +9,7 @@ import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
+const { resetForm } = useForm();
 const dispens = ref({ 'data': [] });
 const users = ref([]);
 const editing = ref(false);
@@ -47,13 +48,13 @@ const getDispen = (page = 1) => {
 const createDispenSchema = yup.object({
     userId: yup.string().required(),
     pay_at: yup.date().required(),
-    periode: yup.date().required(),
+    periode: yup.string().required(),
     desc: yup.string().required(),
 });
 
 const editDispenSchema = yup.object({
     userId: yup.string().required(),
-    periode: yup.date().required(),
+    periode: yup.string().required(),
     desc: yup.string().required(),
     pay_at: yup.date().when((pay_at, schema) => {
         return pay_at ? schema.required() : schema;
@@ -63,9 +64,9 @@ const editDispenSchema = yup.object({
 const createDispen = (values, { resetForm, setErrors }) => {
     axios.post('/api/dispens', values)
         .then((response) => {
-            dispens.value.data.unshift(response.data);
             $('#dispenFormModal').modal('hide');
             resetForm();
+            getDispen();
             toastr.success('Dispen created successfully!');
         })
         .catch((error) => {
@@ -77,6 +78,8 @@ const createDispen = (values, { resetForm, setErrors }) => {
 
 const AddDispen = () => {
     editing.value = false;
+    getUser();
+    formValues.value = null;
     $('#dispenFormModal').modal('show');
 };
 
@@ -90,28 +93,26 @@ const getUser = () => {
 
 const editDispen = (dispen) => {
     editing.value = true;
-    form.value.resetForm();
     getUser();
     $('#dispenFormModal').modal('show');
     formValues.value = {
         id: dispen.id,
-        name: dispen.name,
-        userId: dispen.userId,
+        userId: dispen.user_id,
         pay_at: dispen.pay_at,
-        periode: dispen.periode,
-        desc: dispen.desc
+        periode: dispen.dispen_periode,
+        desc: dispen.dispen_desc
     };
+    console.log(formValues.value);
 };
 
 const updateDispen = (values, { setErrors }) => {
+    values.id = formValues.value.id;
     axios.put('/api/dispens/' + formValues.value.id, values)
         .then((response) => {
-            const index = dispens.value.data.findIndex(dispen => dispen.id === response.id);
-            dispens.value.data[index] = response.data;
+            getDispen();
             $('#dispenFormModal').modal('hide');
             toastr.success('Dispen updated successfully!');
         }).catch((error) => {
-            setErrors(error.response.data.errors);
             console.log(error);
         });;
 }
@@ -232,7 +233,6 @@ onMounted(() => {
                         <thead>
                             <tr>
                                 <th><input type="checkbox" v-model="selectAll" @change="selectAllDispens" /></th>
-                                <th style="width: 10px">#</th>
                                 <th>Name</th>
                                 <th>Periode</th>
                                 <th>Pay At</th>
@@ -301,7 +301,7 @@ onMounted(() => {
                                 :class="{ 'is-invalid': errors.userId }" id="userId" aria-describedby="nameHelp"
                                 placeholder="Enter full name">
                                 <option value="" disabled>Select a Name</option>
-                                <option v-for="user in users.data" :key="user.id" :value="user.id">{{ user.name }}</option>
+                                <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
 
                             </Field>
                             <span class="invalid-feedback">{{ errors.userId }}</span>
@@ -323,7 +323,7 @@ onMounted(() => {
 
                         <div class="form-group">
                             <label>Periode</label>
-                            <Field name="periode" type="date" class="form-control "
+                            <Field name="periode" type="month" class="form-control "
                                 :class="{ 'is-invalid': errors.periode }" id="periode" aria-describedby="nameHelp"
                                 placeholder="Enter Periode Date" />
                             <span class="invalid-feedback">{{ errors.periode }}</span>

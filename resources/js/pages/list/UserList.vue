@@ -1,5 +1,5 @@
 <script setup>
-import axios from 'axios';
+import axios from '../../axiosSetting';
 import { ref, onMounted, reactive, watch } from 'vue';
 import { Form, Field, useResetForm } from 'vee-validate';
 import * as yup from 'yup';
@@ -14,6 +14,9 @@ const editing = ref(false);
 const formValues = ref();
 const form = ref(null);
 const userIdBeingDeleted = ref(null);
+const selectAll = ref(false);
+const searchQuery = ref(null);
+const selectedUsers = ref([]);
 
 const confirmUserDeletion = (id) => {
     userIdBeingDeleted.value = id;
@@ -30,7 +33,7 @@ const deleteUser = () => {
 };
 
 const getUsers = (page = 1) => {
-    axios.get(`/api/users?page=${page}`)
+    axios.get(`/api/v1/user`)
         .then((response) => {
             users.value = response.data;
             selectedUsers.value = [];
@@ -109,7 +112,6 @@ const userDeleted = (userId) => {
     users.value.data = users.value.data.filter(user => user.id !== userId);
 };
 
-const searchQuery = ref(null);
 
 const search = () => {
     axios.get('/api/users/search', {
@@ -125,7 +127,6 @@ const search = () => {
         })
 };
 
-const selectedUsers = ref([]);
 const toggleSelection = (user) => {
     const index = selectedUsers.value.indexOf(user.id);
     if (index === -1) {
@@ -150,7 +151,7 @@ const bulkDelete = () => {
     });
 };
 
-const selectAll = ref(false);
+
 const selectAllUsers = () => {
     if (selectAll.value) {
         selectedUsers.value = users.value.data.map(user => user.id);
@@ -210,11 +211,10 @@ onMounted(() => {
             </div>
             <div class="card">
                 <div class="card-body">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered ">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" v-model="selectAll" @change="selectAllUsers" /></th>
-                                <th style="width: 10px">#</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Registered Date</th>
@@ -222,14 +222,14 @@ onMounted(() => {
                                 <th>Options</th>
                             </tr>
                         </thead>
-                        <tbody v-if="users.data.length > 0">
+                        <tbody v-if="users.data.length > 0" class="text-center">
                             <UserListItem
                             v-for="(user, index) in users.data" :key="user.id" :user=user :index=index
                                 @edit-user="editUser"
                                 @confirm-user-deletion="confirmUserDeletion"
                                 @toggle-selection="toggleSelection" :select-all="selectAll" />
                         </tbody>
-                        <tbody v-else>
+                        <tbody v-else >
                             <tr>
                                 <td colspan="6" class="text-center">No results found...</td>
                             </tr>

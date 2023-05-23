@@ -11,10 +11,7 @@ import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
 const listgroups = ref({ 'data': [] });
-const users = ref([]);
-const editing = ref(false);
 const formValues = ref(null);
-const form = ref(null);
 const groupIdBeingDeleted = ref(null);
 const searchQuery = ref(null);
 const selectAll = ref(false);
@@ -27,7 +24,7 @@ const confirmGroupDeletion = (id) => {
 
 const deleteGroup = () => {
     console.log(groupIdBeingDeleted.value);
-    axios.delete(`/api/group/${groupIdBeingDeleted.value}`,{
+    axios.delete(`/api/group/${groupIdBeingDeleted.value}`, {
         data: {
             id: groupIdBeingDeleted.value
         }
@@ -53,76 +50,25 @@ const bulkDelete = () => {
         });
 };
 
-
-const createGroupSchema = yup.object({
-    user_id: yup.string().required(),
-    status: yup.number().required(),
-    group: yup.number().required(),
-    remainder: yup.number().required(),
-    title: yup.string().required()
-});
-
 const editGroupSchema = yup.object({
-    user_id: yup.string().required(),
-    group: yup.number().required(),
-    remainder: yup.number().required(),
-    title: yup.string().required(),
-    status: yup.number().when((status, schema) => {
-        return status ? schema.required() : schema;
-    }),
+    name: yup.string().required(),
+    desc: yup.string().required()
 });
-
-const createGroup = (values, { resetForm, setErrors }) => {
-    axios.post('/api/group', values)
-        .then((response) => {
-            listgroups.value.data.unshift(response.data);
-            $('#groupFormModal').modal('hide');
-            resetForm();
-            toastr.success('Group created successfully!');
-        })
-        .catch((error) => {
-            if (error.response.data.errors) {
-                setErrors(error.response.data.errors);
-            }
-        })
-};
-
-const AddGroup = () => {
-    editing.value = false;
-    $('#groupFormModal').modal('show');
-};
-
-const getUser = () => {
-    axios.get(`/api/userlist`)
-        .then((response) => {
-            users.value = response.data;
-        }).catch((error) => {
-            setErrors(error.response.data.errors);
-            console.log(error);
-        });
-}
-
 
 const editGroup = (group) => {
-    editing.value = true;
-    form.value.resetForm();
-    getUser();
+    console.log(group);
     $('#groupFormModal').modal('show');
     formValues.value = {
         id: group.id,
-        remainder: group.remainder,
-        user_id: group.user_id,
-        status: group.status,
-        title: group.title,
-        group: group.group
+        name: group.group_name,
+        desc: group.desc
     };
 };
 
 const updateGroup = (values, { setErrors }) => {
+    values.id = formValues.value.id;
     axios.put('/api/group/' + formValues.value.id, values)
         .then((response) => {
-            // const index = groups.value.data.findIndex(group => group.id === response.id);
-            // listgroups.value.data[index] = response.data;
             getGroup();
             $('#groupFormModal').modal('hide');
             toastr.success('Group updated successfully!');
@@ -130,15 +76,6 @@ const updateGroup = (values, { setErrors }) => {
             setErrors(error.response.data.errors);
             console.log(error);
         });
-}
-
-const handleSubmit = (values, actions) => {
-    // console.log(actions);
-    if (editing.value) {
-        updateGroup(values, actions);
-    } else {
-        createGroup(values, actions);
-    }
 }
 
 const groupDeleted = (groupId) => {
@@ -235,7 +172,7 @@ onMounted(() => {
             <div class="d-flex justify-content-between mb-3">
                 <div class="d-flex">
 
-                    <router-link to="/admin/group/create" type="button" class="w-100 mb-2 btn btn-primary">
+                    <router-link to="/admin/group/create" type="button" class="mb-2 btn btn-primary">
                         <i class="fa fa-plus-circle mr-1"></i>
                         Add New Group
                     </router-link>
@@ -257,11 +194,10 @@ onMounted(() => {
 
                     <div class="card">
                         <div class="card-body">
-                            <table class="table table-bordered">
+                            <table class="table ">
                                 <thead>
                                     <tr>
                                         <th><input type="checkbox" v-model="selectAll" @change="selectAllGroups" /></th>
-                                        <th scope="col" style="width: 10px">#</th>
                                         <th scope="col">Group Name</th>
                                         <th scope="col">Desc</th>
                                         <th scope="col">Created At</th>
@@ -269,10 +205,11 @@ onMounted(() => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="(group, index) in listgroups.data" :key="group.id">
-                                        <td><input type="checkbox" :checked="selectAll" @change="toggleSelection(group)" /></td>
-                                        <td>{{ index + 1 }}</td>
-                                        <td>{{ group.name }} </td>
+                                    <tr v-for="(group) in listgroups.data" class="text-center" :key="group.id">
+                                        <td><input type="checkbox" :checked="selectAll" @change="toggleSelection(group)" />
+                                        </td>
+
+                                        <td>{{ group.group_name }} </td>
                                         <td>{{ group.desc }}</td>
                                         <td>{{ group.created_at }}</td>
                                         <td>{{ group.updated_at }}</td>
@@ -328,54 +265,27 @@ onMounted(() => {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span v-if="editing">Edit Group</span>
-                        <span v-else>Add New Group</span>
+                        <span>Edit Group</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editGroupSchema : createGroupSchema"
-                    v-slot="{ errors }" :initial-values="formValues">
+                <Form @submit="updateGroup" :validation-schema="editGroupSchema" v-slot="{ errors }"
+                    :initial-values="formValues">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label>Name User</label>
-                            <Field @click="getUser" name="user_id" as="select" class="form-control"
-                                :class="{ 'is-invalid': errors.user_id }" id="user_id" aria-describedby="nameHelp"
-                                placeholder="Enter full name">
-                                <option value="" disabled>Select a Name</option>
-                                <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
-
-                            </Field>
-                            <span class="invalid-feedback">{{ errors.user_id }}</span>
+                            <label for="desc">Group Name</label>
+                            <Field name="name" type="text" class="form-control " :class="{ 'is-invalid': errors.name }"
+                                aria-describedby="nameHelp" placeholder="Enter name" />
+                            <span class="invalid-feedback">{{ errors.name }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="desc">Title</label>
-                            <Field name="title" type="text" class="form-control " :class="{ 'is-invalid': errors.title }"
-                                id="desc" aria-describedby="nameHelp" placeholder="Enter description" />
-                            <span class="invalid-feedback">{{ errors.title }}</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Pay At</label>
-                            <Field name="group" type="number" class="form-control " :class="{ 'is-invalid': errors.group }"
-                                id="pay_at" aria-describedby="nameHelp" placeholder="Enter Pay Date" />
-                            <span class="invalid-feedback">{{ errors.group }}</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Remainder</label>
-                            <Field name="remainder" type="number" class="form-control "
-                                :class="{ 'is-invalid': errors.remainder }" id="pay_at" aria-describedby="nameHelp"
-                                placeholder="Enter Pay Date" />
-                            <span class="invalid-feedback">{{ errors.remainder }}</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Status</label>
-
-                            <span class="invalid-feedback">{{ errors.status }}</span>
+                            <label for="desc">Group Desc</label>
+                            <Field name="desc" type="text" class="form-control " :class="{ 'is-invalid': errors.desc }"
+                                aria-describedby="nameHelp" placeholder="Enter description" />
+                            <span class="invalid-feedback">{{ errors.desc }}</span>
                         </div>
                     </div>
                     <div class="modal-footer">

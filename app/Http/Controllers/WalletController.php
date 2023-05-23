@@ -7,6 +7,7 @@ use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Console\View\Components\Warn;
 
 class WalletController extends Controller
 {
@@ -19,8 +20,8 @@ class WalletController extends Controller
                     ->from('wallets')
                     ->groupBy('wallet_type');
             })
-            ->get();
-            return $wallets;
+            ->paginate(10);
+        return $wallets;
     }
 
 
@@ -31,34 +32,32 @@ class WalletController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
+
         $dispen = Wallet::create([
-            'name' => request('name'),
-            'prev_saldo' => request('prev_saldo'),
+            'wallet_type' => (Wallet::orderByDesc('wallet_type')->first()->wallet_type)+1,
+            'wallet_name' => request('name'),
+            'prev_saldo' => request('saldo'),
             'saldo' => request('saldo'),
-            'created_at' => request('created_at'),
-            'updated_at' => request('updated_at')
         ]);
         return $dispen;
     }
 
-    public function update(Wallet $dispen)
+    public function update($id)
     {
         //     request()->validate([
         //         'name' => 'required',
         //         'peiod' => 'required|unique:dispens,email,' . $dispen->id,
         //         'password' => 'sometimes|min:8',
         //     ]);
+        $wal =  Wallet::where('id', '=', request('id'))->first();
+        $data = $wal->update([
 
-        $dispen->update([
-
-            'name' => request('name'),
-            'prev_saldo' => request('prev_saldo'),
+            'prev_saldo' => $wal->saldo,
+            'wallet_name' => request('name'),
             'saldo' => request('saldo'),
-            'created_at' => request('created_at'),
-            'updated_at' => request('updated_at')
         ]);
 
-        return $dispen;
+        return $data;
     }
     public function bulkDelete()
     {
@@ -66,18 +65,24 @@ class WalletController extends Controller
 
         return response()->json(['message' => 'Wallets deleted successfully!']);
     }
-    public function destroy(Wallet $dispen)
+    public function destroy($id)
     {
-        $dispen->delete();
+        $data = Wallet::where('id','=',$id)->delete();
 
-        return response()->noContent();
+        return $data;
     }
 
     public function search()
     {
         $searchQuery = request('query');
-
-        $group = Wallet::where('name', 'like', "%{$searchQuery}%")->latest()->paginate(3);
-        return response()->json($group);
+        $wallets = DB::table('wallets')
+            ->whereIn('id', function ($query) {
+                $query->selectRaw('MAX(id)')
+                    ->from('wallets')
+                    ->groupBy('wallet_type');
+            })
+            ->where('wallet_name', 'like', "%{$searchQuery}%")
+            ->paginate(10);
+        return $wallets;
     }
 }

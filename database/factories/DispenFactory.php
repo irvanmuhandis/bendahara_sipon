@@ -20,7 +20,7 @@ class DispenFactory extends Factory
         return [
             'dispen_desc'=>$this->faker->sentence(),
             'pay_at'=>date(now()),
-            'dispen_periode'=>$this->faker->randomElement(['2/2023','3/2023','4/2023','5/2023']),
+            'dispen_periode'=>$this->faker->randomElement(['2023-02','2023-07','2023-04','2023-06']),
             'user_id'=>rand(1,5),
             ];
     }
