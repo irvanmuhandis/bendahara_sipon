@@ -1,9 +1,10 @@
 <script setup>
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useToastr } from '../../toastr';
 import { Form, Field, useResetForm, useField, useForm } from 'vee-validate';
 import * as yup from 'yup';
+import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
@@ -14,6 +15,7 @@ const groups = ref([]);
 const accounts = ref([]);
 const groupusers = ref([]);
 const selectedUser = ref([]);
+const searchQuery = ref('');
 
 const formatted = ref();
 const form = ref({
@@ -33,7 +35,7 @@ const search = (page = 1) => {
         }
     })
         .then(response => {
-            dispens.value = response.data;
+            groups.value = response.data;
         })
         .catch(error => {
             console.log(error);
@@ -110,12 +112,14 @@ const validateBill = () => {
 }
 
 
-const groupchange = () => {
+const userchange = () => {
     groupusers.value = [];
     console.log(form.value);
     axios.get('/api/user/group', {
         params: {
-            group_id: form.value.group.id
+            user_id: form.value.user.map(user => {
+                return user.id;
+            })
         }
     })
         .then((response) => {
@@ -147,6 +151,10 @@ const getData = () => {
             groups.value = response.data;
         })
 }
+
+watch(searchQuery, debounce(() => {
+    search();
+}, 300));
 
 onMounted(() => {
     getUser();
@@ -242,10 +250,10 @@ onMounted(() => {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Group</label>
-                                            <VueMultiselect v-model="form.group" :option-height="9" @select="groupchange"
-                                                :options="listgroups" :class="{ 'is-invalid': errors.group }"
-                                                :multiple="false" :close-on-select="true" placeholder="Pilih Satu"
-                                                label="group_name" track-by="id" :show-labels="false">
+                                            <VueMultiselect v-model="form.group" :option-height="9" :options="listgroups"
+                                                :class="{ 'is-invalid': errors.group }" :multiple="false"
+                                                :close-on-select="true" placeholder="Pilih Satu" label="group_name"
+                                                track-by="id" :show-labels="false">
                                                 <template v-slot:option="{ option }">
                                                     <div>{{ option.group_name }} - {{ option.id }} </div>
                                                 </template>
@@ -254,10 +262,10 @@ onMounted(() => {
                                         </div>
                                         <div class="form-group">
                                             <label>User</label>
-                                            <VueMultiselect v-model="form.user" :option-height="9" :options="users"
-                                                :class="{ 'is-invalid': errors.user }" :multiple="true"
-                                                :close-on-select="true" placeholder="Pilih Satu / Lebih" label="name"
-                                                track-by="id" :show-labels="false">
+                                            <VueMultiselect v-model="form.user" @select="userchange" @remove="userchange" @input="userchange"
+                                                :option-height="9" :options="users" :class="{ 'is-invalid': errors.user }"
+                                                :multiple="true" :close-on-select="true" placeholder="Pilih Satu / Lebih"
+                                                label="name" track-by="id" :show-labels="false">
                                                 <template v-slot:option="{ option }">
                                                     <div>{{ option.name }} - {{ option.id }} </div>
                                                 </template>
@@ -274,7 +282,7 @@ onMounted(() => {
 
                                                         <th>ID</th>
                                                         <th>Name</th>
-                                                        <th>Join At</th>
+                                                        <th>Group</th>
 
                                                     </tr>
                                                 </thead>
@@ -284,7 +292,8 @@ onMounted(() => {
                                                 <tr v-for="user in groupusers">
                                                     <td>{{ user.id }} </td>
                                                     <td>{{ user.name }}</td>
-                                                    <td>{{ user.join_at }}</td>
+                                                    <td v-if="user.group!=null">{{ user.group.group_name }}</td>
+                                                    <td v-else>-</td>
                                                 </tr>
                                             </table>
                                         </div>

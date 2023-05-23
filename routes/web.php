@@ -66,6 +66,7 @@ Route::get('/api/group/search',[GroupController::class,'search']);
 Route::delete('/api/group',[GroupController::class,'bulkDelete']);
 Route::get('/api/group/list', [GroupController::class, 'list']);
 Route::get('/api/group/user', [GroupController::class, 'user']);
+Route::get('/api/group/user/search', [GroupController::class, 'user_search']);
 Route::put('/api/group/link', [GroupController::class, 'link']);
 
 Route::get('/api/debt/search',[DebtController::class,'search']);

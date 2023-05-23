@@ -23,6 +23,4 @@ class Group extends Model
     {
         return $this->hasMany(Bill::class);
     }
-
-
 }

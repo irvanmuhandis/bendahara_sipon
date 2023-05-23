@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('join_at');
-            $table->foreignId('group_id');
+            $table->foreignId('group_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

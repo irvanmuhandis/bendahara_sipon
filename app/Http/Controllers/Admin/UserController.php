@@ -21,11 +21,11 @@ class UserController extends Controller
     public function group(Request $request)
     {
         try {
-            $group_id = request('group_id');
+            $group_id = request('user_id');
 
             if ($group_id) {
                 // If group_id is specified, filter accounts by group_id
-                $users = User::where('group_id', $group_id)->get();
+                $users = User::whereIn('id', $group_id)->with('group')->get();
             } else {
                 // Otherwise, return all accounts
                 $users = User::latest()->get();

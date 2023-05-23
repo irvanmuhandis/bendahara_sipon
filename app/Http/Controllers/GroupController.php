@@ -37,8 +37,10 @@ class GroupController extends Controller
     public function user()
     {
         $apps = Group::with('user')->paginate(5);
+
         return $apps;
     }
+
 
     public function show($id)
     {
@@ -58,7 +60,6 @@ class GroupController extends Controller
         }
         return $array;
     }
-
 
     public function store()
     {
@@ -94,12 +95,15 @@ class GroupController extends Controller
 
         return $grup;
     }
+
+
     public function bulkDelete()
     {
         Group::whereIn('id', request('ids'))->delete();
 
         return response()->json(['message' => 'Groups deleted successfully!']);
     }
+
     public function destroy($id)
     {
         $RES = Group::where('id', '=', $id)->first()->delete();
