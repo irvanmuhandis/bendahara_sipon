@@ -282,116 +282,110 @@ onMounted(() => {
     <div class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-12 card">
-                    <div class="text-center card-header">
-                        <h3 class="m-0">Create Payment Debt</h3>
-                    </div>
-                    <div class="card-body">
-                        <form @submit="createPay">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Debt</label>
-                                        <div v-if="checkLength != 0">
-                                            <i> {{ checkLength }} debt checked</i>
-                                        </div>
-                                        <div v-if="isLoading" class="text-center">
-                                            <div class="spinner-border row text-primary mx-auto" role="status"></div>
-                                            <div v-if="init" class="h6">Pilih User Terlebih Dahulu</div>
-                                        </div>
-                                        <div v-else>
-                                            <div class="" v-for="debt in userdebt.data" :key="debt.id">
-                                                <input v-model="form.debt" type="checkbox"
-                                                    @change="totalize($event, debt.id)" :value="debt.id" />
-                                                <label class="ml-2">
-                                                    {{ debt.title }} | {{ debt.due_date }}
-                                                    <span class="text-right text-monospace">
-                                                        <div :class="'badge badge-' + debt.color">{{
-                                                            (pay_status.find(obj => obj.value === debt.payment_status)).name
-                                                        }}</div>
-                                                        {{
-                                                            accounting.formatMoney(
-                                                                debt.remainder, "Rp", 0) }}
-                                                    </span>
-                                                </label>
-                                            </div>
-                                            <Bootstrap4Pagination :data="userdebt" @pagination-change-page="getUserdebt" />
-                                            <input type="text" class="d-none is-invalid">
-                                            <span class="invalid-feedback">{{ errors.debt }}</span>
-                                        </div>
+                <div class="col-12">
+                    <form @submit="createPay">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Debt</label>
+                                    <div v-if="checkLength != 0">
+                                        <i> {{ checkLength }} debt checked</i>
                                     </div>
-
+                                    <div v-if="isLoading" class="text-center">
+                                        <div class="spinner-border row text-primary mx-auto" role="status"></div>
+                                        <div v-if="init" class="h6">Pilih User Terlebih Dahulu</div>
+                                    </div>
+                                    <div v-else>
+                                        <div class="" v-for="debt in userdebt.data" :key="debt.id">
+                                            <input v-model="form.debt" type="checkbox" @change="totalize($event, debt.id)"
+                                                :value="debt.id" />
+                                            <label class="ml-2">
+                                                {{ debt.title }} | {{ debt.due_date }}
+                                                <span class="text-right text-monospace">
+                                                    <div :class="'badge badge-' + debt.color">{{
+                                                        (pay_status.find(obj => obj.value === debt.payment_status)).name
+                                                    }}</div>
+                                                    {{
+                                                        accounting.formatMoney(
+                                                            debt.remainder, "Rp", 0) }}
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <Bootstrap4Pagination :data="userdebt" @pagination-change-page="getUserdebt" />
+                                        <input type="text" class="d-none is-invalid">
+                                        <span class="invalid-feedback">{{ errors.debt }}</span>
+                                    </div>
                                 </div>
 
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>User</label>
-                                        <VueMultiselect v-model="form.user" :option-height="9" @input="userchange"
-                                            @remove="userchange" @select="userchange" :options="users"
-                                            :class="{ 'is-invalid': errors.user }" :close-on-select="true"
-                                            placeholder="Pilih Satu / Lebih" label="name" track-by="id"
-                                            :show-labels="false">
-                                            <template v-slot:option="{ option }">
-                                                <div>{{ option.name }} - {{ option.id }} </div>
-                                            </template>
-                                        </VueMultiselect>
-                                        <span class="invalid-feedback">{{ errors.user }}</span>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Wallet</label>
-                                        <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets"
-                                            :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
-                                            placeholder="Pilih Satu / Lebih" label="wallet_name" track-by="id"
-                                            :show-labels="false">
-                                            <template v-slot:option="{ option }">
-                                                <div>{{ option.wallet_name }} - {{ option.id }} </div>
-                                            </template>
-                                        </VueMultiselect>
+                            </div>
 
-                                        <span class="invalid-feedback">{{ errors.wallet }}</span>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Payment</label><br>
-                                        <span>Total Debt : {{ accounting.formatMoney(total, "Rp", 0) }}</span>
-                                        <input type="number" v-model="form.payment" @keyup="handleChange"
-                                            :class="{ 'is-invalid': errors.payment }" class="form-control" id="time" />
-                                        <span class="invalid-feedback">{{ errors.payment }}</span>
-                                        <span>{{ formatted }}</span><br>
-                                    </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>User</label>
+                                    <VueMultiselect v-model="form.user" :option-height="9" @input="userchange"
+                                        @remove="userchange" @select="userchange" :options="users"
+                                        :class="{ 'is-invalid': errors.user }" :close-on-select="true"
+                                        placeholder="Pilih Satu / Lebih" label="name" track-by="id" :show-labels="false">
+                                        <template v-slot:option="{ option }">
+                                            <div>{{ option.name }} - {{ option.id }} </div>
+                                        </template>
+                                    </VueMultiselect>
+                                    <span class="invalid-feedback">{{ errors.user }}</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Wallet</label>
+                                    <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets"
+                                        :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
+                                        placeholder="Pilih Satu / Lebih" label="wallet_name" track-by="id"
+                                        :show-labels="false">
+                                        <template v-slot:option="{ option }">
+                                            <div>{{ option.wallet_name }} - {{ option.id }} </div>
+                                        </template>
+                                    </VueMultiselect>
+
+                                    <span class="invalid-feedback">{{ errors.wallet }}</span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Payment</label><br>
+                                    <span>Total Debt : {{ accounting.formatMoney(total, "Rp", 0) }}</span>
+                                    <input type="number" v-model="form.payment" @keyup="handleChange"
+                                        :class="{ 'is-invalid': errors.payment }" class="form-control" id="time" />
+                                    <span class="invalid-feedback">{{ errors.payment }}</span>
+                                    <span>{{ formatted }}</span><br>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col">
-                                    <button type="submit" class="btn btn-primary w-100">Submit</button>
-                                </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <button type="submit" class="btn btn-primary w-100">Submit</button>
                             </div>
-                            {{ errors }}
-                        </Form>
-                    </div>
+                        </div>
+                        {{ errors }}
+                    </Form>
+
                 </div>
 
             </div>
 
             <div class="row">
-                <div class="col-12 card">
-                    <div class="card-body">
-                        <table id="myTable" class="display table " style="overflow: auto;width:100%">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Name</th>
-                                    <th>Title</th>
-                                    <th>Wallet</th>
-                                    <th>Pay</th>
-                                    <th>Update</th>
-                                    <th>Operator</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="col-12">
+                    <table id="myTable" class="display table " style="overflow: auto;width:100%">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Title</th>
+                                <th>Wallet</th>
+                                <th>Pay</th>
+                                <th>Update</th>
+                                <th>Operator</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+
 
                 </div>
             </div>

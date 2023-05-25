@@ -17,13 +17,6 @@ class TransFactory extends Factory
      */
     public function definition()
     {
-        return [
-            'account_id' => Account::where('account_name', '=', 'Kebutuhan')->first()->id,
-            'wallet_id' => rand(1, 3),
-            'title' => $this->faker->sentence(),
-            'out' => $out = rand(0, 1000),
-            'in' => $out == 0 ? rand(1000, 2000) : 0,
-            'user_id' => rand(1, 10)
-        ];
+        return false;
     }
 }

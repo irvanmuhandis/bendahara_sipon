@@ -676,8 +676,6 @@ onMounted(() => {
 
                 </div>
             </div>
-            <div class="card">
-                <div class="card-body">
                     <div class="row-md">
                         <div class="col-md">
                             <h1></h1>
@@ -702,8 +700,7 @@ onMounted(() => {
                     </table>
                 </div>
 
-            </div>
-        </div>
+           
 
     </div>
 </template>

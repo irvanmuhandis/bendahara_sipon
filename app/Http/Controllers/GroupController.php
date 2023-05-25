@@ -68,14 +68,12 @@ class GroupController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-        $user = User::where('id', '=', request('userId'))->first();
-        $dispen = Group::create([
-            'user_id' => request('userId'),
-            'periode' => request('periode'),
-            'pay_at' => request('pay_at'),
-            'desc' => request('desc')
+
+        $data = Group::create([
+            'group_name' => request('name'),
+            'group_desc' => request('desc')
         ]);
-        return $dispen;
+        return $data;
     }
 
     public function update()
@@ -111,13 +109,16 @@ class GroupController extends Controller
         return $RES;
     }
 
-    public function changeRole(Group $dispen)
+    public function user_search(Group $dispen)
     {
-        $dispen->update([
-            'role' => request('role'),
-        ]);
+        $searchQuery = request('query');
 
-        return response()->json(['success' => true]);
+
+        $apps = Group::with(['user' => function ($query) use ($searchQuery) {
+            $query->where('name', 'like', "%{$searchQuery}%")->get();
+        }])->paginate(5);
+
+        return $apps;
     }
 
     public function search()

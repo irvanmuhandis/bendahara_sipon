@@ -9,22 +9,20 @@ class Trans extends Model
 {
     use HasFactory;
 
-    public function book()
-    {
-        return $this->morphOne(BigBook::class, 'bookable');
-    }
 
     public function wallet()
     {
         return $this->belongsTo(Wallet::class);
     }
 
+    public function source()
+    {
+        return $this->morphTo();
+    }
+
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'operator_id', 'id');
     }
-    public function account()
-    {
-        return $this->belongsTo(Account::class);
-    }
+
 }

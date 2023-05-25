@@ -185,7 +185,6 @@ class DatabaseSeeder extends Seeder
         Pay::factory(40)->create();
         Debt::factory(400)->create();
         Dispen::factory(20)->create();
-        Trans::factory(20)->create();
         $pays = Pay::all();
         foreach ($pays as $pay) {
             BigBook::create([

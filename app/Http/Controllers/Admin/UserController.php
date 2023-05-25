@@ -26,12 +26,8 @@ class UserController extends Controller
             if ($group_id) {
                 // If group_id is specified, filter accounts by group_id
                 $users = User::whereIn('id', $group_id)->with('group')->get();
-            } else {
-                // Otherwise, return all accounts
-                $users = User::latest()->get();
+                return $users;
             }
-
-            return $users;
         } catch (Exception $e) {
             logger($e);
             return response()->json(['message' => 'Internal server error'], 500);

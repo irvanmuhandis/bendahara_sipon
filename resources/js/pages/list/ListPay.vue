@@ -2,219 +2,114 @@
 import axios from "axios"
 
 import { ref, onMounted, reactive, computed, watch } from 'vue';
-import { Form, Field, useResetForm, useField } from 'vee-validate';
-import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 import { formatDate } from '../../helper.js';
 
 const toastr = useToastr();
-const listpays = ref([]);
-const listdebt = ref([]);
-const userbill = ref([]);
-const listbill = ref({ 'data': [] });
-const users = ref([]);
 const wallets = ref([]);
-const editing = ref(false);
-const form = ref(null);
-const wallet = ref();
-const user = ref();
-const checked = ref([]);
-const total = ref(0);
-const pay = ref();
-const remainder = ref([]);
+const accounts = ref([]);
 
+const pay = ref();
+const listPay = ref([]);
 const payIdBeingDeleted = ref(0);
 
-const totalize = () => {
-
-
-    remainder.value = [];
-    total.value = 0;
-    checked.value.forEach((id) => {
-        const item = userbill.value.find((item) => item.id === id);
-        total.value = total.value + item.bill_remainder;
-        remainder.value.push(item.bill_remainder);
-    });
-}
-
-
-const formValues = ref(null);
-const month = ref({
-    month: new Date().getMonth(),
-    year: new Date().getFullYear()
+const form = ref({
+    'wallet': null,
+    'account': null,
+    'amount': null,
+    'desc': null
+});
+const errors = ref({
+    'wallet': null,
+    'account': null,
+    'amount': null,
+    'desc': null
 });
 
+const createTrans = (event) => {
+    event.preventDefault();
 
-const confirmPayDeletion = (id) => {
-    payIdBeingDeleted.value = id;
-    console.log('click del');
-    $('#deletePayModal').modal('show');
-};
-
-
-
-const deletePay = () => {
-    console.log(payIdBeingDeleted.value);
-    axios.delete(`/api/pay/${payIdBeingDeleted.value}`, {
-        data: {
-            id: payIdBeingDeleted.value
-        }
-    })
-        .then((response) => {
-            $('#deletePayModal').modal('hide');
-            toastr.success('Pay deleted successfully!');
-            getPay();
-            //payDeleted(payIdBeingDeleted.value)
-        });
-};
-
-const createPaySchema = yup.object({
-    userId: yup.number().required(),
-    payment: yup.number().required(),
-    pay_at: yup.date().required(),
-    walletId: yup.number().required(),
-    billsId: yup.array().min(1, 'You must select at least one option').of(
-        yup.number()),
-}).test('payment-more-than-total', 'Payment should not more than the total', function (values) {
-    const ttl = total.value;
-    const py = values.payment;
-    if (py > ttl) {
-        throw new yup.ValidationError('Payment should not more than the total', null, 'payment');
+    if (valid()) {
+        form.value.account = form.value.account.id;
+        form.value.wallet = form.value.wallet.id;
+        axios.post('/api/trans', form.value)
+            .then((response) => {
+                toastr.success('Pay created successfully!');
+            })
+            .catch((error) => {
+                {
+                    console.log(error)
+                }
+            })
     }
-    return true;
-});
-
-
-const createPay = (values, { resetForm, setErrors }) => {
-    values.remainder = remainder.value;
-
-    axios.post('/api/pay', values)
-        .then((response) => {
-            // listpays.value.data.unshift(response.data);
-            $('#payFormModal').modal('hide');
-            resetForm();
-            toastr.success('Pay created successfully!');
-            getPayBill();
-            getPayDebt();
-        })
-        .catch((error) => {
-            {
-                console.log(error)
-            }
-        })
 };
 
-const editPaySchema = yup.object({
-    userId: yup.number().required(),
-    payment: yup.number().required(),
-    pay_at: yup.date().required(),
-    walletId: yup.number().required(),
-    billsId: yup.array().min(1, 'You must select at least one option').of(
-        yup.number()),
-}).test('payment-more-than-total', 'Payment should not more than the total', function (values) {
-    const ttl = total.value;
-    const py = values.payment;
-    if (py > ttl) {
-        throw new yup.ValidationError('Payment should not more than the total', null, 'payment');
+
+const clearform = () => {
+    for (const key in errors.value) {
+        errors.value[key] = null;
     }
-    return true;
-});
-
-
-const AddPayBill = () => {
-    editing.value = false;
-    $('#payFormModal').modal('show');
-};
-
-
-const editPay = (pay) => {
-    editing.value = true;
-    console.log('click edit');
-    // form.value.resetForm();
-    $('#payFormModal').modal('show');
-    formValues.value = {
-        userId: pay.user_id,
-        payment: pay.payment,
-        pay_at: pay.created_at,
-        walletId: pay.wallet_id,
-        billsId: pay.payable_id
-    };
-};
-
-const updatePay = (values, { setErrors }) => {
-
-    axios.put('/api/pay/' + formValues.value.id, values)
-        .then((response) => {
-            // const index = pays.value.data.findIndex(pay => pay.id === response.id);
-            // listpays.value.data[index] = response.data;
-            getPay();
-            $('#payFormModal').modal('hide');
-            toastr.success('Pay updated successfully!');
-        }).catch((error) => {
-            setErrors(error.response.data.errors);
-            console.log(error);
-        });
-}
-
-const handleSubmit = (values, actions) => {
-    console.log(values);
-    console.log(editing.value);
-
-    var pays = pay.value;
-
-
-
-    if (editing.value) {
-        updatePay(values, actions);
-    } else {
-        createPay(values, actions);
+    for (const key in form.value) {
+        form.value[key] = null;
     }
 }
 
+const valid = () => {
+    var err = 0;
+
+    for (const key in errors.value) {
+        errors.value[key] = null;
+    }
+    if (form.value.wallet == null) {
+        errors.value.wallet = 'Pilih Dompet ';
+        err += 1;
+    }
+    if (form.value.account == null) {
+        errors.value.account = 'Pilih Akun '
+        err += 1;
+    }
+    if (form.value.amount == null || 0) {
+        errors.value.amount = 'Masukkan Jumlah Uang '
+        err += 1;
+    }
+    if (form.value.desc == null) {
+        errors.value.desc = 'Masukkan JDeskripsi '
+        err += 1;
+    }
+
+    if (err == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
 
 const getWallet = () => {
 
-    axios.get(`/api/wallet`)
+    axios.get(`/api/wallet/list`)
         .then((response) => {
             wallets.value = response.data;
         })
 
 }
 
-const getUser = () => {
+const getAccount = () => {
 
-    axios.get(`/api/userlist`)
+    axios.get(`/api/account/list`)
         .then((response) => {
-            users.value = response.data;
+            accounts.value = response.data;
         })
 
 }
 
-const walletchange = (event) => {
-    wallet.value = event.target.value;
-    console.log(wallet.value);
-}
-const userchange = (event) => {
-    user.value = event.target.value;
-    getUserbill();
-}
-
-const getUserbill = () => {
-    checked.value = [];
-    axios.get(`/api/user/bill/` + user.value)
-        .then((response) => {
-            userbill.value = response.data;
-        })
-
-}
 
 const getPay = () => {
 
     axios.get(`/api/pay`)
         .then((response) => {
-            listbill.value = response.data;
             $("#myTable").DataTable({
                 destroy: true,
                 columnDefs: [
@@ -232,7 +127,7 @@ const getPay = () => {
                     'pageLength'
                 ],
 
-                data: listbill.value,
+                data: response.data,
                 responsive: true,
                 columns: [
                     { data: 'created_at' },
@@ -350,7 +245,7 @@ onMounted(() => {
 
     getPay();
     getWallet();
-    getUser();
+    getAccount();
 })
 
 
@@ -361,8 +256,8 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-6">
-                    <h1 class="m-0 text-primary"><strong>Payment | Pembayaran</strong></h1>
-                    <p><small>Pembayaran untuk hutang dan tagihan santri</small></p>
+                    <h1 class="m-0 text-primary"><strong>Pemasukkan</strong></h1>
+                    <!-- <p><small>Pembayaran </small></p> -->
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -377,52 +272,86 @@ onMounted(() => {
 
     <div class="content">
         <div class="container-fluid">
-            <div class="card">
-
-                <div class="card-body">
-                    <div class="row pb-3">
-                        <router-link to="/admin/pay/create-bill" class="col-md-6">
-                            <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
-                                Add Bill Payment</button>
-                        </router-link>
-                        <router-link to="/admin/pay/create-debt" class="col-md-6">
-                            <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New
-                                Add Debt Payment</button>
-                        </router-link>
-
-                    </div>
-                    <!-- <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
+            <div class="row pb-3">
+                <router-link to="/admin/pay/create-bill" class="col-md-6">
+                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Pembayaran Tagihan</button>
+                </router-link>
+                <router-link to="/admin/pay/create-debt" class="col-md-6">
+                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Pembayaran Hutang</button>
+                </router-link>
+            </div>
+            <!-- <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
                         <i class="fa fa-plus-circle mr-1"></i>
                         Add New Pay Bill
                     </button> -->
-                    <!-- <button id="delete-selected-rows" class="btn btn-danger" type="button" >DELETE ROW</button> -->
+            <!-- <button id="delete-selected-rows" class="btn btn-danger" type="button" >DELETE ROW</button> -->
 
-
-                    <table id="myTable" class="display table " style="overflow: auto;width:100%">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Name</th>
-                                <th>Pay</th>
-                                <th>Wallet</th>
-                                <th>Type</th>
-                                <th>Update</th>
-                                <th>Operator</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+            <form @submit="createTrans" class="mb-3">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>Akun</label>
+                            <VueMultiselect v-model="form.account" :option-height="9" :options="accounts"
+                                :class="{ 'is-invalid': errors.account }" :close-on-select="true" placeholder="Pilih Satu "
+                                label="account_name" track-by="id" :show-labels="false">
+                                <template v-slot:option="{ option }">
+                                    <div>{{ option.account_name }} - {{ option.id }} </div>
+                                </template>
+                            </VueMultiselect>
+                            <span class="invalid-feedback">{{ errors.account }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Dompet</label><br>
+                            <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets"
+                                :class="{ 'is-invalid': errors.account }" :close-on-select="true" @select="getId"
+                                placeholder="Pilih Satu " label="wallet_name" track-by="id" :show-labels="false">
+                                <template v-slot:option="{ option }">
+                                    <div>{{ option.wallet_name }} - {{ option.id }} </div>
+                                </template>
+                            </VueMultiselect>
+                            <span class="invalid-feedback">{{ errors.wallet }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah</label><br>
+                            <input :class="{ 'is-invalid': errors.amount }" @change="handleChange" class="form-control"
+                                v-model="form.amount" type="number" />
+                            <span class="invalid-feedback">{{ errors.amount }}</span>
+                            {{ formatted }}
+                        </div>
+                        <div class="form-group">
+                            <label>Keterangan</label><br>
+                            <textarea :class="{ 'is-invalid': errors.desc }" class="form-control"
+                                v-model="form.desc"></textarea>
+                            <span class="invalid-feedback">{{ errors.desc }}</span>
+                        </div>
+                    </div>
                 </div>
+                <button type="submit" class="w-100 btn btn-primary">Submit</button>
+            </form>
 
-            </div>
-
-
-
-
+            <table id="myTable" class="display table " style="overflow: auto;width:100%">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Pay</th>
+                        <th>Wallet</th>
+                        <th>Type</th>
+                        <th>Update</th>
+                        <th>Operator</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
+
     </div>
+
+
+
+
 
     <div class="modal fade" id="deletePayModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
@@ -453,6 +382,7 @@ onMounted(() => {
 
 
 import accounting from 'accounting';
+import { validate } from "vee-validate";
 export default {
 
 

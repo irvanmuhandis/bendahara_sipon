@@ -9,7 +9,7 @@ import CreateBill from "./pages/bill/CreateBill.vue";
 import CreateGroup from "./pages/group/CreateGroup.vue";
 import CreateDebt from "./pages/debts/CreateDebt.vue";
 
-import UserList from "./pages/list/UserList.vue";
+import ListAccount from "./pages/list/ListAccount.vue";
 import ListDebt from "./pages/list/ListDebt.vue";
 import ListAppointments from "./pages/list/ListAppointments.vue";
 import ListDispen from "./pages/list/ListDispen.vue";
@@ -38,9 +38,9 @@ export default [
         component: AppointmentForm,
     },
     {
-        path: "/admin/users",
-        name: "admin.users",
-        component: UserList,
+        path: "/admin/account",
+        name: "admin.account",
+        component: ListAccount,
     },
 
     {

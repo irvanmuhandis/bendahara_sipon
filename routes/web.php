@@ -60,7 +60,7 @@ Route::post('/api/bill-group-mult',[BillController::class,'store_groupMult']);
 Route::post('/api/bill-grouprange-mult',[BillController::class,'store_groupRangeMult']);
 
 Route::get('/api/wallet/search',[WalletController::class,'search']);
-
+Route::get('/api/wallet/list',[WalletController::class,'list']);
 
 Route::get('/api/group/search',[GroupController::class,'search']);
 Route::delete('/api/group',[GroupController::class,'bulkDelete']);
@@ -89,10 +89,12 @@ Route::get('/api/dispens/search',[DispenController::class,'search']);
 Route::delete('/api/dispens',[DispenController::class,'bulkDelete']);
 
 
-Route::get('/api/except', [AccountController::class, 'allExcept']);
+Route::get('/api/account/except', [AccountController::class, 'allExcept']);
+Route::get('/api/account/list', [AccountController::class, 'list']);
 
 Route::resource('/api/account',AccountController::class)
 ->only(['index','store','update','destroy']);
+
 Route::resource('/api/trans',TransController::class)
 ->only(['index','store','update','destroy']);
 Route::resource('/api/bill',BillController::class)
@@ -111,8 +113,8 @@ Route::resource('/api/bill',BillController::class)
 ->only(['index','store','update','destroy']);;
 Route::resource('/api/pay',PayController::class)
 ->only(['index','store','show','update','destroy']);
-Route::resource('/api/users',UserController::class)
-->only(['index','store','update','destroy']);
+// Route::resource('/api/users',UserController::class)
+// ->only(['index','store','update','destroy']);
 
 Route::get('{view}', ApplicationController::class)->where('view', '(.*)');
 

@@ -380,8 +380,6 @@ onMounted(() => {
 
     <div class="content">
         <div class="container-fluid">
-            <div class="card">
-                <div class="card-body">
                     <div class="row pb-3">
                         <div class="col-md-3">
                             <button class="w-100 btn btn-primary" type="button" data-toggle="collapse"
@@ -463,8 +461,7 @@ onMounted(() => {
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
+   
 
     <div class="modal fade" id="deleteBillModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">

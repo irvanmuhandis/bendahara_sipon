@@ -6,16 +6,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CUAN | Bendahara</title>
-    <link rel="icon" type="image/x-icon" href="{{url('/images/cuak.ico')}}">
+    <link rel="icon" type="image/x-icon" href="{{ url('/images/cuak.ico') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
 
 <body class="hold-transition sidebar-mini">
     <div class="wrapper" id="app">
-        <div class="preloader flex-column justify-content-center align-items-center" style="height: 0px;">
-            <img class="animation__wobble" src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png"
-                alt="AdminLTELogo" height="60" width="60" style="display: none;">
+        <div class="preloader flex-column justify-content-center align-items-center">
+            <img class="animation__wobble" src="{{ url('/images/icon_web.png') }}" alt="AdminLTELogo" height="60"
+                width="60" style="">
         </div>
         <nav class="main-header navbar navbar-expand navbar-white navbar-light">
 
@@ -49,7 +49,7 @@
         </nav>
 
 
-        <aside class="main-sidebar sidebar-light-primary ">
+        <aside class="main-sidebar sidebar-light-primary elevation-2">
 
             <a href="#" class="brand-link">
                 <img src="{{ asset('images/icon_web.png') }}" alt="Keuangan logo" class="brand-image "
@@ -81,31 +81,29 @@
                             </router-link>
                         </li>
                         <li class="nav-item">
+                            <router-link to="/admin/pay" :class="$route.path.startsWith('/admin/pay') ? 'active' : ''"
+                                active-class="active" class="nav-link">
+                                <i class="nav-icon fas fa-arrow-down"></i>
+                                <p>
+                                    Pemasukan
+                                </p>
+                            </router-link>
+                        </li>
+                        <li class="nav-item">
+                            <router-link to="/admin/trans" active-class="active" class="nav-link">
+                                <i class="nav-icon fas fa-arrow-up"></i>
+                                <p>
+                                    Pengeluaran
+                                </p>
+                            </router-link>
+                        </li>
+                        <li class="nav-item">
                             <router-link to="/admin/bigBook" active-class="active" class="nav-link">
                                 <i class="nav-icon fas fa-book-open"></i>
                                 <p>
-                                    Big Book
+                                    Laporan
                                 </p>
                             </router-link>
-                        </li>
-
-                        <li class="nav-item">
-                            <router-link to="/admin/trans" active-class="active" class="nav-link">
-                                <i class="nav-icon fas fa-receipt"></i>
-                                <p>
-                                    Transaction
-                                </p>
-                            </router-link>
-                        </li>
-                        <li class="nav-item">
-                            <router-link to="/admin/pay" :class="$route.path.startsWith('/admin/pay') ? 'active' : ''"
-                                active-class="active" class="nav-link">
-                                <i class="nav-icon fas fa-money-bill-wave"></i>
-                                <p>
-                                    Pay
-                                </p>
-                            </router-link>
-
                         </li>
                         <li class="nav-item"><a href="#" class="nav-link"><i
                                     class="nav-icon fas fa-money-bill"></i>
@@ -117,7 +115,7 @@
                                     <router-link to="/admin/debt" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-piggy-bank"></i>
                                         <p>
-                                            Debt
+                                            Hutang
                                         </p>
                                     </router-link>
                                 </li>
@@ -127,7 +125,7 @@
                                         active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-money-check-alt"></i>
                                         <p>
-                                            Bill
+                                            Tagihan
                                         </p>
                                     </router-link>
                                 </li>
@@ -136,7 +134,7 @@
 
                         <li class="nav-item"><a href="#" class="nav-link"><i
                                     class="nav-icon fas fa-tools"></i>
-                                <p> Setting <i class="right fas fa-angle-left"></i></p>
+                                <p> Master <i class="right fas fa-angle-left"></i></p>
                             </a>
                             <ul class="nav nav-treeview"
                                 style="background: rgb(255, 255, 255);border:grey solid 2px;border-radius:8px">
@@ -144,14 +142,14 @@
                                     <router-link to="/admin/group" active-class="active" class="nav-link">
 
                                         <i class="nav-icon fas fa-sitemap"></i>
-                                        <p>Group</p>
+                                        <p>Grup</p>
                                     </router-link>
                                 </li>
                                 <li class="nav-item">
-                                    <router-link to="/admin/users" active-class="active" class="nav-link">
+                                    <router-link to="/admin/account" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-users"></i>
                                         <p>
-                                            Users
+                                            Akun
                                         </p>
                                     </router-link>
                                 </li>
@@ -161,19 +159,20 @@
                                     <router-link to="/admin/wallet" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-wallet"></i>
                                         <p>
-                                            Wallet
+                                            Dompet
                                         </p>
                                     </router-link>
                                 </li>
-                                <li class="nav-item">
-                                    <router-link to="/admin/dispens" active-class="active" class="nav-link">
-                                        <i class="nav-icon fas fa-scroll"></i>
-                                        <p>
-                                            Dispensations
-                                        </p>
-                                    </router-link>
-                                </li>
+
                             </ul>
+                        </li>
+                        <li class="nav-item">
+                            <router-link to="/admin/dispens" active-class="active" class="nav-link">
+                                <i class="nav-icon fas fa-scroll"></i>
+                                <p>
+                                    Surat Dispensasi
+                                </p>
+                            </router-link>
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
@@ -190,7 +189,7 @@
 
         </aside>
 
-        <div class="content-wrapper">
+        <div class="content-wrapper bg-white">
             <router-view></router-view>
 
 

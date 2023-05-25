@@ -24,6 +24,12 @@ class WalletController extends Controller
         return $wallets;
     }
 
+    public function list()
+    {
+        $wallets = Wallet::all();
+        return $wallets;
+    }
+
 
     public function store()
     {

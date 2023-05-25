@@ -321,14 +321,14 @@ onMounted(() => {
                     <div class="modal-body">
 
 
-                        <div class="form-wallet">
+                        <div class="form-group">
                             <label for="desc">Nama Dompet</label>
                             <Field name="name" type="text" class="form-control " :class="{ 'is-invalid': errors.name }"
                                 id="desc" aria-describedby="nameHelp" placeholder="Enter description" />
                             <span class="invalid-feedback">{{ errors.name }}</span>
                         </div>
 
-                        <div class="form-wallet">
+                        <div class="form-group">
                             <label>Saldo</label>
                             <Field name="saldo" type="number" class="form-control "
                                 :class="{ 'is-invalid': errors.saldo }" id="pay_at" aria-describedby="nameHelp"

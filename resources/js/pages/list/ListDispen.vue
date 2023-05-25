@@ -129,6 +129,30 @@ const handleSubmit = (values, actions) => {
 const dispenDeleted = (dispenId) => {
     dispens.value.data = dispens.value.data.filter(dispen => dispen.id !== dispenId);
 };
+const bulkDelete = () => {
+    axios.delete('/api/dispens', {
+        data: {
+            ids: selectedDispen.value
+        }
+    })
+        .then(response => {
+            // dispens.value.data = dispens.value.data.filter(dispen => !selectedDispen.value.includes(dispen.id));
+            // selectedDispen.value = [];
+            // selectAll.value = false;
+            toastr.success(response.data.message);
+            getDispen();
+        });
+};
+
+
+const selectAllDispens = () => {
+    if (selectAll.value) {
+        selectedDispen.value = dispens.value.data.map(dispen => dispen.id);
+    } else {
+        selectedDispen.value = [];
+    }
+    console.log(selectedDispen.value);
+}
 
 
 const search = (page = 1) => {
@@ -154,30 +178,6 @@ const toggleSelection = (dispen) => {
     console.log(selectedDispen.value);
 };
 
-const bulkDelete = () => {
-    axios.delete('/api/dispens', {
-        data: {
-            ids: selectedDispen.value
-        }
-    })
-        .then(response => {
-            // dispens.value.data = dispens.value.data.filter(dispen => !selectedDispen.value.includes(dispen.id));
-            // selectedDispen.value = [];
-            // selectAll.value = false;
-            toastr.success(response.data.message);
-            getDispen();
-        });
-};
-
-
-const selectAllDispens = () => {
-    if (selectAll.value) {
-        selectedDispen.value = dispens.value.data.map(dispen => dispen.id);
-    } else {
-        selectedDispen.value = [];
-    }
-    console.log(selectedDispen.value);
-}
 
 watch(searchQuery, debounce(() => {
     search();

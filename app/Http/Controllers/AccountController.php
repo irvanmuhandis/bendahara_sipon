@@ -10,6 +10,11 @@ class AccountController extends Controller
 {
     public function index()
     {
+        return Account::latest()->paginate(10);
+    }
+
+    public function list()
+    {
         $acc =  Account::latest()->orderBy('id', 'asc')->get();
 
         $data = $acc->map(function ($item, $key) {

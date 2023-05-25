@@ -12,12 +12,12 @@ const toastr = useToastr();
 const users = ref([]);
 const listgroups = ref([]);
 const groups = ref([]);
-const accounts = ref([]);
 const groupusers = ref([]);
 const selectedUser = ref([]);
 const searchQuery = ref('');
+const selectAll = ref(false);
+const selectedRelation = ref([]);
 
-const formatted = ref();
 const form = ref({
     group: null,
     user: [],
@@ -27,6 +27,12 @@ const errors = ref({
     group: null,
     user: null,
 });
+
+const createGroupSchema = yup.object({
+    name: yup.string().required(),
+    desc: yup.string().required(),
+});
+
 
 const search = (page = 1) => {
     axios.get(`/api/group/user/search?page=${page}`, {
@@ -59,7 +65,7 @@ const count = () => {
 }
 
 
-const createGroup = (event) => {
+const linkGroup = (event) => {
     event.preventDefault();
     form.value.user = form.value.user.map(user => {
         return user.id;
@@ -71,11 +77,27 @@ const createGroup = (event) => {
                 clearform();
                 toastr.success('Pay created successfully!');
                 getData();
+                groupusers.value = [];
             })
             .catch((error) => {
                 console.log(error);
             })
     }
+};
+
+const createGroup = (values, { resetForm }) => {
+
+    axios.post('/api/group', values)
+        .then((response) => {
+            resetForm();
+            toastr.success('Pay created successfully!');
+            getData();
+            getGroup();
+            groupusers.value = [];
+        })
+        .catch((error) => {
+            console.log(error);
+        })
 
 };
 
@@ -127,13 +149,6 @@ const userchange = () => {
         });
 }
 
-const getAccount = () => {
-    axios.get('/api/account')
-        .then((response) => {
-            accounts.value = response.data;
-        })
-}
-
 const getGroup = () => {
     axios.get('/api/group/list')
         .then((response) => {
@@ -141,9 +156,6 @@ const getGroup = () => {
         })
 }
 
-const handleChange = (event) => {
-    formatted.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
-}
 
 const getData = () => {
     axios.get('/api/group/user')
@@ -151,6 +163,55 @@ const getData = () => {
             groups.value = response.data;
         })
 }
+
+
+const selectAllGroup = () => {
+    if (selectAll.value) {
+        selectedRelation.value = groups.value.data.map(grup => grup.user.map(user => user.id))
+            .flat(1)
+            .filter(id => id !== null);
+    } else {
+        selectedRelation.value = [];
+    }
+    console.log(selectedRelation.value);
+}
+const toggleSelection = (data) => {
+    const index = selectedRelation.value.indexOf(data.id);
+    if (index === -1) {
+        selectedRelation.value.push(data.id);
+    } else {
+        selectedRelation.value.splice(index, 1);
+    }
+    console.log(selectedRelation.value);
+};
+
+const confirmRelationDeletion = (id) => {
+    selectedUser.value = id;
+    // $('#deleteDispenModal').modal('show');
+    deleteRelation();
+};
+
+const deleteRelation = () => {
+    axios.delete(`/api/group/user/${selectedUser.value}`)
+        .then(() => {
+            $('#deleteDispenModal').modal('hide');
+            toastr.success('Dispen deleted successfully!');
+            getData();
+        });
+};
+
+const bulkDelete = () => {
+    console.log(selectedRelation.value);
+    axios.delete('/api/group/user', {
+        data: {
+            ids: selectedRelation.value
+        }
+    })
+        .then(response => {
+            toastr.success(response.data.message);
+            getData();
+        });
+};
 
 watch(searchQuery, debounce(() => {
     search();
@@ -160,7 +221,6 @@ onMounted(() => {
     getUser();
     getData();
     getGroup();
-    getAccount();
 })
 </script>
 <template>
@@ -199,40 +259,24 @@ onMounted(() => {
                 <div class="card-body">
                     <div class="tab-content">
                         <div class="tab-pane" id="create">
-                            <Form @submit="createGroup_s" :validation-schema="createGroupSchema_s"
-                                v-slot:default="{ errors }">
+                            <Form @submit="createGroup" :validation-schema="createGroupSchema" v-slot:default="{ errors }">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>User</label>
-                                            <Field as="select" multiple @change="count" class="h-100 form-control"
-                                                :class="{ 'is-invalid': errors.user_id }" v-model="selectedUser"
-                                                name="user">
-                                                <option disabled>Pilih Salah Satu</option>
-
-                                                <option v-for="user in users" :value="user.id">{{ user.id + "|" + user.name
-                                                }}
-                                                </option>
-
-                                            </Field>
-                                            <p>{{ countUser }} user selected</p>
-                                            <span class="invalid-feedback">{{ errors.user }}</span>
+                                            <label>Nama Grup</label>
+                                            <Field name="name" type="text" class="form-control "
+                                                :class="{ 'is-invalid': errors.name }" aria-describedby="nameHelp"
+                                                placeholder="Masukkan Nama Grup" />
+                                            <span class="invalid-feedback">{{ errors.name }}</span>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Group</label><br>
-                                            <Field as="select" class="form-control" multiple
-                                                :class="{ 'is-invalid': errors.account }" name="account">
-                                                <option disabled>Pilih Salah Satu</option>
-
-                                                <option v-for="group in listgroups" :value="group.id">
-                                                    {{ group.id + ` | ` +
-                                                        group.account_name }}
-                                                </option>
-
-                                            </Field>
-                                            <span class="invalid-feedback">{{ errors.account }}</span>
+                                            <label>Deskripsi</label>
+                                            <Field name="desc" as="textarea" class="form-control "
+                                                :class="{ 'is-invalid': errors.desc }" aria-describedby="nameHelp"
+                                                placeholder="Masukkan Deskripsi" />
+                                            <span class="invalid-feedback">{{ errors.desc }}</span>
                                         </div>
 
                                     </div>
@@ -245,9 +289,22 @@ onMounted(() => {
                         </div>
 
                         <div class="tab-pane active" id="link">
-                            <form @submit="createGroup">
+                            <form @submit="linkGroup">
                                 <div class="row">
                                     <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>User</label>
+                                            <VueMultiselect v-model="form.user" @select="userchange" @remove="userchange"
+                                                @input="userchange" :option-height="9" :options="users"
+                                                :class="{ 'is-invalid': errors.user }" :multiple="true"
+                                                :close-on-select="true" placeholder="Pilih Satu / Lebih" label="name"
+                                                track-by="id" :show-labels="false">
+                                                <template v-slot:option="{ option }">
+                                                    <div>{{ option.name }} - {{ option.id }} </div>
+                                                </template>
+                                            </VueMultiselect>
+                                            <span class="invalid-feedback">{{ errors.user }}</span>
+                                        </div>
                                         <div class="form-group">
                                             <label>Group</label>
                                             <VueMultiselect v-model="form.group" :option-height="9" :options="listgroups"
@@ -260,18 +317,7 @@ onMounted(() => {
                                             </VueMultiselect>
                                             <span class="invalid-feedback">{{ errors.group }}</span>
                                         </div>
-                                        <div class="form-group">
-                                            <label>User</label>
-                                            <VueMultiselect v-model="form.user" @select="userchange" @remove="userchange" @input="userchange"
-                                                :option-height="9" :options="users" :class="{ 'is-invalid': errors.user }"
-                                                :multiple="true" :close-on-select="true" placeholder="Pilih Satu / Lebih"
-                                                label="name" track-by="id" :show-labels="false">
-                                                <template v-slot:option="{ option }">
-                                                    <div>{{ option.name }} - {{ option.id }} </div>
-                                                </template>
-                                            </VueMultiselect>
-                                            <span class="invalid-feedback">{{ errors.user }}</span>
-                                        </div>
+
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group"><label> User Group
@@ -292,7 +338,7 @@ onMounted(() => {
                                                 <tr v-for="user in groupusers">
                                                     <td>{{ user.id }} </td>
                                                     <td>{{ user.name }}</td>
-                                                    <td v-if="user.group!=null">{{ user.group.group_name }}</td>
+                                                    <td v-if="user.group != null">{{ user.group.group_name }}</td>
                                                     <td v-else>-</td>
                                                 </tr>
                                             </table>
@@ -307,95 +353,84 @@ onMounted(() => {
 
                         </div>
 
-                        <div class="tab-pane" id="range">
-                            Coming Soon
-                        </div>
-
                     </div>
 
                 </div>
             </div>
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mx text-center">List Grup</h4>
-                </div>
-                <div class="card-body">
-                    <div class="card-body">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Grup</th>
-                                    <th scope="col">Santri</th>
-                                    <th scope="col">Dibuat</th>
-                                    <th scope="col">Diperbarui</th>
-                                    <th scope="col">Action</th>
-                                </tr>
 
-                            </thead>
-                            <tbody>
-                                <tr v-for="grup in groups.data" :key="grup.id">
-                                    <td class="text-center"> {{ grup.group_name }}</td>
-                                    <td class="p-0 text-start">
-                                        <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user"
-                                            :key="user.id">
-                                            {{ user.name }}
-                                        </div>
-                                        <div v-else class="text-center">-</div>
-                                    </td>
-
-                                    <td class="p-0 text-center">
-                                        <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user"
-                                            :key="user.id">
-
-                                            {{ formatDate(user.created_at) }}
-
-
-                                        </div>
-                                        <div v-else>-</div>
-                                    </td>
-
-
-                                    <td class="p-0 text-center">
-                                        <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user"
-                                            :key="user.id">
-                                            {{ formatDate(user.created_at) }}
-                                        </div>
-                                        <div v-else>-</div>
-                                    </td>
-
-                                    <td class="p-0 text-center">
-                                        <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user"
-                                            :key="user.id">
-
-
-                                            <a href="#" @click="editRelation(user)">
-                                                <i class="fa fa-edit mr-2"></i>
-                                            </a>
-
-                                            <a href="#" @click="confirmRelationDeletion(user.id)">
-                                                <i class="fa fa-trash text-danger"></i>
-                                            </a>
-
-
-                                        </div>
-                                        <div v-else>-</div>
-                                    </td>
-
-                                </tr>
-
-
-
-
-
-                            </tbody>
-                        </table>
-
+            <div class="m-2">
+                <h4 class="mx text-center">List Grup</h4>
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="d-flex">
+                        <div v-if="selectedRelation.length > 0">
+                            <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
+                                <i class="fa fa-trash mr-1"></i>
+                                Hapus Relasi Dipilih
+                            </button>
+                            <span class="ml-2">Dipilih {{ selectedRelation.length }} relasi</span>
+                        </div>
                     </div>
-                    <div class="card-footer">
-                        <Bootstrap4Pagination :data="groups" @pagination-change-page="search" />
+                    <div>
+                        <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
                     </div>
                 </div>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th scope="col">Grup</th>
+                            <th scope="col">Santri</th>
+                            <th scope="col">Dibuat</th>
+                            <th scope="col">Diperbarui</th>
+                            <th scope="col"><input type="checkbox" v-model="selectAll" @change="selectAllGroup" />
+                            </th>
+                        </tr>
 
+                    </thead>
+                    <tbody>
+                        <tr v-for="grup in groups.data" :key="grup.id">
+                            <td class="text-center"> {{ grup.group_name }}</td>
+                            <td class="p-0 text-start">
+                                <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user" :key="user.id">
+                                    {{ user.name }}
+                                </div>
+                                <div v-else class="text-center">-</div>
+                            </td>
+
+                            <td class="p-0 text-center">
+                                <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user" :key="user.id">
+
+                                    {{ formatDate(user.created_at) }}
+
+
+                                </div>
+                                <div v-else>-</div>
+                            </td>
+
+
+                            <td class="p-0 text-center">
+                                <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user" :key="user.id">
+                                    {{ formatDate(user.created_at) }}
+                                </div>
+                                <div v-else>-</div>
+                            </td>
+
+                            <td class="p-0 text-center">
+                                <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user" :key="user.id">
+
+                                    <input type="checkbox" :checked="selectAll" @change="toggleSelection(user)" />
+                                </div>
+                                <div v-else>-</div>
+                            </td>
+
+                        </tr>
+
+
+
+
+
+                    </tbody>
+                </table>
+                <Bootstrap4Pagination :data="groups" @pagination-change-page="search" />
             </div>
         </div>
 

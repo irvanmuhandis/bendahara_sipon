@@ -17,12 +17,15 @@ return new class extends Migration
 
             $table->id();
             $table->timestamps();
-            $table->foreignId('account_id');
             $table->foreignId('wallet_id');
-            $table->string('title');
-            $table->foreignId('user_id');
+            $table->foreignId('account_id');
+            $table->string('desc');
+            $table->bigInteger('operator_id')->unsigned();
+            $table->foreign('operator_id')->references('id')->on('users');
             $table->bigInteger('in');
             $table->bigInteger('out');
+            $table->integer("source_id")->nullable();
+            $table->string("source_type")->nullable();
         });
     }
 
