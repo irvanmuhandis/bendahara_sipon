@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, watch } from 'vue';
-import { Form, Field, useResetForm,useForm } from 'vee-validate';
+import { Form, Field, useResetForm, useForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import DispenListItem from '../dispen/DispenListItem.vue';
@@ -227,36 +227,35 @@ onMounted(() => {
                     <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
                 </div>
             </div>
-            <div class="card">
-                <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" v-model="selectAll" @change="selectAllDispens" /></th>
-                                <th>Name</th>
-                                <th>Periode</th>
-                                <th>Pay At</th>
-                                <th>Description</th>
-                                <th>Updated At</th>
-                                <th>Created At</th>
-                            </tr>
-                        </thead>
-                        <tbody v-if="dispens.data.length > 0">
-                            <DispenListItem v-for="(dispen, index) in dispens.data" :key="dispen.id" :dispen=dispen
-                                :index=index @edit-dispen="editDispen" @confirm-dispen-deletion="confirmDispenDeletion"
-                                @toggle-selection="toggleSelection" :select-all="selectAll" />
-                        </tbody>
-                        <tbody v-else>
-                            <tr>
-                                <td colspan="6" class="text-center">No results found...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" v-model="selectAll" @change="selectAllDispens" /></th>
+                        <th>Name</th>
+                        <th>Periode</th>
+                        <th>Pay At</th>
+                        <th>Description</th>
+                        <th>Updated At</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody v-if="dispens.data.length > 0">
+                    <DispenListItem v-for="(dispen, index) in dispens.data" :key="dispen.id" :dispen=dispen :index=index
+                        @edit-dispen="editDispen" @confirm-dispen-deletion="confirmDispenDeletion"
+                        @toggle-selection="toggleSelection" :select-all="selectAll" />
+                </tbody>
+                <tbody v-else>
+                    <tr>
+                        <td colspan="6" class="text-center">No results found...</td>
+                    </tr>
+                </tbody>
+            </table>
             <Bootstrap4Pagination :data="dispens" @pagination-change-page="search" />
+    
         </div>
+
     </div>
+
     <div class="modal fade" id="deleteDispenModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">

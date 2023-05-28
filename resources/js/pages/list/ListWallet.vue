@@ -6,6 +6,7 @@ import { Form, Field, useResetForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
+import { formatDate } from "../../helper";
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
@@ -236,8 +237,6 @@ onMounted(() => {
             <div class="row">
                 <div class="col-lg-12">
 
-                    <div class="card">
-                        <div class="card-body">
                             <table class="display table table-bordered dataTables">
                                 <thead>
                                     <tr>
@@ -256,8 +255,8 @@ onMounted(() => {
                                         </td>
                                         <td>{{ wal.wallet_name }}</td>
                                         <td>{{ wal.saldo }}</td>
-                                        <td>{{ wal.created_at }}</td>
-                                        <td>{{ wal.updated_at }}</td>
+                                        <td>{{ formatDate( wal.created_at) }}</td>
+                                        <td>{{ formatDate( wal.updated_at) }}</td>
                                         <td class="text-center">
                                             <a href="#" @click="editWallet(wal)">
                                                 <i class="fa fa-edit mr-2"></i>
@@ -270,14 +269,13 @@ onMounted(() => {
                                     </tr>
                                 </tbody>
                             </table>
+                            <Bootstrap4Pagination :data="listwallets" @pagination-change-page="getWallet" />
 
                         </div>
+
                     </div>
 
-                    <Bootstrap4Pagination :data="listwallets" @pagination-change-page="search" />
-                </div>
-            </div>
-        </div>
+          </div>
     </div>
 
     <div class="modal fade" id="deleteWalletModal" data-backdrop="static" tabindex="-1" role="dialog"

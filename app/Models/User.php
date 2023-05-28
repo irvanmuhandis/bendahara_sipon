@@ -56,15 +56,9 @@ class User extends Authenticatable
     //     return $this->created_at->format(config('app.date_format'));
     // }
 
-    public function role(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => RoleType::from($value)->name,
-        );
-    }
 
-    public function group()
+    public function bill()
     {
-        return $this->belongsTo(Group::class);
+        return $this->hasMany(Bill::class);
     }
 }

@@ -23,12 +23,6 @@ class BillController extends Controller
             ->select('operator.name as operator','bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.due_date', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
             ->orderBy('bills.id', 'desc')->get();
 
-        $bill = $bill->map(function ($item, $key) {
-            $paymentStatus = PayStatus::from($item->payment_status);
-            $item->payment_status = $paymentStatus->names();
-            $item->status_color = $paymentStatus->color();
-            return $item;
-        });
         return $bill;
     }
 

@@ -192,8 +192,6 @@ onMounted(() => {
             <div class="row">
                 <div class="col-lg-12">
 
-                    <div class="card">
-                        <div class="card-body">
                             <table class="table ">
                                 <thead>
                                     <tr>
@@ -201,7 +199,6 @@ onMounted(() => {
                                         <th scope="col">Group Name</th>
                                         <th scope="col">Desc</th>
                                         <th scope="col">Created At</th>
-                                        <th scope="col">Updated At</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -212,7 +209,6 @@ onMounted(() => {
                                         <td>{{ group.group_name }} </td>
                                         <td>{{ group.desc }}</td>
                                         <td>{{ group.created_at }}</td>
-                                        <td>{{ group.updated_at }}</td>
 
                                         <td>
                                             <a href="#" @click="editGroup(group)">
@@ -233,8 +229,7 @@ onMounted(() => {
                     <Bootstrap4Pagination :data="listgroups" @pagination-change-page="search" />
                 </div>
             </div>
-        </div>
-    </div>
+
 
     <div class="modal fade" id="deleteGroupModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">

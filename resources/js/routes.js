@@ -1,7 +1,4 @@
 import Dashboard from "./components/Dashboard.vue";
-import AppointmentForm from "./pages/appointments/AppointmentForm.vue";
-import UpdateSetting from "./pages/settings/UpdateSetting.vue";
-import UpdateProfile from "./pages/profile/UpdateProfile.vue";
 
 import CreatePayBill from "./pages/pay/PayBill.vue";
 import CreatePayDebt from "./pages/pay/PayDebt.vue";
@@ -11,14 +8,15 @@ import CreateDebt from "./pages/debts/CreateDebt.vue";
 
 import ListAccount from "./pages/list/ListAccount.vue";
 import ListDebt from "./pages/list/ListDebt.vue";
-import ListAppointments from "./pages/list/ListAppointments.vue";
 import ListDispen from "./pages/list/ListDispen.vue";
 import ListGroup from "./pages/list/ListGroup.vue";
-import ListPay from "./pages/list/ListPay.vue";
+import ListIncome from "./pages/list/ListIncome.vue";
 import ListBill from "./pages/list/ListBill.vue";
-import ListBigBook from "./pages/list/ListBigBook.vue";
+import ListLedger from "./pages/list/ListLedger.vue";
 import ListWallet from "./pages/list/ListWallet.vue";
-import ListTrans from "./pages/list/ListTrans.vue";
+import ListExpense from "./pages/list/ListExpense.vue";
+
+import DetailLedger from "./pages/ledger/DetailLedger.vue";
 
 export default [
     {
@@ -26,16 +24,10 @@ export default [
         name: "admin.dashboard",
         component: Dashboard,
     },
-
     {
-        path: "/admin/appointments",
-        name: "admin.appointments",
-        component: ListAppointments,
-    },
-    {
-        path: "/admin/appointments/create",
-        name: "admin.appointments.create",
-        component: AppointmentForm,
+        path: "/admin/ledger/:id",
+        name: "admin.ledger.detail",
+        component: DetailLedger,
     },
     {
         path: "/admin/account",
@@ -67,9 +59,9 @@ export default [
         component: ListBill,
     },
     {
-        path: "/admin/pay",
-        name: "admin.pay",
-        component: ListPay,
+        path: "/admin/income",
+        name: "admin.income",
+        component: ListIncome,
     },
     {
         path: "/admin/pay/create-debt",
@@ -102,23 +94,13 @@ export default [
         component: ListWallet,
     },
     {
-        path: "/admin/trans",
-        name: "admin.trans",
-        component: ListTrans,
+        path: "/admin/expense",
+        name: "admin.expense",
+        component: ListExpense,
     },
     {
-        path: "/admin/bigbook",
-        name: "admin.bigbook",
-        component: ListBigBook,
-    },
-    {
-        path: "/admin/setting",
-        name: "admin.setting",
-        component: UpdateSetting,
-    },
-    {
-        path: "/admin/profile",
-        name: "admin.profile",
-        component: UpdateProfile,
+        path: "/admin/ledger",
+        name: "admin.ledger",
+        component: ListLedger,
     },
 ];

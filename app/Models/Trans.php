@@ -9,6 +9,7 @@ class Trans extends Model
 {
     use HasFactory;
 
+    protected $guarded = [];
 
     public function wallet()
     {
@@ -20,9 +21,13 @@ class Trans extends Model
         return $this->morphTo();
     }
 
-    public function user()
+    public function operator()
     {
         return $this->belongsTo(User::class, 'operator_id', 'id');
     }
 
+    public function account()
+    {
+        return $this->belongsTo(Account::class);
+    }
 }

@@ -162,84 +162,11 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now()
             ]
         ]);
-        $status = [
-            [
-                'status_id' => 1,
-                'color' => 'danger'
-            ],
-            [
-                'status_id' => 2,
-                'color' => 'warning'
-            ], [
-                'status_id' => 3,
-                'color' => 'success'
-            ], [
-                'status_id' => 4,
-                'color' => 'primary'
-            ]
-        ];
-        DB::table('status_colors')->insert($status);
         User::factory(25)->create();
         DB::table('groups')->insert($grup);
         Bill::factory(200)->create();
         Pay::factory(40)->create();
         Debt::factory(400)->create();
         Dispen::factory(20)->create();
-        $pays = Pay::all();
-        foreach ($pays as $pay) {
-            BigBook::create([
-                'wallet_id' => $pay->wallet_id,
-                'bookable_id' => $pay->id,
-                'bookable_type' => Pay::class,
-                'out' => 0,
-                'account_id' => $pay->payable->account->id,
-                'in' => $pay->payment,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            $wallet = DB::table('wallets')->where('wallet_type', $pay->wallet->wallet_type)->latest('id')->first();
-            Wallet::create(
-                [
-                    'wallet_type' => $wallet->wallet_type,
-                    'wallet_name' => $wallet->wallet_name,
-                    'prev_saldo' => $wallet->saldo,
-                    'saldo' => $wallet->saldo + $pay->payment,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]
-            );
-        }
-
-        // for ($i = 1; $i < 10; $i++) {
-        //     $user= User::find($i);
-        //     $grup = Group::find($i);
-        //     $user->group()->attach($grup);
-        // }
-
-        $exps = Trans::all();
-        foreach ($exps as $exp) {
-            BigBook::create([
-                'wallet_id' => $exp->wallet_id,
-                'bookable_id' => $exp->id,
-                'bookable_type' => Trans::class,
-                'out' => $exp->out,
-                'account_id' => $exp->account_id,
-                'in' => $exp->in,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            $wallet = DB::table('wallets')->where('wallet_type', $exp->wallet->wallet_type)->latest('id')->first();
-
-            Wallet::create(
-                [
-                    'wallet_type' => $wallet->wallet_type,
-                    'wallet_name' => $wallet->wallet_name,
-                    'prev_saldo' => $wallet->saldo,
-                    'saldo' => $wallet->saldo + $pay->payment,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]
-            );
-        }
     }
 }

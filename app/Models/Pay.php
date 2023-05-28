@@ -32,8 +32,13 @@ class Pay extends Model
         return $this->morphTo();
     }
 
-    public function book()
+    public function account()
     {
-        return $this->morphOne(BigBook::class, 'bookable');
+        return $this->belongsTo(Account::class);
+    }
+
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id', 'id');
     }
 }

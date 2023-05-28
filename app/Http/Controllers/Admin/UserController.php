@@ -41,14 +41,14 @@ class UserController extends Controller
 
             ->join('users', 'users.id', '=', 'bills.user_id')
             ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->join('status_colors', 'status_colors.status_id', '=', 'bills.payment_status')
-            ->select('bills.*', 'accounts.account_name', 'users.name', 'status_colors.color')
+            ->select('bills.*', 'accounts.account_name', 'users.name')
             ->where('bills.user_id', '=', $id)
             ->where('bills.payment_status', '<', 3)
             ->orderBy('bills.due_date', 'desc')
             ->latest()->paginate(9);
 
-        return response()->json($db);
+
+        return $db;
     }
 
     public function debt($id)
@@ -56,8 +56,7 @@ class UserController extends Controller
         $db = DB::table('debts')
             ->join('users', 'users.id', '=', 'debts.user_id')
             ->join('accounts', 'accounts.id', '=', 'debts.account_id')
-            ->join('status_colors', 'status_colors.status_id', '=', 'debts.payment_status')
-            ->select('debts.*', 'accounts.account_name', 'users.name', 'status_colors.color')
+            ->select('debts.*', 'accounts.account_name', 'users.name')
             ->where('debts.user_id', '=', $id)
             ->where('debts.payment_status', '<', 3)
             ->orderBy('debts.created_at', 'desc')

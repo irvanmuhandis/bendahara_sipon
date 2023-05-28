@@ -69,7 +69,7 @@ const getUser = async () => {
 const getWallet = async () => {
 
     try {
-        const response = await axios.get(`/api/wallet`)
+        const response = await axios.get(`/api/wallet/list`)
         wallets.value = response.data;
         console.log('wallet added');
     } catch (error) {
@@ -278,7 +278,7 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <RouterLink to="/admin/pay"><i class="fa fa-arrow-left"></i><strong> Kembali</strong></RouterLink>
+                    <RouterLink to="/admin/income"><i class="fa fa-arrow-left"></i><strong> Kembali</strong></RouterLink>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -286,9 +286,9 @@ onMounted(() => {
                             <RouterLink to="/admin/dashboard">Home</RouterLink>
                         </li>
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/pay">Pay</RouterLink>
+                            <RouterLink to="/admin/income">Income</RouterLink>
                         </li>
-                        <li class="breadcrumb-item active">Create Pay Bill</li>
+                        <li class="breadcrumb-item active">Bayar Tagihan</li>
                     </ol>
                 </div>
             </div>
@@ -341,10 +341,10 @@ onMounted(() => {
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>User</label>
-                                    <VueMultiselect v-model="form.user" :option-height="9" @input="userchange"
+                                    <VueMultiselect v-model="form.user" :option-height="9" @input="userchange" :multiple="false"
                                         @remove="userchange" @select="userchange" :options="users"
                                         :class="{ 'is-invalid': errors.user }" :close-on-select="true"
-                                        placeholder="Pilih Satu / Lebih" label="name" track-by="id" :show-labels="false">
+                                        placeholder="Pilih Satu" label="name" track-by="id" :show-labels="false">
                                         <template v-slot:option="{ option }">
                                             <div>{{ option.name }} - {{ option.id }} </div>
                                         </template>
@@ -353,9 +353,9 @@ onMounted(() => {
                                 </div>
                                 <div class="form-group">
                                     <label>Wallet</label>
-                                    <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets"
+                                    <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets" :multiple="false"
                                         :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
-                                        placeholder="Pilih Satu / Lebih" label="wallet_name" track-by="id"
+                                        placeholder="Pilih Satu" label="wallet_name" track-by="id"
                                         :show-labels="false">
                                         <template v-slot:option="{ option }">
                                             <div>{{ option.wallet_name }} - {{ option.id }} </div>

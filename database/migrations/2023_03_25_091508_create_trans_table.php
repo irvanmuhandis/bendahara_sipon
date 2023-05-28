@@ -24,8 +24,6 @@ return new class extends Migration
             $table->foreign('operator_id')->references('id')->on('users');
             $table->bigInteger('in');
             $table->bigInteger('out');
-            $table->integer("source_id")->nullable();
-            $table->string("source_type")->nullable();
         });
     }
 

@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { useToastr } from '../../toastr';
 import { Form, Field, useResetForm, useField, useForm, validate } from 'vee-validate';
 import * as yup from 'yup';
-import { formatDate, formatMonth } from '../../helper.js';
+import { formatDate, formatMonth,formatStatus } from '../../helper.js';
 import accounting from 'accounting';
 
 const toastr = useToastr();
@@ -347,6 +347,9 @@ const getBill = () => {
                     },
                     {
                         data: "payment_status",
+                        render: function(data){
+                            return formatStatus(data)
+                        }
                     },
                     {
                         data: 'updated_at'
@@ -700,7 +703,7 @@ onMounted(() => {
                     </table>
                 </div>
 
-           
+
 
     </div>
 </template>

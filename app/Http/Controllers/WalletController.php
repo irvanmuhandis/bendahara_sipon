@@ -14,19 +14,19 @@ class WalletController extends Controller
 
     public function index()
     {
+        $wallets = Wallet::latest()->paginate(10);
+        return $wallets;
+    }
+
+    public function list()
+    {
         $wallets = DB::table('wallets')
             ->whereIn('id', function ($query) {
                 $query->selectRaw('MAX(id)')
                     ->from('wallets')
                     ->groupBy('wallet_type');
             })
-            ->paginate(10);
-        return $wallets;
-    }
-
-    public function list()
-    {
-        $wallets = Wallet::all();
+            ->get();
         return $wallets;
     }
 
@@ -40,7 +40,7 @@ class WalletController extends Controller
         // ]);
 
         $dispen = Wallet::create([
-            'wallet_type' => (Wallet::orderByDesc('wallet_type')->first()->wallet_type)+1,
+            'wallet_type' => (Wallet::orderByDesc('wallet_type')->first()->wallet_type) + 1,
             'wallet_name' => request('name'),
             'prev_saldo' => request('saldo'),
             'saldo' => request('saldo'),
@@ -73,7 +73,7 @@ class WalletController extends Controller
     }
     public function destroy($id)
     {
-        $data = Wallet::where('id','=',$id)->delete();
+        $data = Wallet::where('id', '=', $id)->delete();
 
         return $data;
     }

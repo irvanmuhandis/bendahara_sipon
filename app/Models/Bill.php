@@ -20,19 +20,14 @@ class Bill extends Model
         return $this->morphMany(Pay::class, 'payable');
     }
 
-    public function group()
-    {
-        return $this->belongsTo(Group::class);
-    }
-
-    public function periodic()
-    {
-        return $this->belongsTo(Periodic::class,'periodic_id','id');
-    }
-
     public function account()
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
 }

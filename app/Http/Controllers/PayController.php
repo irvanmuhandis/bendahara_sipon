@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Pay;
 use App\Models\Bill;
+use App\Models\Debt;
+use App\Models\Trans;
+use App\Models\Ledger;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\Debt;
 
 class PayController extends Controller
 
@@ -72,6 +75,7 @@ class PayController extends Controller
         $pay_bll = 0;
         $status = 0;
         $bill_rem = 0;
+        $saldo = 0;
 
         $map = collect($remainder)->reduce(function ($carry, $item, $index) use ($bills) {
             $carry[] = ['remainder' => $item, 'bill' => $bills[$index]];
@@ -85,7 +89,7 @@ class PayController extends Controller
         $log = [];
 
         foreach ($map as $item) {
-
+            //update bill
             if ($pay > $item['remainder']) {
                 $pay = $pay - $item['remainder'];
                 $pay_bll = $item['remainder'];
@@ -103,21 +107,48 @@ class PayController extends Controller
                         'bill_remainder' => $bill_rem
                     ]
                 );
+            $p = DB::table('bills')->where('id', '=', $item['bill'])->first();
 
+            //insert ke dompet
+
+            $k = DB::table('wallets')->where('id', '=', request('wallet'))->first();
+            if ($saldo == 0) {
+                $saldo = $k->saldo;
+            }
+            $wallet = Wallet::create([
+                'wallet_type' => $k->wallet_type,
+                'wallet_name' => $k->wallet_name,
+                'prev_saldo' => $saldo,
+                'saldo' => $k->saldo + $pay_bll,
+            ]);
+
+            // insert ke pay
             $i =  Pay::create([
                 'user_id' => request('user'),
                 'payment' => $pay_bll,
-                'wallet_id' => request('wallet'),
+                'wallet_id' => $wallet->id,
                 'payable_id' =>  $item['bill'],
                 'payable_type' => Bill::class,
                 'operator_id' => rand(1, 5),
                 'created_at' => $date,
                 'updated_at' => $date
             ]);
-            array_push($log, $i);
-            $p = DB::table('bills')->where('id', '=', $item['bill'])->first();
 
+            // insert ke buku besar
+            $big = Ledger::create([
+                'ledgerable_id' => $i->id,
+                'ledgerable_type' => Pay::class,
+            ]);
+
+
+
+
+
+            $saldo = $saldo + $pay_bll;
+            array_push($log, $i);
             array_push($log, $p);
+            array_push($log, $big);
+            array_push($log, $wallet);
         }
 
         return $log;
@@ -139,6 +170,7 @@ class PayController extends Controller
         $pay_bll = 0;
         $status = 0;
         $bill_rem = 0;
+        $saldo = 0;
 
         $map = collect($remainder)->reduce(function ($carry, $item, $index) use ($bills) {
             $carry[] = ['remainder' => $item, 'debt' => $bills[$index]];
@@ -150,7 +182,7 @@ class PayController extends Controller
         });
 
         foreach ($map as $item) {
-
+            //update debt
             if ($pay > $item['remainder']) {
                 $pay = $pay - $item['remainder'];
                 $pay_bll = $item['remainder'];
@@ -168,24 +200,47 @@ class PayController extends Controller
                         'remainder' => $bill_rem
                     ]
                 );
+            $p = DB::table('debts')->where('id', '=', $item['debt'])->first();
 
+            //insert wallet
+            $k = DB::table('wallets')->where('id', '=', request('wallet'))->first();
+            if ($saldo == 0) {
+                $saldo = $k->saldo;
+            }
+            $wallet = Wallet::create([
+                'wallet_type' => $k->wallet_type,
+                'wallet_name' => $k->wallet_name,
+                'prev_saldo' => $saldo,
+                'saldo' => $saldo + $pay_bll,
+            ]);
+
+            //insert pay
             $q = Pay::create([
                 'user_id' => request('user'),
                 'payment' => $pay_bll,
-                'wallet_id' => request('wallet'),
+                'wallet_id' => $wallet->id,
                 'payable_id' =>  $item['debt'],
                 'payable_type' => Debt::class,
                 'operator_id' => rand(1, 5),
                 'created_at' => Carbon::now('Asia/Jakarta'),
                 'updated_at' => Carbon::now('Asia/Jakarta')
             ]);
+            //insert buku besar
+
+            $big = Ledger::create([
+                'ledgerable_id' => $q->id,
+                'ledgerable_type' => Pay::class,
+            ]);
+
+            $saldo = $saldo + $pay_bll;
             array_push($log, $q);
-
-            $p = DB::table('debts')->where('id', '=', $item['debt'])->first();
-
             array_push($log, $p);
+            array_push($log, $big);
+            array_push($log, $wallet);
         }
- array_push($log, $map);
+
+
+        array_push($log, $map);
         return $log;
     }
 

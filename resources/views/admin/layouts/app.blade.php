@@ -81,7 +81,7 @@
                             </router-link>
                         </li>
                         <li class="nav-item">
-                            <router-link to="/admin/pay" :class="$route.path.startsWith('/admin/pay') ? 'active' : ''"
+                            <router-link to="/admin/income" :class="$route.path.startsWith('/admin/pay') ? 'active' : ''"
                                 active-class="active" class="nav-link">
                                 <i class="nav-icon fas fa-arrow-down"></i>
                                 <p>
@@ -90,7 +90,7 @@
                             </router-link>
                         </li>
                         <li class="nav-item">
-                            <router-link to="/admin/trans" active-class="active" class="nav-link">
+                            <router-link to="/admin/expense" active-class="active" class="nav-link">
                                 <i class="nav-icon fas fa-arrow-up"></i>
                                 <p>
                                     Pengeluaran
@@ -98,7 +98,7 @@
                             </router-link>
                         </li>
                         <li class="nav-item">
-                            <router-link to="/admin/bigBook" active-class="active" class="nav-link">
+                            <router-link to="/admin/ledger" active-class="active" class="nav-link">
                                 <i class="nav-icon fas fa-book-open"></i>
                                 <p>
                                     Laporan

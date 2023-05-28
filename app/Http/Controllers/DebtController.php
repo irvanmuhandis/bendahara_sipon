@@ -17,14 +17,8 @@ class DebtController extends Controller
             ->join('users', 'users.id', '=', 'debts.user_id')
             ->join('users as operator', 'operator.id', '=', 'debts.user_id')
             ->select('debts.created_at','debts.updated_at','debts.id','operator.name as operator', 'users.name as user', 'debts.amount as debt', 'debts.payment_status', 'debts.title', 'debts.remainder')
-            ->orderBy('debts.id', 'desc')->get();
+            ->orderBy('debts.id', 'desc')->paginate(20);
 
-        $debt = $debt->map(function ($item, $key) {
-            $paymentStatus = PayStatus::from($item->payment_status);
-            $item->payment_status = $paymentStatus->names();
-            $item->status_color = $paymentStatus->color();
-            return $item;
-        });
         return $debt;
     }
 

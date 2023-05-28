@@ -9,7 +9,7 @@ use App\Http\Controllers\TransController;
 use App\Http\Controllers\DispenController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\BigBookController;
+use App\Http\Controllers\LedgerController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AppointmentController;
@@ -72,10 +72,6 @@ Route::put('/api/group/link', [GroupController::class, 'link']);
 Route::get('/api/debt/search',[DebtController::class,'search']);
 Route::delete('/api/debt',[DebtController::class,'bulkDelete']);
 
-Route::get('/api/appoint_status', [AppointStatusController::class, 'getStatusWithCount']);
-Route::get('/api/appointments', [AppointmentController::class, 'index']);
-Route::post('/api/appointments/create', [AppointmentController::class, 'store']);
-
 Route::get('/api/userlist', [UserController::class, 'list']);
 Route::get('/api/user/group', [UserController::class, 'group']);
 Route::get('/api/user/bill/{id}', [UserController::class, 'bill']);
@@ -87,6 +83,11 @@ Route::delete('/api/users', [UserController::class, 'bulkDelete']);
 
 Route::get('/api/dispens/search',[DispenController::class,'search']);
 Route::delete('/api/dispens',[DispenController::class,'bulkDelete']);
+
+
+Route::get('/api/ledger',[LedgerController::class,'index']);
+Route::get('/api/ledger/{id}',[LedgerController::class,'show']);
+Route::get('/api/ledger/billing/search',[LedgerController::class,'billing']);
 
 
 Route::get('/api/account/except', [AccountController::class, 'allExcept']);

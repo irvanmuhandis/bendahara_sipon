@@ -128,7 +128,7 @@ const valid = () => {
 const getWallet = async () => {
 
     try {
-        const response = await axios.get(`/api/wallet`)
+        const response = await axios.get(`/api/wallet/list`)
         wallets.value = response.data;
         console.log('wallet added');
     } catch (error) {
@@ -261,7 +261,7 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <RouterLink to="/admin/pay"><i class="fa fa-arrow-left"></i><strong> Kembali</strong></RouterLink>
+                    <RouterLink to="/admin/income"><i class="fa fa-arrow-left"></i><strong> Kembali</strong></RouterLink>
 
                 </div>
                 <div class="col-sm-6">
@@ -270,9 +270,9 @@ onMounted(() => {
                             <router-link to="/admin/dashboard">Home</router-link>
                         </li>
                         <li class="breadcrumb-item">
-                            <router-link to="/admin/pay">Pay</router-link>
+                            <router-link to="/admin/income">Income</router-link>
                         </li>
-                        <li class="breadcrumb-item active">Create</li>
+                        <li class="breadcrumb-item active">Bayar Hutang</li>
                     </ol>
                 </div>
             </div>
@@ -323,7 +323,7 @@ onMounted(() => {
                                 <div class="form-group">
                                     <label>User</label>
                                     <VueMultiselect v-model="form.user" :option-height="9" @input="userchange"
-                                        @remove="userchange" @select="userchange" :options="users"
+                                        @remove="userchange" @select="userchange" :options="users" :multiple="false"
                                         :class="{ 'is-invalid': errors.user }" :close-on-select="true"
                                         placeholder="Pilih Satu / Lebih" label="name" track-by="id" :show-labels="false">
                                         <template v-slot:option="{ option }">
@@ -335,7 +335,7 @@ onMounted(() => {
                                 <div class="form-group">
                                     <label>Wallet</label>
                                     <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets"
-                                        :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
+                                        :class="{ 'is-invalid': errors.wallet }" :close-on-select="true" :multiple="false"
                                         placeholder="Pilih Satu / Lebih" label="wallet_name" track-by="id"
                                         :show-labels="false">
                                         <template v-slot:option="{ option }">

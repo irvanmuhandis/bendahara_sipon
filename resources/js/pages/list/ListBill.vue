@@ -7,7 +7,7 @@ import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
-import { formatDate } from '../../helper.js';
+import { formatDate,formatStatus } from '../../helper.js';
 
 const toastr = useToastr();
 const listBill = ref([]);
@@ -314,7 +314,10 @@ const getData = () => {
                     { data: "name" },
                     { data: "bill_amount" },
                     { data: 'bill_remainder' },
-                    { data: 'payment_status' },
+                    { data: 'payment_status',
+                        render: function(data){
+                            return formatStatus(data)
+                        } },
                     {
                         data: "id",
                         render: function (data) {
@@ -461,7 +464,7 @@ onMounted(() => {
                     </table>
                 </div>
             </div>
-   
+
 
     <div class="modal fade" id="deleteBillModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
