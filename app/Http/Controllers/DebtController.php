@@ -5,12 +5,19 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Models\Debt;
 use App\Enums\PayStatus;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 
 
 class DebtController extends Controller
 {
+
+    function test(Request $request)
+    {
+        return $request->user();
+    }
+
     public function index()
     {
         $debt = DB::table('debts')
@@ -56,22 +63,15 @@ class DebtController extends Controller
                 });
             })
             ->when($status, function ($query) use ($status) {
-                return $query->where('status', PayStatus::from($status));
+                return $query->where('payment_status', PayStatus::from($status));
             })
-            ->paginate(3)->through(fn ($app) => [
-                'id' => $app->id,
-                'status' => [
-                    'name' => $app->status->name,
-                    'color' => $app->status->color(),
-                ],
-                'user' => $app->user,
-                'title' => $app->title,
-                'debt' => $app->debt,
-                'remainder' => $app->remainder
-            ]);
+            ->paginate();
 
         return response()->json($debts);
     }
+
+
+
 
     public function bulkDelete()
     {

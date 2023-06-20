@@ -60,7 +60,7 @@ export function formatClass(value) {
 export function formatDiff(a, b) {
     var c = a - b;
     if (c < 0) {
-        c = accounting.formatMoney(-1*c, "Rp. ", 0);
+        c = accounting.formatMoney(-1 * c, "Rp. ", 0);
         return `<div class="text-danger">- ${c}</div>`;
     } else {
         c = accounting.formatMoney(c, "Rp. ", 0);
@@ -72,12 +72,15 @@ export function formatMoney(value) {
     return accounting.formatMoney(value, "Rp. ", 0);
 }
 
-export function formatMoney_2(c,mode) {
+export function formatMoney_2(c, mode) {
     c = accounting.formatMoney(c, "Rp. ", 0);
     if (mode == 2) {
         return `<div class="text-danger">- ${c}</div>`;
     } else {
-
         return `<div class="text-success">+ ${c}</div>`;
     }
+}
+
+export function formatlink(label) {
+    return `<div class="btn btn-primary"> ${label}</div>`;
 }

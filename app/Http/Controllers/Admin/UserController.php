@@ -18,14 +18,14 @@ class UserController extends Controller
         return $users;
     }
 
-    public function group(Request $request)
+    public function group($id)
     {
         try {
-            $group_id = request('user_id');
+            $group_id = $id;
 
             if ($group_id) {
                 // If group_id is specified, filter accounts by group_id
-                $users = User::whereIn('id', $group_id)->with('group')->get();
+                $users = User::where('id','=', $group_id)->with('group')->get();
                 return $users;
             }
         } catch (Exception $e) {

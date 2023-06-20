@@ -134,30 +134,42 @@ class DatabaseSeeder extends Seeder
             [
                 'account_name' => 'Utang',
                 'account_type' => 1,
+                'deletable' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'account_name' => 'Syahriah',
                 'account_type' => 2,
+                'deletable' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'account_name' => 'Wifi',
                 'account_type' => 2,
+                'deletable' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'account_name' => 'Madin',
                 'account_type' => 2,
+                'deletable' => 0,
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'account_name' => 'Kebutuhan',
                 'account_type' => 1,
+                'deletable' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'account_name' => 'Iuran Santri Baru',
+                'account_type' => 1,
+                'deletable' => 1,
                 'created_at' => now(),
                 'updated_at' => now()
             ]

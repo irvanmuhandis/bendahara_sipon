@@ -39,20 +39,25 @@ class WalletController extends Controller
         //     'password' => 'required|min:8',
         // ]);
 
-        $dispen = Wallet::create([
+        $wallet = Wallet::create([
             'wallet_type' => (Wallet::orderByDesc('wallet_type')->first()->wallet_type) + 1,
             'wallet_name' => request('name'),
             'prev_saldo' => request('saldo'),
             'saldo' => request('saldo'),
         ]);
-        return $dispen;
+        return $wallet;
+    }
+
+    public function delType()
+    {
+        return  Wallet::where('wallet_type', request('wallet_type'))->delete();;
     }
 
     public function update($id)
     {
         //     request()->validate([
         //         'name' => 'required',
-        //         'peiod' => 'required|unique:dispens,email,' . $dispen->id,
+        //         'peiod' => 'required|unique:dispens,email,' . $wallet->id,
         //         'password' => 'sometimes|min:8',
         //     ]);
         $wal =  Wallet::where('id', '=', request('id'))->first();

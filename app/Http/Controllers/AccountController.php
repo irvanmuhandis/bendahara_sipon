@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Enums\AccountType;
 use App\Http\Controllers\Controller;
+use GuzzleHttp\Psr7\Request;
 
 class AccountController extends Controller
 {
@@ -28,13 +29,25 @@ class AccountController extends Controller
     public function allExcept()
     {
         $id = request('except');
-        $acc =  Account::where('id','!=',$id)->orderBy('id', 'asc')->get();
+        $acc =  Account::where('id', '!=', $id)->orderBy('id', 'asc')->get();
 
         $data = $acc->map(function ($item, $key) {
             $acc_type = AccountType::from($item->account_type);
             $item->account_type = $acc_type->name();
             return $item;
         });
+        return $data;
+    }
+
+    public function periodic()
+    {
+        $data = Account::where('account_type', '=', '2')->get();
+        $size =  $data->count();
+
+        // return response()->json([
+        //     'data'=>$data,
+        //     'size'=>$size
+        // ]);
         return $data;
     }
 }

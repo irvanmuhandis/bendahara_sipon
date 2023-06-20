@@ -7,6 +7,7 @@ use App\Models\Group;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Error;
+use Exception;
 
 class GroupController extends Controller
 {
@@ -34,11 +35,27 @@ class GroupController extends Controller
         return $data;
     }
 
-    public function user()
+    public function santri()
     {
         $apps = Group::with('user')->paginate(5);
 
         return $apps;
+    }
+
+    public function form()
+    {
+        try {
+            $id = request('santri');
+            $id = json_decode($id, true);
+
+            if ($id) {
+                $users = User::whereIn('id', $id)->with('group')->get();
+                return $users;
+            }
+        } catch (Exception $e) {
+            logger($e);
+            return response()->json(['message' => 'Internal server error'], 500);
+        }
     }
 
 

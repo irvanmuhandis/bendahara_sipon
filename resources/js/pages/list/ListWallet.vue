@@ -6,83 +6,60 @@ import { Form, Field, useResetForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
-import { formatDate } from "../../helper";
+import { formatDate, formatMoney } from "../../helper";
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
 const listwallets = ref({ 'data': [{ 'id': 0 }] });
-const users = ref([]);
 const editing = ref(false);
-const formValues = ref(null);
+const formValues = ref({
+    'saldo': 0
+});
 const form = ref(null);
-const walletIdBeingDeleted = ref(null);
 const searchQuery = ref(null);
-const selectAll = ref(false);
-const selectedWallet = ref([]);
-
-const confirmWalletDeletion = (id) => {
-    walletIdBeingDeleted.value = id;
-    $('#deleteWalletModal').modal('show');
-};
-
-const deleteWallet = () => {
-    console.log(walletIdBeingDeleted.value);
-    axios.delete(`/api/wallet/${walletIdBeingDeleted.value}`, {
-        data: {
-            id: walletIdBeingDeleted.value
-        }
-    })
-        .then((response) => {
-            $('#deleteWalletModal').modal('hide');
-            toastr.success('Wallet deleted successfully!');
-            getWallet();
-            //walletDeleted(walletIdBeingDeleted.value)
-        });
-};
-
-const bulkDelete = () => {
-    console.log(selectedWallet.value);
-    axios.delete('/api/wallet', {
-        data: {
-            ids: selectedWallet.value
-        }
-    })
-        .then(response => {
-            toastr.success(response.data.message);
-            getWallet();
-        });
-};
-
+const types = ref([]);
+const IdBeingDeleted = ref({
+    'id':0
+});
+const saldo = ref(null);
 
 const createWalletSchema = yup.object({
-    saldo: yup.number().required(),
-    name: yup.string().required()
+    saldo: yup.number().required('Saldo harus diisi !'),
+    name: yup.string().required('Nama dompet harus diisi !')
 });
 
 const editWalletSchema = yup.object({
-    saldo: yup.number().required(),
-    name: yup.string().required()
+    saldo: yup.number().required('Saldo harus diisi !'),
+    name: yup.string().required('Nama dompet harus diisi !')
 });
 
+const saldoChange = (event) => {
+    saldo.value = formatMoney(event.target.value);
+}
+
 const createWallet = (values, { resetForm, setErrors }) => {
-    axios.post('/api/wallet', values)
-        .then((response) => {
-            listwallets.value.data.unshift(response.data);
-            $('#walletFormModal').modal('hide');
-            resetForm();
-            toastr.success('Wallet created successfully!');
-        })
-        .catch((error) => {
-            if (error.response.data.errors) {
-                setErrors(error.response.data.errors);
-            }
-        })
+    axios.get('/csrf-token').then(() => {
+        axios.post('/api/wallet', values)
+            .then((response) => {
+                $('#FormModal').modal('hide');
+                getWallet();
+                getWalletType();
+                resetForm();
+                toastr.success('Dompet berhasil dibuat !');
+            })
+            .catch((error) => {
+                if (error.response.data.errors) {
+                    setErrors(error.response.data.errors);
+                }
+            })
+    })
+
 };
 
 const AddWallet = () => {
     editing.value = false;
     formValues.value = {};
-    $('#walletFormModal').modal('show');
+    $('#FormModal').modal('show');
 };
 
 
@@ -90,7 +67,8 @@ const AddWallet = () => {
 const editWallet = (wallet) => {
     editing.value = true;
     form.value.resetForm();
-    $('#walletFormModal').modal('show');
+    saldo.value = formatMoney(wallet.saldo);
+    $('#FormModal').modal('show');
     formValues.value = {
         id: wallet.id,
         name: wallet.wallet_name,
@@ -103,7 +81,8 @@ const updateWallet = (values, { setErrors }) => {
     axios.put('/api/wallet/' + formValues.value.id, values)
         .then((response) => {
             getWallet();
-            $('#walletFormModal').modal('hide');
+            getWalletType();
+            $('#FormModal').modal('hide');
             toastr.success('Wallet updated successfully!');
         }).catch((error) => {
             setErrors(error.response.data.errors);
@@ -119,11 +98,6 @@ const handleSubmit = (values, actions) => {
         createWallet(values, actions);
     }
 }
-
-const walletDeleted = (walletId) => {
-    listwallets.value.data = listwallets.value.data.filter(wallet => wallet.id !== walletId);
-};
-
 
 const search = (page = 1) => {
     const param = {};
@@ -142,52 +116,76 @@ const search = (page = 1) => {
         })
 };
 
-const toggleSelection = (wallet) => {
-    const index = selectedWallet.value.indexOf(wallet.id);
-    if (index === -1) {
-        selectedWallet.value.push(wallet.id);
-    } else {
-        selectedWallet.value.splice(index, 1);
-    }
-    console.log(selectedWallet.value);
-};
-
-
-
-
-const selectAllWallets = () => {
-    if (selectAll.value) {
-        selectedWallet.value = listwallets.value.data.map(wallet => wallet.id);
-    } else {
-        selectedWallet.value = [];
-    }
-    console.log(selectedWallet.value);
-}
-
 watch(searchQuery, debounce(() => {
     search();
 }, 300));
-
-
-const wallet_count = computed(() => {
-    return wallet_status.value.map(status => status.count).reduce((acc, value) => acc + value, 0);
-})
 
 
 const getWallet = (page = 1) => {
 
     axios.get(`/api/wallet?page=${page}`).then((response) => {
         listwallets.value = response.data;
-        console.log(listwallets.value.data);
-        selectedWallet.value = [];
-        selectAll.value = false;
     })
 
 }
 
+const getWalletType = () => {
+
+    axios.get(`/api/wallet/list`).then((response) => {
+        types.value = response.data;
+
+    })
+
+}
+
+const getTest = () => {
+
+    axios.get('/sanctum/csrf-cookie').then(response => {
+        console.log(response);
+        axios.post('/api/wallet', values)
+            .then((response) => {
+                listwallets.value.data.unshift(response.data);
+                $('#FormModal').modal('hide');
+                resetForm();
+                toastr.success('Dompet berhasil dibuat !');
+            })
+            .catch((error) => {
+                if (error.response.data.errors) {
+                    setErrors(error.response.data.errors);
+                }
+            })
+    });
+
+    axios.get('/test').then(response => {
+        console.log(response);
+    });
+}
+
+const confirmWalletDeletion = () => {
+    $('#deleteModal').modal('show');
+};
+
+const deleteWallet = () => {
+    axios.post(`/api/wallet/delete`,IdBeingDeleted.value)
+        .then(() => {
+            $('#deleteModal').modal('hide');
+            toastr.success('Wallet deleted successfully!');
+            getWallet();
+            IdBeingDeleted.value = null;
+            getWalletType();
+        });
+};
+
+const test = (x) => {
+    console.log(x)
+}
+
+
+
 onMounted(() => {
     getWallet();
-
+    // getTest();
+    getWalletType();
 })
 
 
@@ -217,18 +215,65 @@ onMounted(() => {
             <div class="d-flex justify-content-between mb-3">
                 <div class="d-flex">
 
-                    <button @click="AddWallet" type="button" class="mb-2 btn btn-primary">
+                    <button @click="AddWallet" type="button" class="btn btn-primary">
                         <i class="fa fa-plus-circle mr-1"></i>
-                        Add New Wallet
+                        Tambah Dompet
                     </button>
 
-                    <div v-if="selectedWallet.length > 0">
-                        <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
-                            <i class="fa fa-trash mr-1"></i>
-                            Delete Selected
+                    <div class="row ml-2">
+                        <button class="col w-100 btn btn-outline-danger" type="button" data-toggle="collapse"
+                            data-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
+                            Hapus Dompet <i class="ml-1 right fas fa-trash"></i>
                         </button>
-                        <span class="ml-2">Selected {{ selectedWallet.length }} wallets</span>
+                        <div class="collapse m-0 p-0 " id="collapseWidthExample">
+
+                            <div class="row">
+                                <div class="col-10 ">
+
+                                    <VueMultiselect class="ml-2" v-model="IdBeingDeleted" :option-height="9"
+                                        @input="test(IdBeingDeleted)" @select="test(IdBeingDeleted)"
+                                        @remove="test(IdBeingDeleted)" :options="types" :multiple="false"
+                                        :close-on-select="true" placeholder="Pilih Satu " label="wallet_name" track-by="id"
+                                        :show-labels="false">
+                                        <template v-slot:option="{ option }">
+                                            <div>{{ option.wallet_name }} </div>
+                                        </template>
+                                    </VueMultiselect>
+
+
+                                </div>
+                                <div class="col-2">
+                                    <button type="button" @click="confirmWalletDeletion" class="btn btn-danger">Hapus</button>
+                                </div>
+
+                            </div>
+                        </div>
+                        <!-- Modal -->
+                        <div class="modal" tabindex="-1" role="dialog" id="deleteModal">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">WARNING</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+
+                                        <p>Apakah Kamu Yakin Ingin Menghapus seluruh Data {{
+                                            IdBeingDeleted == null ? "---" : IdBeingDeleted.wallet_name }} ?</p>
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tidak</button>
+                                        <button type="button" class="btn btn-primary" @click="deleteWallet">Ya, saya yakin
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
                 <div>
                     <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
@@ -237,78 +282,53 @@ onMounted(() => {
             <div class="row">
                 <div class="col-lg-12">
 
-                            <table class="display table table-bordered dataTables">
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox" v-model="selectAll" @change="selectAllWallets" /></th>
-                                        <th scope="col">Wallet Name</th>
-                                        <th scope="col">Saldo</th>
-                                        <th scope="col">Created At</th>
-                                        <th scope="col">Updated At</th>
-                                        <th scope="col">Action</th>
-                                    </tr>
+                    <table class="display table table-bordered dataTables">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nama Dompet</th>
+                                <th scope="col">Saldo Sebelumnya</th>
+                                <th scope="col">Saldo</th>
+                                <th scope="col">Dibuat</th>
+                                <th scope="col">Aksi</th>
+                            </tr>
 
-                                </thead>
-                                <tbody>
-                                    <tr  v-for="(wal) in listwallets.data" :key="wal.id">
-                                        <td class="text-center"><input type="checkbox" :checked="selectAll" @change="toggleSelection(wallet)" />
-                                        </td>
-                                        <td>{{ wal.wallet_name }}</td>
-                                        <td>{{ wal.saldo }}</td>
-                                        <td>{{ formatDate( wal.created_at) }}</td>
-                                        <td>{{ formatDate( wal.updated_at) }}</td>
-                                        <td class="text-center">
-                                            <a href="#" @click="editWallet(wal)">
-                                                <i class="fa fa-edit mr-2"></i>
-                                            </a>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(wal) in listwallets.data" :key="wal.id">
 
-                                            <a href="#" @click="confirmWalletDeletion(wal.id)">
-                                                <i class="fa fa-trash text-danger"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <Bootstrap4Pagination :data="listwallets" @pagination-change-page="getWallet" />
+                                <td>{{ wal.wallet_name }}</td>
+                                <td>{{ formatMoney(wal.prev_saldo) }}</td>
+                                <td>{{ formatMoney(wal.saldo) }}</td>
+                                <td>{{ formatDate(wal.created_at) }}</td>
+                                <td class="text-center">
+                                    <a href="#" @click="editWallet(wal)">
+                                        <i class="fa fa-edit mr-2"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <Bootstrap4Pagination :data="listwallets" @pagination-change-page="getWallet" />
 
-                        </div>
-
-                    </div>
-
-          </div>
-    </div>
-
-    <div class="modal fade" id="deleteWalletModal" data-backdrop="static" tabindex="-1" role="dialog"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Delete Wallet</span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
                 </div>
-                <div class="modal-body">
-                    <h5>Are you sure you want to delete this wallet ?</h5>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button @click.prevent="deleteWallet" type="button" class="btn btn-primary">Delete Wallet</button>
-                </div>
+
             </div>
+
         </div>
     </div>
 
-    <div class="modal fade" id="walletFormModal" data-backdrop="static" tabindex="-1" role="dialog"
+
+
+    <div class="modal fade" id="FormModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">
-                        <span v-if="editing">Edit Wallet</span>
-                        <span v-else>Add New Wallet</span>
+                    <h5 v-if="editing" class="modal-title" id="staticBackdropLabel">
+                        Edit Dompet
+                    </h5>
+                    <h5 v-else class=" modal-title" id="staticBackdropLabel">
+                        Tambah Dompet
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -328,9 +348,10 @@ onMounted(() => {
 
                         <div class="form-group">
                             <label>Saldo</label>
-                            <Field name="saldo" type="number" class="form-control "
+                            <Field name="saldo" @change="saldoChange" type="number" class="form-control "
                                 :class="{ 'is-invalid': errors.saldo }" id="pay_at" aria-describedby="nameHelp"
                                 placeholder="Enter Pay Date" />
+                            <p>{{ saldo }}</p>
                             <span class="invalid-feedback">{{ errors.saldo }}</span>
                         </div>
                     </div>
@@ -343,20 +364,4 @@ onMounted(() => {
         </div>
     </div>
 </template>
-<script>
-export default {
-    // computed property to retrieve current page number
-    computed: {
-        currentPage() {
-            return this.listwallets.current_page;
-        }
-    },
 
-    // methods to handle pagination events
-    methods: {
-        changePage(page) {
-            this.search(page);
-        }
-    }
-}
-</script>

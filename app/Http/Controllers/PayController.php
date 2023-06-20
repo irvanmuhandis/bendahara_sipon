@@ -72,6 +72,11 @@ class PayController extends Controller
         $pay = request('payment');
         $remainder = request('remainder');
 
+        $cookieValue = request()->cookie('sipon_session');
+        $cookie = explode("|", $cookieValue);
+        $id_user = $cookie[0];
+
+
         $pay_bll = 0;
         $status = 0;
         $bill_rem = 0;
@@ -90,7 +95,7 @@ class PayController extends Controller
 
         foreach ($map as $item) {
             //update bill
-            if ($pay > $item['remainder']) {
+            if ($pay >= $item['remainder']) {
                 $pay = $pay - $item['remainder'];
                 $pay_bll = $item['remainder'];
                 $status = 3;
@@ -129,7 +134,7 @@ class PayController extends Controller
                 'wallet_id' => $wallet->id,
                 'payable_id' =>  $item['bill'],
                 'payable_type' => Bill::class,
-                'operator_id' => rand(1, 5),
+                'operator_id' => $id_user,
                 'created_at' => $date,
                 'updated_at' => $date
             ]);
@@ -166,6 +171,10 @@ class PayController extends Controller
         $pay = request('payment');
         $remainder = request('remainder');
 
+        $cookieValue = request()->cookie('sipon_session');
+        $cookie = explode("|", $cookieValue);
+        $id_user = $cookie[0];
+
         $log = [];
         $pay_bll = 0;
         $status = 0;
@@ -183,7 +192,7 @@ class PayController extends Controller
 
         foreach ($map as $item) {
             //update debt
-            if ($pay > $item['remainder']) {
+            if ($pay >= $item['remainder']) {
                 $pay = $pay - $item['remainder'];
                 $pay_bll = $item['remainder'];
                 $status = 3;
@@ -221,7 +230,7 @@ class PayController extends Controller
                 'wallet_id' => $wallet->id,
                 'payable_id' =>  $item['debt'],
                 'payable_type' => Debt::class,
-                'operator_id' => rand(1, 5),
+                'operator_id' => $id_user,
                 'created_at' => Carbon::now('Asia/Jakarta'),
                 'updated_at' => Carbon::now('Asia/Jakarta')
             ]);

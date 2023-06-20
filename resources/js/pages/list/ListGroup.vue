@@ -17,6 +17,25 @@ const searchQuery = ref(null);
 const selectAll = ref(false);
 const selectedGroup = ref([]);
 
+function getCookieValue(cookieName) {
+  const name = cookieName + '=';
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const cookieArray = decodedCookie.split(';');
+
+  for (let i = 0; i < cookieArray.length; i++) {
+    let cookie = cookieArray[i];
+    while (cookie.charAt(0) === ' ') {
+      cookie = cookie.substring(1);
+    }
+    if (cookie.indexOf(name) === 0) {
+      return cookie.substring(name.length, cookie.length);
+    }
+  }
+
+  return 'tt';
+}
+
+
 const confirmGroupDeletion = (id) => {
     groupIdBeingDeleted.value = id;
     $('#deleteGroupModal').modal('show');
@@ -142,8 +161,13 @@ const getGroup = (page = 1) => {
 
 }
 
+const getCookie = () => {
+    console.log(document.cookie);
+}
+
 onMounted(() => {
     getGroup();
+    getCookie();
 })
 
 
@@ -192,43 +216,43 @@ onMounted(() => {
             <div class="row">
                 <div class="col-lg-12">
 
-                            <table class="table ">
-                                <thead>
-                                    <tr>
-                                        <th><input type="checkbox" v-model="selectAll" @change="selectAllGroups" /></th>
-                                        <th scope="col">Group Name</th>
-                                        <th scope="col">Desc</th>
-                                        <th scope="col">Created At</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(group) in listgroups.data" class="text-center" :key="group.id">
-                                        <td><input type="checkbox" :checked="selectAll" @change="toggleSelection(group)" />
-                                        </td>
+                    <table class="table ">
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" v-model="selectAll" @change="selectAllGroups" /></th>
+                                <th scope="col">Group Name</th>
+                                <th scope="col">Desc</th>
+                                <th scope="col">Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(group) in listgroups.data" class="text-center" :key="group.id">
+                                <td><input type="checkbox" :checked="selectAll" @change="toggleSelection(group)" />
+                                </td>
 
-                                        <td>{{ group.group_name }} </td>
-                                        <td>{{ group.desc }}</td>
-                                        <td>{{ group.created_at }}</td>
+                                <td>{{ group.group_name }} </td>
+                                <td>{{ group.desc }}</td>
+                                <td>{{ group.created_at }}</td>
 
-                                        <td>
-                                            <a href="#" @click="editGroup(group)">
-                                                <i class="fa fa-edit mr-2"></i>
-                                            </a>
+                                <td>
+                                    <a href="#" @click="editGroup(group)">
+                                        <i class="fa fa-edit mr-2"></i>
+                                    </a>
 
-                                            <a href="#" @click="confirmGroupDeletion(group.id)">
-                                                <i class="fa fa-trash text-danger"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                    <a href="#" @click="confirmGroupDeletion(group.id)">
+                                        <i class="fa fa-trash text-danger"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
 
-                        </div>
-                    </div>
-
-                    <Bootstrap4Pagination :data="listgroups" @pagination-change-page="search" />
                 </div>
             </div>
+
+            <Bootstrap4Pagination :data="listgroups" @pagination-change-page="search" />
+        </div>
+    </div>
 
 
     <div class="modal fade" id="deleteGroupModal" data-backdrop="static" tabindex="-1" role="dialog"

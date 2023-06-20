@@ -283,12 +283,12 @@ onMounted(() => {
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/dashboard">Home</RouterLink>
+                            <RouterLink to="/admin/dashboard">Beranda</RouterLink>
                         </li>
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/income">Income</RouterLink>
+                            <RouterLink to="/admin/income">Pemasukan</RouterLink>
                         </li>
-                        <li class="breadcrumb-item active">Bayar Tagihan</li>
+                        <li class="breadcrumb-item active">Tagihan</li>
                     </ol>
                 </div>
             </div>
@@ -306,7 +306,7 @@ onMounted(() => {
 
                                 <div class="form-group">
 
-                                    <label>Bill</label>
+                                    <label>Tagihan</label>
                                     <div v-if="checkLength != 0">
                                         <i> {{ checkLength }} bill dipilih</i>
                                     </div>
@@ -340,7 +340,7 @@ onMounted(() => {
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>User</label>
+                                    <label>Santri</label>
                                     <VueMultiselect v-model="form.user" :option-height="9" @input="userchange" :multiple="false"
                                         @remove="userchange" @select="userchange" :options="users"
                                         :class="{ 'is-invalid': errors.user }" :close-on-select="true"
@@ -352,7 +352,7 @@ onMounted(() => {
                                     <span class="invalid-feedback">{{ errors.user }}</span>
                                 </div>
                                 <div class="form-group">
-                                    <label>Wallet</label>
+                                    <label>Dompet</label>
                                     <VueMultiselect v-model="form.wallet" :option-height="9" :options="wallets" :multiple="false"
                                         :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
                                         placeholder="Pilih Satu" label="wallet_name" track-by="id"
@@ -365,14 +365,14 @@ onMounted(() => {
                                     <span class="invalid-feedback">{{ errors.wallet }}</span>
                                 </div>
                                 <div class="form-group">
-                                    <label for="description">Date</label>
+                                    <label for="description">Tanggal Pembayaran</label>
                                     <input :class="{ 'is-invalid': errors.date }" class="form-control" v-model="form.date"
                                         type="datetime-local" />
                                     <span class="invalid-feedback">{{ errors.date }}</span>
                                 </div>
                                 <div class="form-group">
-                                    <label>Payment</label><br>
-                                    <span>Total Bill : {{ accounting.formatMoney(total, "Rp", 0) }}</span>
+                                    <label>Jumlah Pembayaran</label><br>
+                                    <span>Total Tagihan : {{ accounting.formatMoney(total, "Rp", 0) }}</span>
 
                                     <input type="number" v-model="form.payment" @keyup="handleChange"
                                         :class="{ 'is-invalid': errors.payment }" class="form-control" id="time" />

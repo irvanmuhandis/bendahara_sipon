@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('account_name');
             $table->Integer('account_type');
+            $table->tinyInteger('deletable');
             $table->timestamps();
         });
     }

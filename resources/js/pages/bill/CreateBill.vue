@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { useToastr } from '../../toastr';
 import { Form, Field, useResetForm, useField, useForm, validate } from 'vee-validate';
 import * as yup from 'yup';
-import { formatDate, formatMonth,formatStatus } from '../../helper.js';
+import { formatDate, formatMonth, formatStatus, formatMoney } from '../../helper.js';
 import accounting from 'accounting';
 
 const toastr = useToastr();
@@ -16,12 +16,8 @@ const accounts = ref([]);
 const groupusers = ref([]);
 
 const formatted = ref();
-const formatMadin = ref();
-const formatSyah = ref();
-const formatWifi = ref();
 const formatted_s = ref();
 const switchRange = ref();
-
 
 const switchRange_g = ref();
 const switchAcc = ref(false);
@@ -34,6 +30,17 @@ const errors = ref({
     'price': null,
     'account': null
 });
+
+const errors2 = ref({
+    'group': null,
+    'period': null,
+    'period_start': null,
+    'period_end': null,
+    'price': null,
+    'account': null,
+});
+
+
 const form = ref({
     'user': [],
     'period': null,
@@ -41,6 +48,16 @@ const form = ref({
     'period_end': null,
     'price': null,
     'account': null
+});
+
+const form2 = ref({
+    'group': null,
+    'period': null,
+    'period_start': null,
+    'period_end': null,
+    'price': null,
+    'account': null,
+    'periodic': []
 });
 
 const getUser = async () => {
@@ -88,75 +105,103 @@ const createBillSchema_rMult = yup.object({
     syah: yup.number().required(),
     madin: yup.number().required(),
     wifi: yup.number().required(),
+    periodic: yup.array(
+        yup.object({
+            dayOfWeek: yup.string().required(),
+            checked: yup.boolean().required()
+        })
+    )
 });
 
 
 
 
-const createBill = (values, { resetForm, actions }) => {
-    console.log(switchAcc.value);
-    if (!switchRange_g.value) {
-        if (!switchAcc.value) {
-            axios.post('/api/bill-group', values)
-                .then((response) => {
+const createBill = () => {
+    form2.value.operator = 1;
 
-                    resetForm();
-                    formatted.value = null;
-                    toastr.success('Pay created successfully!');
-                    getBill();
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-        }
-        else {
-            axios.post('/api/bill-group-mult', values)
-                .then((response) => {
-                    resetForm();
-                    formatted.value = null;
-                    formatMadin.value = null;
-                    formatSyah.value = null;
-                    formatWifi.value = null;
-                    toastr.success('Pay created successfully!');
-                    getBill();
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-        }
+    console.log(form2.value);
+    console.log(errors2.value);
+    if (form2.value.account != null) {
+        form2.value.account = form2.value.account.id;
     }
-    else {
-        if (!switchAcc.value) {
-            axios.post('/api/bill-grouprange', values)
-                .then((response) => {
-                    resetForm();
-                    formatted.value = null;
-                    toastr.success('Pay created successfully!');
-                    getBill();
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-        }
-        else {
-            axios.post('/api/bill-grouprange-mult', values)
-                .then((response) => {
-                    resetForm();
-                    formatted.value = null;
-                    formatMadin.value = null;
-                    formatSyah.value = null;
-                    formatWifi.value = null;
-                    toastr.success('Pay created successfully!');
-                    getBill();
-                })
-                .catch((error) => {
-                    console.log(error);
-                })
-        }
+    if (form2.value.group != null) {
+        form2.value.group = form2.value.group.id;
     }
+    if (validateBill2()) {
+        axios.post('/api/bill-group', form2.value)
+            .then((response) => {
+                formatted.value = null;
+                toastr.success('Pay created successfully!');
+                getBill();
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+
+
+    // if (!switchRange_g.value) {
+    //     if (!switchAcc.value) {
+    //         axios.post('/api/bill-group', values)
+    //             .then((response) => {
+
+    //                 resetForm();
+    //                 formatted.value = null;
+    //                 toastr.success('Pay created successfully!');
+    //                 getBill();
+    //             })
+    //             .catch((error) => {
+    //                 console.log(error);
+    //             })
+    //     }
+    //     else {
+    //         axios.post('/api/bill-group-mult', values)
+    //             .then((response) => {
+    //                 resetForm();
+    //                 formatted.value = null;
+    //                 formatMadin.value = null;
+    //                 formatSyah.value = null;
+    //                 formatWifi.value = null;
+    //                 toastr.success('Pay created successfully!');
+    //                 getBill();
+    //             })
+    //             .catch((error) => {
+    //                 console.log(error);
+    //             })
+    //     }
+    // }
+    // else {
+    //     if (!switchAcc.value) {
+    //         axios.post('/api/bill-grouprange', values)
+    //             .then((response) => {
+    //                 resetForm();
+    //                 formatted.value = null;
+    //                 toastr.success('Pay created successfully!');
+    //                 getBill();
+    //             })
+    //             .catch((error) => {
+    //                 console.log(error);
+    //             })
+    //     }
+    //     else {
+    //         axios.post('/api/bill-grouprange-mult', values)
+    //             .then((response) => {
+    //                 resetForm();
+    //                 formatted.value = null;
+    //                 formatMadin.value = null;
+    //                 formatSyah.value = null;
+    //                 formatWifi.value = null;
+    //                 toastr.success('Pay created successfully!');
+    //                 getBill();
+    //             })
+    //             .catch((error) => {
+    //                 console.log(error);
+    //             })
+    //     }
+    // }
 
 };
-const clearform = () =>{
+const clearform = () => {
     for (const key in errors.value) {
         errors.value[key] = null;
     }
@@ -208,6 +253,52 @@ const validateBill = () => {
         return false;
     }
 }
+const validateBill2 = () => {
+    var err = 0;
+
+    for (const key in errors2.value) {
+        errors2.value[key] = null;
+    }
+    if (form2.value.group == null) {
+        errors2.value.group = 'Pilih Grup ';
+        err += 1;
+    }
+    if (!switchAcc.value) {
+        if (form2.value.account == null) {
+            errors2.value.account = 'Pilih akun '
+            err += 1;
+        }
+        if (form2.value.price == null) {
+        errors2.value.price = 'Pilih price '
+        err += 1;
+    }
+    }
+
+    if (!switchRange.value) {
+        if (form2.value.period == null) {
+            errors2.value.period = 'Pilih Period '
+            err += 1;
+        }
+    }
+    else {
+        if (form2.value.period_start == null) {
+            errors2.value.period_start = 'Pilih Periode Awal '
+            err += 1;
+        }
+        if (form2.value.period_end == null) {
+            errors2.value.period_end = 'Pilih Periode Akhir '
+            err += 1;
+        }
+    }
+
+    if (err == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
 
 
 const createBill_s = (event) => {
@@ -252,22 +343,15 @@ const createBill_s = (event) => {
 
 const groupchange = (event) => {
     groupusers.value = [];
-    axios.get('/api/user/group', {
-        params: {
-            group_id: event.target.value
-        }
-    })
+    axios.get(`/api/user/group/${form2.value.group.id}`)
         .then((response) => {
             groupusers.value = response.data;
         });
 }
 
 const getAccount = () => {
-    axios.get('/api/except', {
-        params: {
-            except: 1
-        }
-    })
+    axios.get('/api/account/list'
+    )
         .then((response) => {
             accounts.value = response.data;
         })
@@ -280,19 +364,23 @@ const getGroup = () => {
         })
 }
 
-const handleChange = (event) => {
-    if (event.target.name == 'wifi') {
-        formatWifi.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
-    }
-    else if (event.target.name == 'madin') {
-        formatMadin.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
-    }
-    else if (event.target.name == 'syah') {
-        formatSyah.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
-    }
-    else {
-        formatted.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
-    }
+const handleChange = (event, index) => {
+
+    console.log(event);
+    console.log(index);
+    // if (event.target.name == 'wifi') {
+    //     formatWifi.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    // }
+    // else if (event.target.name == 'madin') {
+    //     formatMadin.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    // }
+    // else if (event.target.name == 'syah') {
+    //     formatSyah.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    // }
+    // else {
+    //     //formatted.value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    //     formatPeriod[index].value = accounting.formatMoney(event.target.value, 'Rp. ', 0);
+    // }
 }
 
 const handleChange_s = (event) => {
@@ -347,7 +435,7 @@ const getBill = () => {
                     },
                     {
                         data: "payment_status",
-                        render: function(data){
+                        render: function (data) {
                             return formatStatus(data)
                         }
                     },
@@ -398,13 +486,28 @@ const getBill = () => {
         editPay(rowData);
     });
 }
-
+const getPeriodic = () => {
+    axios.get('/api/account/period')
+        .then((response) => {
+            response.data.forEach(element => {
+                form2.value.periodic.push(
+                    {
+                        'id': element.id,
+                        'name': element.account_name,
+                        'value': 0
+                    }
+                )
+            });
+            console.log(form2.value);
+        })
+}
 
 onMounted(() => {
     getUser();
     getBill();
     getGroup();
     getAccount();
+    getPeriodic();
 })
 </script>
 <template>
@@ -418,12 +521,12 @@ onMounted(() => {
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/dashboard">Home</RouterLink>
+                            <RouterLink to="/admin/dashboard">Beranda</RouterLink>
                         </li>
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/bill">Bill</RouterLink>
+                            <RouterLink to="/admin/bill">Tagihan</RouterLink>
                         </li>
-                        <li class="breadcrumb-item active">Create</li>
+                        <li class="breadcrumb-item active">Tambah Tagihan</li>
                     </ol>
                 </div>
             </div>
@@ -436,9 +539,9 @@ onMounted(() => {
             <div class="card">
                 <div class="card-header p-2">
                     <ul class="nav nav-pills">
-                        <li class="nav-item"><a class="nav-link" href="#single" data-toggle="tab">User Create Bill</a>
+                        <li class="nav-item"><a class="nav-link" href="#single" data-toggle="tab">Santri</a>
                         </li>
-                        <li class="nav-item"><a class="nav-link active" href="#group" data-toggle="tab">Group Create Bill
+                        <li class="nav-item"><a class="nav-link active" href="#group" data-toggle="tab">Grup
                             </a>
                         </li>
                     </ul>
@@ -451,10 +554,10 @@ onMounted(() => {
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>User</label>
+                                            <label>Santri</label>
                                             <VueMultiselect v-model="user" :option-height="9" :options="users"
                                                 :class="{ 'is-invalid': errors.user }" :multiple="true"
-                                                :close-on-select="true" placeholder="Pilih Satu / Lebih" label="name"
+                                                :close-on-select="true" placeholder="Pilih Satu / Lebih ..." label="name"
                                                 track-by="id" :show-labels="false">
                                                 <template v-slot:option="{ option }">
                                                     <div>{{ option.name }} - {{ option.id }} </div>
@@ -465,12 +568,12 @@ onMounted(() => {
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Periodic</label>
+                                            <label>Bulan</label>
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" v-model="switchRange" class="custom-control-input"
                                                     id="customSwitch1">
                                                 <label class="font-weight-lighter font-italic custom-control-label"
-                                                    for="customSwitch1">Single/Range</label>
+                                                    for="customSwitch1">Tunggal / Periode</label>
                                             </div>
                                             <div v-if="!switchRange">
                                                 <input @v-if="!switchRange" :class="{ 'is-invalid': errors.period }"
@@ -499,11 +602,11 @@ onMounted(() => {
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Account</label><br>
+                                            <label>Akun</label><br>
                                             <VueMultiselect v-model="form.account" :option-height="9" :options="accounts"
                                                 :class="{ 'is-invalid': errors.account }" :multiple="true"
-                                                :close-on-select="true" placeholder="Pilih Satu / Lebih" label="account_name"
-                                                track-by="id" :show-labels="false">
+                                                :close-on-select="true" placeholder="Pilih Satu / Lebih ..."
+                                                label="account_name" track-by="id" :show-labels="false">
                                                 <template v-slot:option="{ option }">
                                                     <div>{{ option.account_name }} - {{ option.id }} </div>
                                                 </template>
@@ -515,7 +618,7 @@ onMounted(() => {
 
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Price</label>
+                                            <label>Harga</label>
                                             <input @keyup="handleChange_s" class="form-custom"
                                                 :class="{ 'is-invalid': errors.price }" v-model="form.price"
                                                 type="number" />
@@ -531,117 +634,124 @@ onMounted(() => {
 
 
                         <div class="tab-pane active" id="group">
-                            <Form @submit="createBill"
-                                :validation-schema="!switchRange_g ? (!switchAcc ? createBillSchema : createBillSchema_mult) : (!switchAcc ? createBillSchema_r : createBillSchema_rMult)"
-                                v-slot:default="{ errors }">
+                            <!-- :validation-schema="!switchRange_g ? (!switchAcc ? createBillSchema : createBillSchema_mult) : (!switchAcc ? createBillSchema_r : createBillSchema_rMult)"
+                                v-slot:default="{ errors }" -->
+                            <form @submit.prevent="createBill">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>Group</label>
-                                            <Field as="select" @change="groupchange" class="form-control"
-                                                :class="{ 'is-invalid': errors.group }" name="group">
-                                                <option disabled>Pilih Salah Satu</option>
-
-                                                <option v-for="group in groups" :value="group.id">{{ group.id + " | " +
-                                                    group.group_name }}
-                                                </option>
-
-                                            </Field>
-                                            <span class="invalid-feedback">{{ errors.group }}</span>
+                                            <label>Grup</label>
+                                            <VueMultiselect :option-height="9" :options="groups" @select="groupchange"
+                                                :class="{ 'is-invalid': errors2.group }" v-model="form2.group"
+                                                :multiple="false" :close-on-select="true" placeholder="Pilih Satu ..."
+                                                label="group_name" track-by="id" :show-labels="false">
+                                                <template v-slot:option="{ option }">
+                                                    <div>{{ option.group_name }} - {{ option.id }} </div>
+                                                </template>
+                                            </VueMultiselect>
+                                            <span class="invalid-feedback">{{ errors2.group }}</span>
                                         </div>
                                         <div v-if="!switchAcc" class="">
                                             <div class="form-group">
-                                                <label>Account</label><br>
+                                                <label>Akun</label><br>
                                                 <div class="custom-control custom-switch">
                                                     <input type="checkbox" v-model="switchAcc" class="custom-control-input"
                                                         id="customSwitch3">
                                                     <label class="font-weight-lighter font-italic custom-control-label"
-                                                        for="customSwitch3">Single/Multiple</label>
+                                                        for="customSwitch3">Tunggal / Jamak</label>
                                                 </div>
-                                                <Field as="select" class="form-control"
-                                                    :class="{ 'is-invalid': errors.account }" name="account">
-                                                    <option disabled>Pilih Salah Satu</option>
 
-                                                    <option v-for="account in accounts" :value="account.id">
-                                                        {{ account.id + ` | ` +
-                                                            account.account_name }}
-                                                    </option>
-
-                                                </Field>
-                                                <span class="invalid-feedback">{{ errors.account }}</span>
+                                                <VueMultiselect :option-height="9" :options="accounts"
+                                                    :class="{ 'is-invalid': errors2.account }" v-model="form2.account"
+                                                    :multiple="false" :close-on-select="true" placeholder="Pilih Satu ..."
+                                                    label="account_name" track-by="id" :show-labels="false">
+                                                    <template v-slot:option="{ option }">
+                                                        <div>{{ option.account_name }} - {{ option.id }} </div>
+                                                    </template>
+                                                </VueMultiselect>
+                                                <span class="invalid-feedback">{{ errors2.account }}</span>
                                             </div>
                                             <div class="form-group">
-                                                <label>Price</label>
-                                                <Field :class="{ 'is-invalid': errors.price }" @keyup="handleChange"
-                                                    class="form-control" name="price" type="number" />
-                                                <p>{{ formatted }}</p>
-                                                <span class="invalid-feedback">{{ errors.price }}</span>
+                                                <label>Harga</label>
+                                                <input :class="{ 'is-invalid': errors2.price }" class="form-control"
+                                                    v-model="form2.price" type="number" />
+                                                <p>{{ formatMoney(form2.price) }}</p>
+                                                <span class="invalid-feedback">{{ errors2.price }}</span>
                                             </div>
                                         </div>
                                         <div v-else class="">
                                             <div class="form-group">
-                                                <label>Account</label><br>
+                                                <label>Akun</label><br>
                                                 <div class="custom-control custom-switch">
                                                     <input type="checkbox" v-model="switchAcc" class="custom-control-input"
                                                         id="customSwitch3">
                                                     <label class="font-weight-lighter font-italic custom-control-label"
-                                                        for="customSwitch3">Single/Multiple</label>
+                                                        for="customSwitch3">Tunggal / Jamak</label>
                                                 </div>
                                             </div>
-                                            <div class="form-group">
-                                                <label class="text-right text-primary font-weight-normal">Syahriah</label>
-                                                <Field :class="{ 'is-invalid': errors.syah }" @keyup="handleChange"
-                                                    class="form-control" name="syah" type="number" />
-                                                <p>{{ formatSyah }}</p>
-                                                <span class="invalid-feedback">{{ errors.syah }}</span>
+                                            <div v-for="(data, index) in form2.periodic" class="form-group">
+                                                <label class="text-right text-primary font-weight-normal">{{
+                                                    data.name }}</label>
+                                                <input v-model="data.value" class="form-control" type="number" />
+                                                <p>{{ formatMoney(data.value) }}</p>
                                             </div>
-                                            <div class="form-group">
-                                                <label class="text-right text-primary font-weight-normal">Madin</label>
-                                                <Field :class="{ 'is-invalid': errors.madin }" @keyup="handleChange"
-                                                    class="form-control" name="madin" type="number" />
-                                                <p>{{ formatMadin }}</p>
-                                                <span class="invalid-feedback">{{ errors.madin }}</span>
-                                            </div>
-                                            <div class="form-group">
-                                                <label class="text-right text-primary font-weight-normal">Wifi</label>
-                                                <Field :class="{ 'is-invalid': errors.wifi }" @keyup="handleChange"
-                                                    class="form-control" name="wifi" type="number" />
-                                                <p>{{ formatWifi }}</p>
-                                                <span class="invalid-feedback">{{ errors.wifi }}</span>
-                                            </div>
+                                            <!-- <span>
+                                                <div class="form-group">
+                                                    <label
+                                                        class="text-right text-primary font-weight-normal">Syahriah</label>
+                                                    <Field :class="{ 'is-invalid': errors.syah }" @keyup="handleChange"
+                                                        class="form-control" name="syah" type="number" />
+                                                    <p>{{ formatSyah }}</p>
+                                                    <span class="invalid-feedback">{{ errors.syah }}</span>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="text-right text-primary font-weight-normal">Madin</label>
+                                                    <Field :class="{ 'is-invalid': errors.madin }" @keyup="handleChange"
+                                                        class="form-control" name="madin" type="number" />
+                                                    <p>{{ formatMadin }}</p>
+                                                    <span class="invalid-feedback">{{ errors.madin }}</span>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="text-right text-primary font-weight-normal">Wifi</label>
+                                                    <Field :class="{ 'is-invalid': errors.wifi }" @keyup="handleChange"
+                                                        class="form-control" name="wifi" type="number" />
+                                                    <p>{{ formatWifi }}</p>
+                                                    <span class="invalid-feedback">{{ errors.wifi }}</span>
+                                                </div>
+                                            </span> -->
                                         </div>
                                         <div class="form-group">
-                                            <label>Periodic</label>
+                                            <label>Bulan</label>
                                             <div class="custom-control custom-switch">
                                                 <input type="checkbox" v-model="switchRange_g" class="custom-control-input"
                                                     id="customSwitch2">
                                                 <label class="font-weight-lighter font-italic custom-control-label"
-                                                    for="customSwitch2">Single/Range</label>
+                                                    for="customSwitch2">Tunggal / Periode</label>
                                             </div>
                                             <div v-if="!switchRange_g">
-                                                <Field :class="{ 'is-invalid': errors.period }" class="form-control"
-                                                    name="period" type="month" />
-                                                <span class="invalid-feedback">{{ errors.period }}</span>
+                                                <input :class="{ 'is-invalid': errors2.period }" class="form-control"
+                                                    v-model="form2.period" type="month" />
+                                                <span class="invalid-feedback">{{ errors2.period }}</span>
                                             </div>
                                             <div v-else class="row">
                                                 <div class="col-md-6">
-                                                    <Field :class="{ 'is-invalid': errors.period_start }"
-                                                        class="form-control" name="period_start" type="month" />
+                                                    <input :class="{ 'is-invalid': errors2.period_start }"
+                                                        class="form-control" v-model="form2.period_start" type="month" />
 
-                                                    <span class="invalid-feedback">{{ errors.period_start }}</span>
+                                                    <span class="invalid-feedback">{{ errors2.period_start }}</span>
                                                 </div>
                                                 <div class="col-md-6 mt-md-0 mt-2">
-                                                    <Field :class="{ 'is-invalid': errors.period_end }" class="form-control"
-                                                        name="period_end" type="month" />
+                                                    <input :class="{ 'is-invalid': errors2.period_end }"
+                                                        class="form-control" v-model="form2.period_end" type="month" />
 
-                                                    <span class="invalid-feedback">{{ errors.period_end }}</span>
+                                                    <span class="invalid-feedback">{{ errors2.period_end }}</span>
                                                 </div>
                                             </div>
                                         </div>
 
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="form-group"><label> User Group
+                                        <div class="form-group"><label> Grup Santri
                                             </label>
                                             <table class="table table-sm text-center table-bordered">
                                                 <thead>
@@ -668,7 +778,7 @@ onMounted(() => {
 
 
                                 <button type="submit" class="w-100 btn btn-primary">Submit</button>
-                                {{ errors }}
+                                {{ errors2 }}
                             </Form>
 
                         </div>
@@ -679,29 +789,29 @@ onMounted(() => {
 
                 </div>
             </div>
-                    <div class="row-md">
-                        <div class="col-md">
-                            <h1></h1>
-                        </div>
-                    </div>
-                    <table id="myTable" class="display table " style="overflow: auto;width:100%">
-                        <thead>
-                            <tr>
-                                <th>Created</th>
-                                <th>Name</th>
-                                <th>Amount</th>
-                                <th>Periode</th>
-                                <th>Account</th>
-                                <th>Status</th>
-                                <th>Update</th>
-                                <th>Operator</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
+            <div class="row-md">
+                <div class="col-md">
+                    <h1></h1>
                 </div>
+            </div>
+            <table id="myTable" class="display table " style="overflow: auto;width:100%">
+                <thead>
+                    <tr>
+                        <th>Created</th>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Bulan</th>
+                        <th>Account</th>
+                        <th>Status</th>
+                        <th>Update</th>
+                        <th>Operator</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
 
 
 

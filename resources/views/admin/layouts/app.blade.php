@@ -4,6 +4,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>CUAN | Bendahara</title>
     <link rel="icon" type="image/x-icon" href="{{ url('/images/cuak.ico') }}">
@@ -14,8 +15,8 @@
 <body class="hold-transition sidebar-mini">
     <div class="wrapper" id="app">
         <div class="preloader flex-column justify-content-center align-items-center">
-            <img class="animation__wobble" src="{{ url('/images/icon_web.png') }}" alt="AdminLTELogo" height="60"
-                width="60" style="">
+            <img class="animation__shake" src="{{ url('/images/icon_web.png') }}" height="100" width="100"
+                id="preload">
         </div>
         <nav class="main-header navbar navbar-expand navbar-white navbar-light">
 
@@ -81,8 +82,9 @@
                             </router-link>
                         </li>
                         <li class="nav-item">
-                            <router-link to="/admin/income" :class="$route.path.startsWith('/admin/pay') ? 'active' : ''"
-                                active-class="active" class="nav-link">
+                            <router-link to="/admin/income"
+                                :class="$route.path.startsWith('/admin/pay') ? 'active' : ''" active-class="active"
+                                class="nav-link">
                                 <i class="nav-icon fas fa-arrow-down"></i>
                                 <p>
                                     Pemasukan
@@ -224,3 +226,8 @@
 </body>
 
 </html>
+<script>
+    window.Laravel = {
+        csrfToken: '{{ csrf_token() }}'
+    }
+</script>

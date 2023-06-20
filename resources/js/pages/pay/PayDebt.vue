@@ -267,12 +267,12 @@ onMounted(() => {
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
-                            <router-link to="/admin/dashboard">Home</router-link>
+                            <router-link to="/admin/dashboard">Beranda</router-link>
                         </li>
                         <li class="breadcrumb-item">
-                            <router-link to="/admin/income">Income</router-link>
+                            <router-link to="/admin/income">Pemasukan</router-link>
                         </li>
-                        <li class="breadcrumb-item active">Bayar Hutang</li>
+                        <li class="breadcrumb-item active">Hutang</li>
                     </ol>
                 </div>
             </div>

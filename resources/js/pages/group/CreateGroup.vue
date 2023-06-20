@@ -17,6 +17,7 @@ const selectedUser = ref([]);
 const searchQuery = ref('');
 const selectAll = ref(false);
 const selectedRelation = ref([]);
+const user_id = ref([]);
 
 const form = ref({
     group: null,
@@ -136,12 +137,14 @@ const validateBill = () => {
 
 const userchange = () => {
     groupusers.value = [];
+    user_id.value = form.value.user.map(user => {
+        return user.id;
+    });
+
     console.log(form.value);
-    axios.get('/api/user/group', {
+    axios.get('/api/group/santri/form', {
         params: {
-            user_id: form.value.user.map(user => {
-                return user.id;
-            })
+            'santri': JSON.stringify(user_id.value)
         }
     })
         .then((response) => {
@@ -158,7 +161,7 @@ const getGroup = () => {
 
 
 const getData = () => {
-    axios.get('/api/group/user')
+    axios.get('/api/group/santri')
         .then((response) => {
             groups.value = response.data;
         })
@@ -231,12 +234,12 @@ onMounted(() => {
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/dashboard">Home</RouterLink>
+                            <RouterLink to="/admin/dashboard">Beranda</RouterLink>
                         </li>
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/group">Group</RouterLink>
+                            <RouterLink to="/admin/group">Grup</RouterLink>
                         </li>
-                        <li class="breadcrumb-item active">Create</li>
+                        <li class="breadcrumb-item active">Tambah Grup</li>
                     </ol>
                 </div>
             </div>
@@ -249,9 +252,9 @@ onMounted(() => {
             <div class="card">
                 <div class="card-header p-2">
                     <ul class="nav nav-pills">
-                        <li class="nav-item"><a class="nav-link" href="#create" data-toggle="tab">Create Group</a>
+                        <li class="nav-item"><a class="nav-link" href="#create" data-toggle="tab">Tambah Group</a>
                         </li>
-                        <li class="nav-item"><a class="nav-link active" href="#link" data-toggle="tab">Linking User To Group
+                        <li class="nav-item"><a class="nav-link active" href="#link" data-toggle="tab">Menyambungkan Santri
                             </a>
                         </li>
                     </ul>
@@ -293,8 +296,8 @@ onMounted(() => {
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label>User</label>
-                                            <VueMultiselect v-model="form.user" @select="userchange" @remove="userchange"
+                                            <label>Santri</label>
+                                            <VueMultiselect v-model="form.user" @select="userchange"  @remove="userchange"
                                                 @input="userchange" :option-height="9" :options="users"
                                                 :class="{ 'is-invalid': errors.user }" :multiple="true"
                                                 :close-on-select="true" placeholder="Pilih Satu / Lebih" label="name"
@@ -306,7 +309,7 @@ onMounted(() => {
                                             <span class="invalid-feedback">{{ errors.user }}</span>
                                         </div>
                                         <div class="form-group">
-                                            <label>Group</label>
+                                            <label>Grup</label>
                                             <VueMultiselect v-model="form.group" :option-height="9" :options="listgroups"
                                                 :class="{ 'is-invalid': errors.group }" :multiple="false"
                                                 :close-on-select="true" placeholder="Pilih Satu" label="group_name"
@@ -320,7 +323,7 @@ onMounted(() => {
 
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="form-group"><label> User Group
+                                        <div class="form-group"><label> Afiliasi Santri
                                             </label>
                                             <table class="table table-sm text-center table-bordered">
                                                 <thead>
@@ -328,7 +331,7 @@ onMounted(() => {
 
                                                         <th>ID</th>
                                                         <th>Name</th>
-                                                        <th>Group</th>
+                                                        <th>Grup</th>
 
                                                     </tr>
                                                 </thead>
