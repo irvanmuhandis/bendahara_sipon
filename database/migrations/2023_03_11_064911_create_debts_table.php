@@ -13,14 +13,20 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('debts', function (Blueprint $table) {
+        Schema::create('acc_debts', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
             $table->string('title');
             $table->bigInteger('amount');
             $table->bigInteger('remainder');
             $table->integer('account_id');
-            $table->foreignId('user_id');
+            $table->string('nis');
+            $table->bigInteger('wallet_id')->unsigned();
+            $table->foreign('wallet_id')
+                ->references('id')
+                ->on('acc_wallets')
+                ->onDelete('cascade');
+            $table->foreign('nis')->references('nis')->on('santris');
             $table->bigInteger('operator_id')->unsigned();
             $table->foreign('operator_id')->references('id')->on('users');
             $table->tinyInteger('payment_status');

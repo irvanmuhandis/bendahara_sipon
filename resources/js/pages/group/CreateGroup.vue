@@ -9,24 +9,25 @@ import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
 
-const users = ref([]);
+const santris = ref([]);
 const listgroups = ref([]);
 const groups = ref([]);
-const groupusers = ref([]);
+const groupsantris = ref([]);
 const selectedUser = ref([]);
 const searchQuery = ref('');
 const selectAll = ref(false);
 const selectedRelation = ref([]);
-const user_id = ref([]);
+const santri_id = ref([]);
+const load = ref(false);
 
 const form = ref({
     group: null,
-    user: [],
+    santri: [],
 });
 
 const errors = ref({
     group: null,
-    user: null,
+    santri: null,
 });
 
 const createGroupSchema = yup.object({
@@ -36,13 +37,14 @@ const createGroupSchema = yup.object({
 
 
 const search = (page = 1) => {
-    axios.get(`/api/group/user/search?page=${page}`, {
+    axios.get(`/api/group/santri/search?page=${page}`, {
         params: {
             query: searchQuery.value
         }
     })
         .then(response => {
             groups.value = response.data;
+            console.log(groups);
         })
         .catch(error => {
             console.log(error);
@@ -52,9 +54,9 @@ const search = (page = 1) => {
 const getUser = async () => {
 
     try {
-        const response = await axios.get(`/api/userlist`)
-        users.value = response.data;
-        console.log('user added');
+        const response = await axios.get(`/api/santrilist`)
+        santris.value = response.data;
+        console.log('santri added');
 
     } catch (error) {
         console.error(error);
@@ -68,17 +70,18 @@ const count = () => {
 
 const linkGroup = (event) => {
     event.preventDefault();
-    form.value.user = form.value.user.map(user => {
-        return user.id;
-    });
-    form.value.group = form.value.group.id;
+
     if (validateBill()) {
+        form.value.santri = form.value.santri.map(santri => {
+            return santri.nis;
+        });
+        form.value.group = form.value.group.id;
         axios.put('/api/group/link', form.value)
             .then((response) => {
                 clearform();
-                toastr.success('Pay created successfully!');
+                toastr.success('Penyambungan berhasil !');
                 getData();
-                groupusers.value = [];
+                groupsantris.value = [];
             })
             .catch((error) => {
                 console.log(error);
@@ -94,7 +97,7 @@ const createGroup = (values, { resetForm }) => {
             toastr.success('Pay created successfully!');
             getData();
             getGroup();
-            groupusers.value = [];
+            groupsantris.value = [];
         })
         .catch((error) => {
             console.log(error);
@@ -117,8 +120,8 @@ const validateBill = () => {
     for (const key in errors.value) {
         errors.value[key] = null;
     }
-    if (form.value.user.length == 0) {
-        errors.value.user = 'Pilih User ';
+    if (form.value.santri.length == 0) {
+        errors.value.santri = 'Pilih User ';
         err += 1;
     }
     if (form.value.group == null) {
@@ -135,20 +138,22 @@ const validateBill = () => {
 }
 
 
-const userchange = () => {
-    groupusers.value = [];
-    user_id.value = form.value.user.map(user => {
-        return user.id;
+const santrichange = () => {
+    load.value = true;
+    // groupsantris.value = [];
+    santri_id.value = form.value.santri.map(santri => {
+        return santri.nis;
     });
 
     console.log(form.value);
     axios.get('/api/group/santri/form', {
         params: {
-            'santri': JSON.stringify(user_id.value)
+            'santri': JSON.stringify(santri_id.value)
         }
     })
         .then((response) => {
-            groupusers.value = response.data;
+            load.value = false;
+            groupsantris.value = response.data;
         });
 }
 
@@ -156,6 +161,7 @@ const getGroup = () => {
     axios.get('/api/group/list')
         .then((response) => {
             listgroups.value = response.data;
+            console.log(listgroups.value);
         })
 }
 
@@ -170,7 +176,7 @@ const getData = () => {
 
 const selectAllGroup = () => {
     if (selectAll.value) {
-        selectedRelation.value = groups.value.data.map(grup => grup.user.map(user => user.id))
+        selectedRelation.value = groups.value.data.map(grup => grup.santri.map(santri => santri.id))
             .flat(1)
             .filter(id => id !== null);
     } else {
@@ -195,7 +201,7 @@ const confirmRelationDeletion = (id) => {
 };
 
 const deleteRelation = () => {
-    axios.delete(`/api/group/user/${selectedUser.value}`)
+    axios.delete(`/api/group/santri/${selectedUser.value}`)
         .then(() => {
             $('#deleteDispenModal').modal('hide');
             toastr.success('Dispen deleted successfully!');
@@ -205,7 +211,7 @@ const deleteRelation = () => {
 
 const bulkDelete = () => {
     console.log(selectedRelation.value);
-    axios.delete('/api/group/user', {
+    axios.delete('/api/group/santri', {
         data: {
             ids: selectedRelation.value
         }
@@ -234,10 +240,10 @@ onMounted(() => {
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/dashboard">Beranda</RouterLink>
+                            <RouterLink to="/">Beranda</RouterLink>
                         </li>
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/group">Grup</RouterLink>
+                            <RouterLink to="/admin/master/group">Grup</RouterLink>
                         </li>
                         <li class="breadcrumb-item active">Tambah Grup</li>
                     </ol>
@@ -297,16 +303,16 @@ onMounted(() => {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Santri</label>
-                                            <VueMultiselect v-model="form.user" @select="userchange"  @remove="userchange"
-                                                @input="userchange" :option-height="9" :options="users"
-                                                :class="{ 'is-invalid': errors.user }" :multiple="true"
-                                                :close-on-select="true" placeholder="Pilih Satu / Lebih" label="name"
-                                                track-by="id" :show-labels="false">
+                                            <VueMultiselect v-model="form.santri" @select="santrichange"
+                                                @remove="santrichange" @input="santrichange" :option-height="9"
+                                                :options="santris" :class="{ 'is-invalid': errors.santri }" :multiple="true"
+                                                :close-on-select="true" placeholder="Pilih Satu / Lebih" label="fullname"
+                                                track-by="nis" :show-labels="false">
                                                 <template v-slot:option="{ option }">
-                                                    <div>{{ option.name }} - {{ option.id }} </div>
+                                                    <div>{{ option.fullname }} - {{ option.nis }} </div>
                                                 </template>
                                             </VueMultiselect>
-                                            <span class="invalid-feedback">{{ errors.user }}</span>
+                                            <span class="invalid-feedback">{{ errors.santri }}</span>
                                         </div>
                                         <div class="form-group">
                                             <label>Grup</label>
@@ -329,19 +335,24 @@ onMounted(() => {
                                                 <thead>
                                                     <tr>
 
-                                                        <th>ID</th>
+                                                        <th>NIS</th>
                                                         <th>Name</th>
                                                         <th>Grup</th>
 
                                                     </tr>
                                                 </thead>
-                                                <tr v-if="groupusers.length === 0">
-                                                    <td colspan="3">No Record</td>
+                                                <tr v-if="groupsantris.length == 0">
+                                                    <td colspan="3">Kosong </td>
                                                 </tr>
-                                                <tr v-for="user in groupusers">
-                                                    <td>{{ user.id }} </td>
-                                                    <td>{{ user.name }}</td>
-                                                    <td v-if="user.group != null">{{ user.group.group_name }}</td>
+                                                <tr v-if="load">
+                                                    <td colspan="3">
+                                                        <div  class="spinner-border row text-primary mx-auto" role="status"></div>
+                                                    </td>
+                                                </tr>
+                                                <tr v-else v-for="santri in groupsantris">
+                                                    <td>{{ santri.nis }} </td>
+                                                    <td>{{ santri.fullname }}</td>
+                                                    <td v-if="santri.group != null">{{ santri.group.group_name }}</td>
                                                     <td v-else>-</td>
                                                 </tr>
                                             </table>
@@ -393,16 +404,18 @@ onMounted(() => {
                         <tr v-for="grup in groups.data" :key="grup.id">
                             <td class="text-center"> {{ grup.group_name }}</td>
                             <td class="p-0 text-start">
-                                <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user" :key="user.id">
-                                    {{ user.name }}
+                                <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
+                                    :key="santri.id">
+                                    {{ santri.name }}
                                 </div>
                                 <div v-else class="text-center">-</div>
                             </td>
 
                             <td class="p-0 text-center">
-                                <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user" :key="user.id">
+                                <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
+                                    :key="santri.id">
 
-                                    {{ formatDate(user.created_at) }}
+                                    {{ formatDate(santri.created_at) }}
 
 
                                 </div>
@@ -411,16 +424,18 @@ onMounted(() => {
 
 
                             <td class="p-0 text-center">
-                                <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user" :key="user.id">
-                                    {{ formatDate(user.created_at) }}
+                                <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
+                                    :key="santri.id">
+                                    {{ formatDate(santri.created_at) }}
                                 </div>
                                 <div v-else>-</div>
                             </td>
 
                             <td class="p-0 text-center">
-                                <div v-if="grup.user.length > 0" class="m-2" v-for="user in grup.user" :key="user.id">
+                                <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
+                                    :key="santri.id">
 
-                                    <input type="checkbox" :checked="selectAll" @change="toggleSelection(user)" />
+                                    <input type="checkbox" :checked="selectAll" @change="toggleSelection(santri)" />
                                 </div>
                                 <div v-else>-</div>
                             </td>

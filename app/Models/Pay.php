@@ -14,12 +14,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Pay extends Model
 {
     use HasFactory;
-
+    protected $table = 'acc_pays';
     protected $guarded = [];
 
-    public function user()
+    public function santri()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(Santri::class, 'nis', 'nis');
     }
 
     public function wallet()
@@ -32,13 +32,49 @@ class Pay extends Model
         return $this->morphTo();
     }
 
-    public function account()
-    {
-        return $this->belongsTo(Account::class);
-    }
-
     public function operator()
     {
         return $this->belongsTo(User::class, 'operator_id', 'id');
+    }
+
+    public function accountbill()
+    {
+        return $this->hasOneThrough(
+            Account::class,
+            Bill::class,
+            'id', // refers to id column on trans table
+            'id', // refers to id column on wallet table
+            'payable_id', // refers to trans table
+            'account_id' // refers to wallet table
+        );;
+    }
+
+    public function santribill()
+    {
+        return $this->hasOneThrough(
+            Santri::class,
+            Bill::class,
+            'id', // refers to id column on trans table
+            'nis', // refers to id column on wallet table
+            'payable_id', // refers to trans table
+            'nis' // refers to wallet table
+        );;
+    }
+
+    public function santridebt()
+    {
+        return $this->hasOneThrough(
+            Santri::class,
+            Debt::class,
+            'id', // refers to id column on trans table
+            'nis', // refers to id column on wallet table
+            'payable_id', // refers to trans table
+            'nis' // refers to wallet table
+        );;
+    }
+
+    public function ledger()
+    {
+        return $this->morphOne(Ledger::class, 'ledgerable');
     }
 }

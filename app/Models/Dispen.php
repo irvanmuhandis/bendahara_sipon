@@ -8,10 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Dispen extends Model
 {
     use HasFactory;
-    protected $fillable = ['pay_at', 'dispen_periode', 'dispen_desc','user_id'];
-
-    public function user()
+    protected $table = 'acc_dispens';
+    protected $guarded = [];
+    public function santri()
     {
-        return $this->belongsTo(User::class, 'user_id', 'id');
+        return $this->belongsTo(Santri::class, 'nis', 'nis');
     }
 }

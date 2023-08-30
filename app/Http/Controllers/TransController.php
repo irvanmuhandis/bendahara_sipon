@@ -14,12 +14,7 @@ class TransController extends Controller
 {
     public function index()
     {
-        $trans = DB::table('trans')
-            ->join('accounts', 'accounts.id', '=', 'trans.account_id')
-            ->join('wallets', 'trans.wallet_id', '=', 'wallets.id')
-            ->join('users', 'users.id', '=', 'trans.user_id')
-            ->select('trans.id', 'users.name', 'users.name', 'trans.title', 'trans.in', 'trans.out', 'accounts.account_name', 'wallets.wallet_name', 'wallets.saldo', 'wallets.prev_saldo', 'trans.created_at')
-            ->get();
+        $trans = Trans::with(['account', 'wallet', 'operator'])->get();
 
         return $trans;
     }
@@ -34,23 +29,22 @@ class TransController extends Controller
         // ]);
         $data = [];
 
-        //insert dompet
-        $k = DB::table('wallets')->where('id', '=', request('wallet'))->first();
 
-        if( request()->has('in')){
+        if (request()->has('in')) {
             $wallet = Wallet::create([
-                'wallet_type' => $k->wallet_type,
-                'wallet_name' => $k->wallet_name,
-                'prev_saldo' => $k->saldo,
-                'saldo' => $k->saldo + request('in'),
+                'wallet_type' => request('wallet')['wallet_type'],
+                'wallet_name' => request('wallet')['wallet_name'],
+                'debit' => request('in'),
+                'credit' => 0,
+
             ]);
-        }
-        else{
+        } else {
             $wallet = Wallet::create([
-                'wallet_type' => $k->wallet_type,
-                'wallet_name' => $k->wallet_name,
-                'prev_saldo' => $k->saldo,
-                'saldo' => $k->saldo - request('out'),
+                'wallet_type' => request('wallet')['wallet_type'],
+                'wallet_name' => request('wallet')['wallet_name'],
+                'debit' => 0,
+                'credit' => request('out'),
+
             ]);
         }
 
@@ -59,9 +53,9 @@ class TransController extends Controller
             'wallet_id' => $wallet->id,
             'desc' => request('desc'),
             'operator_id' => request('operator'),
-            'account_id' => request('account'),
-            'in' => request()->has('in') ? request('in') : 0,
-            'out' => request()->has('out') ? request('out') : 0,
+            'account_id' => request('account')['id'],
+            'debit' => request()->has('in') ? request('in') : 0,
+            'credit' => request()->has('out') ? request('out') : 0,
         ]);
         //insert buku besar
         $big = Ledger::create([
@@ -81,20 +75,37 @@ class TransController extends Controller
         //         'peiod' => 'required|unique:dispens,email,' . $dispen->id,
         //         'password' => 'sometimes|min:8',
         //     ]);
-        $wal =  Trans::where('id', '=', request('id'))->first();
-        $data = $wal->update([
-
-            'prev_saldo' => $wal->saldo,
-            'wallet_name' => request('name'),
-            'saldo' => request('saldo'),
+        $log = [];
+        $tans =  Trans::where('id', '=', request('id'))->first();
+        $wall =  Wallet::where('id', '=', request('wallet')['id'])->first();
+        $data = $tans->update([
+            'desc' => request('desc'),
+            'debit' => request('type') == 'debit' ? request('price') : $tans->debit,
+            'credit' => request('type') != 'debit' ? request('price') : $tans->credit,
         ]);
-
-        return $data;
+        $walls = $wall->update([
+            'debit' => request('type') == 'debit' ? request('price') : $tans->debit,
+            'credit' => request('type') != 'debit' ? request('price') : $tans->credit,
+        ]);
+        array_push($log, $data);
+        array_push($log, $walls);
+        return $log;
     }
+
     public function bulkDelete()
     {
-        Trans::whereIn('id', request('ids'))->delete();
+        // dd(request());
+        foreach (request('datas') as $data) {
 
-        return response()->json(['message' => 'Transs deleted successfully!']);
+            Trans::find($data['id'])->delete();
+            Ledger::where('ledgerable_type', '=', Trans::class)
+                ->where('ledgerable_id', $data['id'])
+                ->first()
+                ->delete();
+            Wallet::find($data['wallet_id'])
+                ->delete();
+
+        }
+        return response()->json(['message' => 'Transaksi eksternal berhasil dihapus!']);
     }
 }

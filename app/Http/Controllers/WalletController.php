@@ -14,19 +14,52 @@ class WalletController extends Controller
 
     public function index()
     {
-        $wallets = Wallet::latest()->paginate(10);
+        $fil = request('filter');
+        $req = request('value');
+        $searchQuery = request('query');
+
+        if ($fil == '') {
+            $fil = 'id';
+            $req = 'desc';
+        } else {
+            if ($req == 0) {
+                $req = 'asc';
+            } else {
+                $req = 'desc';
+            }
+        }
+
+        $wallets = Wallet::where('wallet_name', 'like', "%{$searchQuery}%")
+            ->select('created_at', 'id', 'wallet_name', 'wallet_type', 'debit', 'credit', DB::raw('(SELECT SUM(debit) - SUM(credit) FROM acc_wallets AS w2 WHERE w2.id <= acc_wallets.id AND w2.wallet_type = acc_wallets.wallet_type) AS saldo'))
+            ->orderBy($fil, $req)
+            ->paginate(10);
+
         return $wallets;
     }
 
     public function list()
     {
-        $wallets = DB::table('wallets')
-            ->whereIn('id', function ($query) {
-                $query->selectRaw('MAX(id)')
-                    ->from('wallets')
-                    ->groupBy('wallet_type');
-            })
+        $wallets = Wallet::whereIn('id', function ($query) {
+            $query->selectRaw('MAX(id)')
+                ->from('acc_wallets')
+                ->groupBy('wallet_type');
+        })
             ->get();
+
+        $sums = Wallet::selectRaw("SUM(debit) as total_debit")
+            ->selectRaw("SUM(credit) as total_credit")
+            ->selectRaw("SUM(debit)-SUM(credit) as saldo")
+            ->selectRaw("wallet_type")
+            ->groupBy('wallet_type')
+            ->get();
+
+        foreach ($sums as $sum) {
+            foreach ($wallets as $wallet) {
+                if ($wallet->wallet_type == $sum->wallet_type) {
+                    $wallet['sum'] = $sum;
+                }
+            }
+        }
         return $wallets;
     }
 
@@ -42,8 +75,8 @@ class WalletController extends Controller
         $wallet = Wallet::create([
             'wallet_type' => (Wallet::orderByDesc('wallet_type')->first()->wallet_type) + 1,
             'wallet_name' => request('name'),
-            'prev_saldo' => request('saldo'),
-            'saldo' => request('saldo'),
+            'debit' => request('saldo'),
+            'credit' => 0,
         ]);
         return $wallet;
     }
@@ -81,19 +114,5 @@ class WalletController extends Controller
         $data = Wallet::where('id', '=', $id)->delete();
 
         return $data;
-    }
-
-    public function search()
-    {
-        $searchQuery = request('query');
-        $wallets = DB::table('wallets')
-            ->whereIn('id', function ($query) {
-                $query->selectRaw('MAX(id)')
-                    ->from('wallets')
-                    ->groupBy('wallet_type');
-            })
-            ->where('wallet_name', 'like', "%{$searchQuery}%")
-            ->paginate(10);
-        return $wallets;
     }
 }

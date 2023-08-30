@@ -7,6 +7,7 @@ import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
+import { formatDate } from "../../helper";
 
 
 const toastr = useToastr();
@@ -129,9 +130,6 @@ const toggleSelection = (group) => {
     console.log(selectedGroup.value);
 };
 
-
-
-
 const selectAllGroups = () => {
     if (selectAll.value) {
         selectedGroup.value = listgroups.value.data.map(group => group.id);
@@ -182,7 +180,7 @@ onMounted(() => {
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><router-link to="/admin/dashboard">Home</router-link></li>
+                        <li class="breadcrumb-item ">  <RouterLink to="/">Beranda</RouterLink></li>
                         <li class="breadcrumb-item active">Groups</li>
                     </ol>
                 </div>
@@ -196,9 +194,9 @@ onMounted(() => {
             <div class="d-flex justify-content-between mb-3">
                 <div class="d-flex">
 
-                    <router-link to="/admin/group/create" type="button" class="mb-2 btn btn-primary">
+                    <router-link to="/admin/master/group/create" type="button" class="mb-2 btn btn-primary">
                         <i class="fa fa-plus-circle mr-1"></i>
-                        Add New Group
+                        Tambah Grup / Sambungkan Santri
                     </router-link>
 
                     <div v-if="selectedGroup.length > 0">
@@ -216,23 +214,23 @@ onMounted(() => {
             <div class="row">
                 <div class="col-lg-12">
 
-                    <table class="table ">
+                    <table class="table table-bordered">
                         <thead>
                             <tr>
                                 <th><input type="checkbox" v-model="selectAll" @change="selectAllGroups" /></th>
-                                <th scope="col">Group Name</th>
-                                <th scope="col">Desc</th>
-                                <th scope="col">Created At</th>
+                                <th scope="col">Nama Grup</th>
+                                <th scope="col">Deskripsi</th>
+                                <th scope="col">Dibuat</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="(group) in listgroups.data" class="text-center" :key="group.id">
+                            <tr v-for="(group) in listgroups.data" :key="group.id">
                                 <td><input type="checkbox" :checked="selectAll" @change="toggleSelection(group)" />
                                 </td>
 
                                 <td>{{ group.group_name }} </td>
                                 <td>{{ group.desc }}</td>
-                                <td>{{ group.created_at }}</td>
+                                <td>{{ formatDate( group.created_at) }}</td>
 
                                 <td>
                                     <a href="#" @click="editGroup(group)">
@@ -294,14 +292,14 @@ onMounted(() => {
                     :initial-values="formValues">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="desc">Group Name</label>
+                            <label for="desc">Nama grup</label>
                             <Field name="name" type="text" class="form-control " :class="{ 'is-invalid': errors.name }"
                                 aria-describedby="nameHelp" placeholder="Enter name" />
                             <span class="invalid-feedback">{{ errors.name }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="desc">Group Desc</label>
+                            <label for="desc">Deskripsi</label>
                             <Field name="desc" type="text" class="form-control " :class="{ 'is-invalid': errors.desc }"
                                 aria-describedby="nameHelp" placeholder="Enter description" />
                             <span class="invalid-feedback">{{ errors.desc }}</span>

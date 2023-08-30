@@ -13,12 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('wallets', function (Blueprint $table) {
+        Schema::create('acc_wallets', function (Blueprint $table) {
             $table->id();
             $table->integer('wallet_type');
             $table->string('wallet_name');
-            $table->bigInteger('prev_saldo');
-            $table->bigInteger('saldo');
+            $table->bigInteger('debit');
+            $table->bigInteger('credit');
             $table->timestamps();
         });
     }

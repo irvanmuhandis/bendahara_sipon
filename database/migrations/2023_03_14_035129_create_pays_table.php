@@ -13,13 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('pays', function (Blueprint $table) {
+        Schema::create('acc_pays', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('payment');
             $table->foreignId('wallet_id');
             $table->timestamps();
-            $table->foreignId('user_id');
-            $table->bigInteger('operator_id')->unsigned();
+            $table->string('nis');
+            $table->foreign('nis')->references('nis')->on('santris');
+             $table->bigInteger('operator_id')->unsigned();
             $table->foreign('operator_id')->references('id')->on('users');
             $table->integer("payable_id")->nullable();
             $table->string("payable_type")->nullable();

@@ -7,15 +7,35 @@ import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
-import { formatDate,formatStatus } from '../../helper.js';
+import { formatDate, formatMoney, formatStatus } from '../../helper.js';
 
 const toastr = useToastr();
-const listBill = ref([]);
-const users = ref([]);
-const wallets = ref([]);
-const editing = ref(false);
-const formValues = ref(null);
-const form = ref(null);
+const listBill = ref({
+    'data': []
+});
+const accounts = ref([]);
+const santris = ref([]);
+
+const errors = ref({
+    'santri': null,
+    'period': null,
+    'price': null,
+    'remain': null,
+    'account': null
+});
+
+const form = ref({
+    'id': null,
+    'santri': null,
+    'period': '',
+    'price': '',
+    'remain': '',
+    'account': null
+});
+
+const searchQuery = ref(null);
+const selectAll = ref();
+const selected = ref([]);
 const types = [{
     id: 1,
     name: 'Satu Jam Terakhir',
@@ -42,6 +62,14 @@ const types = [{
 }
 ];
 const destroyType = ref(null);
+const filter = ref({
+    'account_id': null,
+    'amount': null,
+    'nis': null,
+    'remainder': null,
+    'due_date': null,
+    'created_at': null
+})
 
 const delPrompt = (values, action) => {
     const modal = document.getElementById("myModal");
@@ -50,6 +78,41 @@ const delPrompt = (values, action) => {
     $(modal).modal('show');
     destroyType.value = values.delType;
     console.log(destroyType);
+}
+const toggleSelection = (bill) => {
+
+
+    const index = selected.value.indexOf(bill.id);
+    if (index === -1) {
+        selected.value.push(bill.id);
+    } else {
+        selected.value.splice(index, 1);
+    }
+    console.log(selected.value);
+};
+
+const selectAllGroups = () => {
+    if (selectAll.value) {
+        selected.value = listBill.value.data.map(bill => bill.id);
+    } else {
+        selected.value = [];
+    }
+    console.log(selected.value);
+}
+
+const sort = (a) => {
+    for (const key in filter.value) {
+        if (a != key) {
+            filter.value[key] = null;
+        }
+    }
+    if (filter.value[a] == null) {
+        filter.value[a] = true;
+    } else {
+        filter.value[a] = !filter.value[a];
+    }
+    fetchData();
+    console.log(filter.value);
 }
 
 const delMass = () => {
@@ -60,7 +123,7 @@ const delMass = () => {
 
 
                     toastr.success(response.data.message + " data deleted succesfully");
-                    getData();
+                    fetchData();
 
                 })
                 .catch((error) => {
@@ -73,7 +136,7 @@ const delMass = () => {
 
 
                     toastr.success(response.data.message + " data deleted succesfully");
-                    getData();
+                    fetchData();
 
                 })
                 .catch((error) => {
@@ -86,7 +149,7 @@ const delMass = () => {
 
 
                     toastr.success(response.data.message + " data deleted succesfully");
-                    getData();
+                    fetchData();
 
                 })
                 .catch((error) => {
@@ -99,7 +162,7 @@ const delMass = () => {
 
 
                     toastr.success(response.data.message + " data deleted succesfully");
-                    getData();
+                    fetchData();
 
                 })
                 .catch((error) => {
@@ -112,7 +175,7 @@ const delMass = () => {
 
 
                     toastr.success(response.data.message + " data deleted succesfully");
-                    getData();
+                    fetchData();
 
                 })
                 .catch((error) => {
@@ -125,7 +188,7 @@ const delMass = () => {
 
 
                     toastr.success(response.data.message + " data deleted succesfully");
-                    getData();
+                    fetchData();
 
                 })
                 .catch((error) => {
@@ -144,106 +207,25 @@ const delMass = () => {
 
 };
 
+const bulkDelete = () => {
+    console.log(selected.value);
+    axios.delete('/api/bill', {
+        data: {
+            ids: selected.value
+        }
+    })
+        .then(response => {
+            toastr.success(response.data.message);
+            fetchData();
+        });
+
+    $('#deleteDataModal').modal('hide');
+};
+
 const confirmDataDeletion = (id) => {
-    payIdBeingDeleted.value = id;
-    console.log('click del');
     $('#deleteDataModal').modal('show');
 };
 
-
-
-const deleteData = () => {
-    console.log(payIdBeingDeleted.value);
-    axios.delete(`/api/pay/${payIdBeingDeleted.value}`, {
-        data: {
-            id: payIdBeingDeleted.value
-        }
-    })
-        .then((response) => {
-            $('#deleteDataModal').modal('hide');
-            toastr.success('Data deleted successfully!');
-            getData();
-            //payDeleted(payIdBeingDeleted.value)
-        });
-};
-
-
-const createDataSchema = yup.object({
-    user_id: yup.string().required(),
-    status: yup.number().required(),
-    pay: yup.number().required(),
-    remainder: yup.number().required(),
-    title: yup.string().required()
-});
-
-const editDataSchema = yup.object({
-    user_id: yup.string().required(),
-    pay: yup.number().required(),
-    remainder: yup.number().required(),
-    title: yup.string().required(),
-    status: yup.number().when((status, schema) => {
-        return status ? schema.required() : schema;
-    }),
-});
-
-const createData = (values, { resetForm, setErrors }) => {
-    axios.post('/api/pay', values)
-        .then((response) => {
-            listpays.value.data.unshift(response.data);
-            $('#payFormModal').modal('hide');
-            resetForm();
-            toastr.success('Data created successfully!');
-        })
-        .catch((error) => {
-            if (error.response.data.errors) {
-                setErrors(error.response.data.errors);
-            }
-        })
-};
-
-const AddDataExpense = () => {
-    editing.value = false;
-    $('#payFormModal').modal('show');
-};
-
-
-const editData = (pay) => {
-    editing.value = true;
-    console.log('click edit');
-    form.value.resetForm();
-    $('#payFormModal').modal('show');
-    formValues.value = {
-        id: pay.id,
-        remainder: pay.remainder,
-        user_id: pay.user_id,
-        status: pay.status,
-        title: pay.title,
-        pay: pay.pay
-    };
-};
-
-const updateData = (values, { setErrors }) => {
-    axios.put('/api/pay/' + formValues.value.id, values)
-        .then((response) => {
-            // const index = pays.value.data.findIndex(pay => pay.id === response.id);
-            // listpays.value.data[index] = response.data;
-            getData();
-            $('#payFormModal').modal('hide');
-            toastr.success('Data updated successfully!');
-        }).catch((error) => {
-            setErrors(error.response.data.errors);
-            console.log(error);
-        });
-}
-
-const handleSubmit = (values, actions) => {
-    // console.log(actions);
-    if (editing.value) {
-        updateData(values, actions);
-    } else {
-        createData(values, actions);
-    }
-}
 
 // const selectAllDatas = () => {
 //     if (selectAll.value) {
@@ -263,100 +245,142 @@ const handleSubmit = (values, actions) => {
 //     return pay_status.value.map(status => status.count).reduce((acc, value) => acc + value, 0);
 // })
 
+watch(searchQuery, debounce(() => {
+    fetchData();
+}, 300));
 
-
-
-const getWallet = () => {
-
-    axios.get(`/api/wallet`)
-        .then((response) => {
-            wallets.value = response.data;
-        })
-
-}
-
-const getUser = () => {
-
-    axios.get(`/api/userlist`)
-        .then((response) => {
-            users.value = response.data;
-        })
-
-}
-
-const getData = () => {
-
-    axios.get(`/api/bill`)
-        .then((response) => {
+const fetchData = (link = `/api/bill`) => {
+    var fil = {
+        'key': null,
+        'value': null
+    };
+    for (const key in filter.value) {
+        if (filter.value[key] != null) {
+            fil.value = filter.value[key] ? 1 : 0;
+            fil.key = key;
+        }
+    }
+    if (link != null) {
+        axios.get(link, {
+            params: {
+                filter: fil.key,
+                value: fil.value,
+                query: searchQuery.value
+            }
+        }).then((response) => {
             listBill.value = response.data;
-            $("#myTable").DataTable({
-                columnDefs: [
-                    {
-                        targets: [-1, -2],
-                        className: 'dt-body-center'
-                    }
-                ],
-                dom: "Bfrtip",
-                buttons: [
-
-                    'colvis',
-                    "copy",
-                    "csv",
-                ],
-
-                data: listBill.value,
-                responsive: true,
-                destroy:true,
-                columns: [
-
-                    { data: "id" },
-                    { data: "account_name" },
-                    { data: "name" },
-                    { data: "bill_amount" },
-                    { data: 'bill_remainder' },
-                    { data: 'payment_status',
-                        render: function(data){
-                            return formatStatus(data)
-                        } },
-                    {
-                        data: "id",
-                        render: function (data) {
-                            return `<a href="#" data-id="${data}" id="edit" >
-                                            <i class="fa fa-edit mr-2"></i>
-                                        </a>`
-                        }
-                    },
-                    {
-                        data: "id",
-                        render: function (data) {
-                            return `<a href="#" data-id="${data}" id="del">
-                                            <i class="fa fa-trash text-danger"></i>
-                                        </a>`
-                        }
-                    }
-                ],
-            });
-            $(document).on('click', "#del", function () {
-                let id = $(this).data('id');
-                confirmPayDeletion(id);
-            });
-            $('#myTable tbody').on('click', '#edit', function () {
-                var row = $(this).closest('tr');
-                var table = $('#myTable').DataTable();
-                var rowData = table.row(row).data();
-                // Do something with the row data, such as displaying it in a form for editing
-                console.log(rowData);
-                editPay(rowData);
-
-            });
         })
+    }
 
 }
+
+const getSantri = async () => {
+
+    try {
+        const response = await axios.get(`/api/santrilist`)
+        santris.value = response.data;
+        console.log('santri added');
+
+
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+const getAccount = () => {
+    axios.get('/api/account/only', {
+        params: {
+            type: 2
+        }
+    }
+    )
+        .then((response) => {
+            accounts.value = response.data;
+        })
+}
+
+const editData = (bill) => {
+
+    form.value.id = bill.id;
+    form.value.price = bill.amount;
+    form.value.santri = bill.santri;
+    form.value.account = bill.account;
+    form.value.period = bill.due_date;
+    form.value.remain = bill.remainder;
+
+    $('#editDataModal').modal('show');
+}
+const confirmUpdate = () => {
+
+    if (validate()) {
+
+        $('#editDataModal').modal('hide');
+        $('#conEditDataModal').modal('show');
+    }
+}
+
+const validate = () => {
+    var err = 0;
+
+    for (const key in errors.value) {
+        errors.value[key] = null;
+    }
+    if (form.value.santri == null) {
+        errors.value.santri = 'Pilih Santri ';
+        err += 1;
+    }
+    if (form.value.account == null) {
+        errors.value.account = 'Pilih Akun '
+        err += 1;
+    }
+    if (form.value.price == '') {
+        errors.value.price = 'Isi Jumlah Tagihan '
+        err += 1;
+    }
+    if (form.value.remain == '') {
+        errors.value.remain = 'Isi Sisa Tagihan '
+        err += 1;
+    }
+    if (form.value.period == '') {
+        errors.value.period = 'Pilih Periode Tagihan '
+        err += 1;
+    }
+    if (form.value.remain > form.value.price) {
+        errors.value.remain = 'Sisa tagihan tidak boleh lebih dari total tagihan'
+        err += 1;
+    }
+
+    if (err == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+const update = () => {
+    form.value.operator = 1;
+
+    console.log(form.value);
+    console.log(errors.value);
+
+    axios.put(`/api/bill/${form.value.id}`, form.value)
+        .then((response) => {
+            toastr.success('Pay created successfully!');
+            fetchData();
+            $('#conEditDataModal').modal('hide');
+        })
+        .catch((error) => {
+            console.log(error);
+        })
+
+};
 
 onMounted(() => {
-    getData();
-    getWallet();
-    getUser();
+    fetchData();
+    getSantri();
+    getAccount();
+
 })
 
 
@@ -367,14 +391,16 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0 text-primary"><strong>Bill | Tagihan </strong></h1>
+                    <h1 class="m-0 text-primary"><strong>Tagihan </strong></h1>
                     <p><small>List tagihan di pondok pesantren</small></p>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><router-link to="/admin/dashboard">Home</router-link></li>
-                        <li class="breadcrumb-item active">Bills</li>
-                    </ol>
+                        <li class="breadcrumb-item ">
+                            <RouterLink to="/">Beranda</RouterLink>
+                        </li>
+                        <li class="breadcrumb-item active">Tagihan</li>
+                        </ol>
                 </div>
             </div>
         </div>
@@ -383,187 +409,332 @@ onMounted(() => {
 
     <div class="content">
         <div class="container-fluid">
-                    <div class="row pb-3">
-                        <div class="col-md-3">
-                            <button class="w-100 btn btn-primary" type="button" data-toggle="collapse"
-                                data-target="#collapseWidthExample" aria-expanded="false"
-                                aria-controls="collapseWidthExample">
-                                Hapus Per Waktu <i class="ml-1 right fas fa-trash"></i>
-                            </button>
+            <div class="row pb-3">
+                <!--
+                    demo ditutup sementara
 
-                            <div class="collapse mt-2" id="collapseWidthExample">
+                    <div class="col-md-3">
+                    <button class="w-100 btn btn-primary" type="button" data-toggle="collapse"
+                        data-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
+                        Hapus Per Waktu <i class="ml-1 right fas fa-trash"></i>
+                    </button>
 
-                                <Form @submit="delPrompt" class="row">
-                                    <div class="col-md">
+                    <div class="collapse mt-2" id="collapseWidthExample">
 
-                                        <Field as="select" class="form-control" name="delType">
-                                            <option disabled>Pilih Salah Satu</option>
-                                            <option v-for="t in types" :value="t.id">
-                                                {{ t.name }}
-                                            </option>
-                                        </Field>
+                        <Form @submit="delPrompt" class="row">
+                            <div class="col-md">
+
+                                <Field as="select" class="form-control" name="delType">
+                                    <option disabled>Pilih Salah Satu</option>
+                                    <option v-for="t in types" :value="t.id">
+                                        {{ t.name }}
+                                    </option>
+                                </Field>
 
 
-                                    </div>
-                                    <div class="col-md">
-                                        <button type="submit" class="btn btn-danger">Hapus</button>
-                                    </div>
-
-                                </Form>
                             </div>
-                            <!-- Modal -->
-                            <div class="modal" tabindex="-1" role="dialog" id="myModal">
-                                <div class="modal-dialog" role="document">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Modal title</h5>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <p>Apakah Kamu Yakin Ingin Menghapus Data {{
-                                                destroyType == null ? "---" : types.filter(item => item.id ==
-                                                    destroyType).map(item => item.name)[0] }} ?</p>
+                            <div class="col-md">
+                                <button type="submit" class="btn btn-danger">Hapus</button>
+                            </div>
 
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary"
-                                                data-dismiss="modal">Close</button>
-                                            <button type="button" class="btn btn-primary" @click="delMass">Save
-                                                changes</button>
-                                        </div>
-                                    </div>
+                        </Form>
+                    </div>
+                    <div class="modal" tabindex="-1" role="dialog" id="myModal">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Modal title</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Apakah Kamu Yakin Ingin Menghapus Data {{
+                                        destroyType == null ? "---" : types.filter(item => item.id ==
+                                            destroyType).map(item => item.name)[0] }} ?</p>
+
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" @click="delMass">Save
+                                        changes</button>
                                 </div>
                             </div>
                         </div>
-                        <router-link to="/admin/bill/create" class="col-md">
-                            <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Add New Bill
-                            </button>
-                        </router-link>
-
-
                     </div>
+                </div>-->
+                <router-link to="/admin/billing/bill/create" class="col-md">
+                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i>Tambah Tagihan
+                    </button>
+                </router-link>
+            </div>
+            <div class="row">
+                <div class="col-md-3" v-if="selected.length > 0">
+                    <button @click="confirmDataDeletion" type="button" class=" w-100 mb-2 btn btn-danger">
+                        <i class="fa fa-trash mr-1"></i>
+                        Hapus {{ selected.length }} Data
+                    </button>
 
-
-                    <table id="myTable" class="table table-bordered display hover ">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Account Name</th>
-                                <th>User</th>
-                                <th>Amount</th>
-                                <th>Remainder</th>
-                                <th>Status</th>
-                                <th>Edit</th>
-                                <th>Del</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        </tbody>
-                    </table>
                 </div>
+
+                <div class="mb-2 col-md">
+                    <div class="input-group w-100 ">
+                        <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
+                    </div>
+                </div>
+
             </div>
 
 
-    <div class="modal fade" id="deleteBillModal" data-backdrop="static" tabindex="-1" role="dialog"
+            <table class="table table-bordered hover ">
+                <thead>
+                    <tr>
+                        <th class="text-center"><input type="checkbox" v-model="selectAll" @change="selectAllGroups" /></th>
+                        <th>Dibuat
+                            <span class="float-right" @click="sort('created_at')">
+                                <i :class="{ 'text-primary': filter.created_at == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.created_at == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+
+                        <th> <span>Nama Akun </span>
+                            <span class=" float-right" @click="sort('account_id')">
+                                <i :class="{ 'text-primary': filter.account_id == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.account_id == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th> <span>Santri </span>
+                            <span class="float-right" @click="sort('nis')">
+                                <i :class="{ 'text-primary': filter.nis == false }" class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.nis == true }" class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th>Tagihan
+                            <span class="float-right" @click="sort('amount')">
+                                <i :class="{ 'text-primary': filter.amount == false }" class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.amount == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th> <span>Sisa </span>
+                            <span class="float-right" @click="sort('remainder')">
+                                <i :class="{ 'text-primary': filter.remainder == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.remainder == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th> <span>Periode </span>
+                            <span class="float-right" @click="sort('due_date')">
+                                <i :class="{ 'text-primary': filter.due_date == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.due_date == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th class="text-center">Operator</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    <tr v-for="(bill) in listBill.data" :key="bill.id">
+                        <td class="text-center"><input type="checkbox" :checked="selectAll"
+                                @change="toggleSelection(bill)" />
+                        </td>
+                        <td>{{ formatDate(bill.created_at) }}</td>
+
+                        <td>{{ bill.account.account_name }}</td>
+                        <td>{{ bill.santri.fullname }}</td>
+                        <td>{{ formatMoney(bill.amount) }}</td>
+                        <td>{{ formatMoney(bill.remainder) }}</td>
+                        <td>{{ bill.due_date }}</td>
+
+                        <td>{{ bill.operator.name }}</td>
+                        <td class="text-center">
+                            <a href="#" @click="editData(bill)">
+                                <i class="mx-auto fa fa-edit mr-2"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr v-if="listBill.data.length == 0">
+                        <td colspan="9" class="text-center">Tidak Ada Data</td>
+                    </tr>
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    <li v-for="link in listBill.links" :key="link.label"
+                        :class="{ 'active': link.active, 'disabled': link.url == null }" class="page-item">
+                        <a class="page-link" v-html="link.label" href="#" @click="fetchData(link.url)"></a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="deleteDataModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Delete Bill</span>
+                        <span>Konfirmasi Penghapusan</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5>Are you sure you want to delete this bill ?</h5>
+                    <h5>Apakah anda yakin ingin menghapus {{ selected.length }} data ?</h5>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button @click.prevent="deleteBill" type="button" class="btn btn-primary">Delete Bill</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    <button @click.prevent="bulkDelete" type="button" class="btn btn-primary">Ya, saya yakin</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="billFormModal" data-backdrop="static" tabindex="-1" role="dialog"
+    <div class="modal fade" id="conEditDataModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span v-if="editing">Edit Bill</span>
-                        <span v-else>Add New Bill</span>
+                        <span>Konfirmasi Perubahan</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editBillSchema : createBillSchema"
-                    v-slot="{ errors }" :initial-values="formValues">
+                <div class="modal-body">
+                    <h5>Apakah anda yakin ingin merubah data menjadi : </h5>
+                    <div class="row">
+                        <div class="col-4">Santri </div>
+                        <div v-if="form.santri != null" class="col-8"> : {{ form.santri.fullname }} - {{ form.santri.nis }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">Akun </div>
+                        <div v-if="form.account != null" class="col-8"> : {{ form.account.account_name }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">Jumlah Tagihan </div>
+                        <div class="col-8"> : {{ formatMoney(form.price) }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">Periode </div>
+                        <div class="col-8"> : {{ form.period }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">Sisa Tagihan </div>
+                        <div class="col-8"> : {{ formatMoney(form.remain) }}</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    <button @click.prevent="update" type="button" class="btn btn-primary">Ya, saya yakin</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editDataModal" data-backdrop="static" tabindex="-1" role="dialog"
+        aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">
+                        <span>Ubah Data Tagihan</span>
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form>
                     <div class="modal-body">
-                        <div class="form-bill">
-                            <label>Name User</label>
-                            <Field name="title" type="text" class="form-control " :class="{ 'is-invalid': errors.title }"
-                                id="desc" aria-describedby="nameHelp" placeholder="Enter description" />
 
-                            <span class="invalid-feedback">{{ errors.user_id }}</span>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Santri</label>
+                                    <VueMultiselect v-model="form.santri" :option-height="9" :options="santris"
+                                        :class="{ 'is-invalid': errors.santri }" :multiple="false" :close-on-select="true"
+                                        placeholder="Pilih Satu ..." label="fullname" track-by="id" :show-labels="false">
+                                        <template v-slot:option="{ option }">
+                                            <div>{{ option.fullname }} - {{ option.nis }} </div>
+                                        </template>
+                                    </VueMultiselect>
+                                    <span class="invalid-feedback">{{ errors.santri }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Bulan</label>
+
+
+                                    <input @v-if="!switchRange" :class="{ 'is-invalid': errors.period }" class="form-custom"
+                                        v-model="form.period" type="month" />
+                                    <span class="invalid-feedback">{{ errors.period }}</span>
+
+
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Akun</label><br>
+                                    <VueMultiselect v-model="form.account" :option-height="9" :options="accounts"
+                                        :class="{ 'is-invalid': errors.account }" :multiple="false" :close-on-select="true"
+                                        placeholder="Pilih Satu..." label="account_name" track-by="id" :show-labels="false">
+                                        <template v-slot:option="{ option }">
+                                            <div>{{ option.account_name }} - {{ option.id }} </div>
+                                        </template>
+                                    </VueMultiselect>
+                                    <span class="invalid-feedback">{{ errors.account }}</span>
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Jumlah Tagihan</label>
+                                    <input class="form-custom" :class="{ 'is-invalid': errors.price }" v-model="form.price"
+                                        type="number" />
+                                    <span class="invalid-feedback">{{ errors.price }}</span>
+                                    <p>{{ formatMoney(form.price) }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label>Sisa Tagihan</label>
+                                    <input class="form-custom" :class="{ 'is-invalid': errors.remain }"
+                                        v-model="form.remain" type="number" />
+                                    <span class="invalid-feedback">{{ errors.remain }}</span>
+                                    <p>{{ formatMoney(form.remain) }}</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-bill">
-                            <label for="desc">Title</label>
-                            <Field name="title" type="text" class="form-control " :class="{ 'is-invalid': errors.title }"
-                                id="desc" aria-describedby="nameHelp" placeholder="Enter description" />
-                            <span class="invalid-feedback">{{ errors.title }}</span>
-                        </div>
 
-                        <div class="form-bill">
-                            <label>Pay At</label>
-                            <Field name="bill" type="number" class="form-control " :class="{ 'is-invalid': errors.bill }"
-                                id="pay_at" aria-describedby="nameHelp" placeholder="Enter Pay Date" />
-                            <span class="invalid-feedback">{{ errors.bill }}</span>
-                        </div>
 
-                        <div class="form-bill">
-                            <label>Remainder</label>
-                            <Field name="remainder" type="number" class="form-control "
-                                :class="{ 'is-invalid': errors.remainder }" id="pay_at" aria-describedby="nameHelp"
-                                placeholder="Enter Pay Date" />
-                            <span class="invalid-feedback">{{ errors.remainder }}</span>
-                        </div>
-
-                        <div class="form-bill">
-                            <label>Status</label>
-
-                            <span class="invalid-feedback">{{ errors.status }}</span>
-                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
+                    <div class="modal-footer ">
+                        <!-- <button type="button" class="col-md-3 btn btn-secondary" data-dismiss="modal">Tutup</button> -->
+                        <button type="button" @click="confirmUpdate" class=" w-100 btn btn-primary">Update</button>
                     </div>
-                </Form>
+                </form>
             </div>
         </div>
     </div>
 </template>
-<script>
-export default {
-    // computed property to retrieve current page number
-    computed: {
-        currentPage() {
-            return this.listbills.current_page;
-        }
-    },
-
-    // methods to handle pagination events
-    methods: {
-        changePage(page) {
-            this.search(page);
-        }
-    }
-}
-</script>

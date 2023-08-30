@@ -1,7 +1,7 @@
 <script setup>
 import axios from 'axios';
 import { ref, onMounted, reactive, watch } from 'vue';
-import { Form, Field, useResetForm, useForm } from 'vee-validate';
+import { Form, Field, useResetForm, useForm, validate } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import DispenListItem from '../dispen/DispenListItem.vue';
@@ -9,126 +9,113 @@ import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
-const { resetForm } = useForm();
+
 const dispens = ref({ 'data': [] });
-const users = ref([]);
-const editing = ref(false);
-const formValues = ref(null);
-const form = ref(null);
-const dispenIdBeingDeleted = ref(null);
+const santris = ref([]);
+
+const editformValues = ref({
+    'id': '',
+    'santri': '',
+    'periode': '',
+    'pay_at': '',
+    'desc': '',
+    'status': ''
+});
+const errors = ref({
+    'santri': null,
+    'periode': null,
+    'pay_at': null,
+    'desc': null,
+    'status': null
+})
+
 const searchQuery = ref(null);
 const selectAll = ref(false);
 const selectedDispen = ref([]);
-
+const filter = ref({
+    'status': null,
+    'nis': null,
+    'dispen_periode': null,
+    'pay_at': null,
+    'updated_at': null
+})
 
 const confirmDispenDeletion = (id) => {
-    dispenIdBeingDeleted.value = id;
     $('#deleteDispenModal').modal('show');
 };
 
-const deleteDispen = () => {
-    axios.delete(`/api/dispens/${dispenIdBeingDeleted.value}`)
-        .then(() => {
-            $('#deleteDispenModal').modal('hide');
-            toastr.success('Dispen deleted successfully!');
-            getDispen();
-            //dispenDeleted(dispenIdBeingDeleted.value)
-        });
-};
-
-const getDispen = (page = 1) => {
-    axios.get(`/api/dispens?page=${page}`)
-        .then((response) => {
-            dispens.value = response.data;
-            selectedDispen.value = [];
-            selectAll.value = false;
-        })
-}
-
-const createDispenSchema = yup.object({
-    userId: yup.string().required(),
-    pay_at: yup.date().required(),
-    periode: yup.string().required(),
-    desc: yup.string().required(),
-});
-
-const editDispenSchema = yup.object({
-    userId: yup.string().required(),
-    periode: yup.string().required(),
-    desc: yup.string().required(),
-    pay_at: yup.date().when((pay_at, schema) => {
-        return pay_at ? schema.required() : schema;
-    }),
-});
-
-const createDispen = (values, { resetForm, setErrors }) => {
-    axios.post('/api/dispens', values)
-        .then((response) => {
-            $('#dispenFormModal').modal('hide');
-            resetForm();
-            getDispen();
-            toastr.success('Dispen created successfully!');
-        })
-        .catch((error) => {
-            if (error.response.data.errors) {
-                setErrors(error.response.data.errors);
-            }
-        })
-};
-
-const AddDispen = () => {
-    editing.value = false;
-    getUser();
-    formValues.value = null;
-    $('#dispenFormModal').modal('show');
-};
-
-const getUser = () => {
-    axios.get(`/api/userlist`)
-        .then((response) => {
-            users.value = response.data;
-        })
-}
-
+// const deleteDispen = () => {
+//     axios.delete(`/api/dispens/${dispenIdBeingDeleted.value}`)
+//         .then(() => {
+//             $('#deleteDispenModal').modal('hide');
+//             toastr.success('Dispen deleted successfully!');
+//             index();
+//             //dispenDeleted(dispenIdBeingDeleted.value)
+//         });
+// };
 
 const editDispen = (dispen) => {
-    editing.value = true;
-    getUser();
+
     $('#dispenFormModal').modal('show');
-    formValues.value = {
+    editformValues.value = {
         id: dispen.id,
-        userId: dispen.user_id,
+        santri: dispen.santri,
         pay_at: dispen.pay_at,
+        status : dispen.status,
         periode: dispen.dispen_periode,
         desc: dispen.dispen_desc
     };
-    console.log(formValues.value);
+    console.log(editformValues.value);
 };
 
-const updateDispen = (values, { setErrors }) => {
-    values.id = formValues.value.id;
-    axios.put('/api/dispens/' + formValues.value.id, values)
-        .then((response) => {
-            getDispen();
-            $('#dispenFormModal').modal('hide');
-            toastr.success('Dispen updated successfully!');
-        }).catch((error) => {
-            console.log(error);
-        });;
-}
-
-const handleSubmit = (values, actions) => {
-    // console.log(actions);
-    if (editing.value) {
-        updateDispen(values, actions);
-    } else {
-        createDispen(values, actions);
+const updateDispen = () => {
+    if (validation()) {
+        axios.put('/api/dispens/' + editformValues.value.id, editformValues.value)
+            .then((response) => {
+                index();
+                $('#dispenFormModal').modal('hide');
+                toastr.success('Dispensasi berhasil diupdate!');
+            }).catch((error) => {
+                console.log(error);
+            });
     }
 }
 
-const dispenDeleted = (dispenId) => {
-    dispens.value.data = dispens.value.data.filter(dispen => dispen.id !== dispenId);
-};
+const validation = () => {
+    var err = 0;
+
+    for (const key in errors.value) {
+        errors.value[key] = null;
+    }
+    if (editformValues.value.santri == null) {
+        errors.value.santri = 'Pilih Santri ';
+        err += 1;
+    }
+    if (editformValues.value.desc == '') {
+        errors.value.desc = 'Isi deskripsi '
+        err += 1;
+    }
+    if (editformValues.value.pay_at == '') {
+        errors.value.pay_at = 'Pilih tanggal jatuh tempo'
+        err += 1;
+    }
+    if (editformValues.value.periode == '') {
+        errors.value.periode = 'Pilih periode'
+        err += 1;
+    }
+
+    console.log(errors.value);
+    console.log(editformValues.value);
+    if (err == 0) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
+
+
+
 const bulkDelete = () => {
     axios.delete('/api/dispens', {
         data: {
@@ -140,7 +127,8 @@ const bulkDelete = () => {
             // selectedDispen.value = [];
             // selectAll.value = false;
             toastr.success(response.data.message);
-            getDispen();
+            $('#deleteDispenModal').modal('hide');
+            index();
         });
 };
 
@@ -154,6 +142,20 @@ const selectAllDispens = () => {
     console.log(selectedDispen.value);
 }
 
+const sort = (a) => {
+    for (const key in filter.value) {
+        if (a != key) {
+            filter.value[key] = null;
+        }
+    }
+    if (filter.value[a] == null) {
+        filter.value[a] = true;
+    } else {
+        filter.value[a] = !filter.value[a];
+    }
+    index();
+    console.log(filter.value);
+}
 
 const search = (page = 1) => {
     axios.get(`/api/dispens/search?page=${page}`, {
@@ -179,12 +181,53 @@ const toggleSelection = (dispen) => {
 };
 
 
+const index = (link = `/api/dispens`) => {
+    var fil = {
+        'key': null,
+        'value': null
+    };
+    for (const key in filter.value) {
+        if (filter.value[key] != null) {
+            fil.value = filter.value[key] ? 1 : 0;
+            fil.key = key;
+        }
+    }
+    if (link != null) {
+        axios.get(link, {
+            params: {
+                filter: fil.key,
+                value: fil.value,
+                query: searchQuery.value
+            }
+        }).then((response) => {
+            dispens.value = response.data;
+            selectedDispen.value = [];
+            selectAll.value = false;
+        })
+    }
+
+}
+
+const getSantri = async () => {
+
+    try {
+        const response = await axios.get(`/api/santrilist`)
+        santris.value = response.data;
+        console.log('santri added');
+
+
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 watch(searchQuery, debounce(() => {
-    search();
+    index();
 }, 300));
 
 onMounted(() => {
-    getDispen();
+    index();
 });
 </script>
 
@@ -198,8 +241,8 @@ onMounted(() => {
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
-                        <li class="breadcrumb-item active">Dispens</li>
+                        <li class="breadcrumb-item "><router-link to="/">Beranda</router-link></li>
+                        <li class="breadcrumb-item active">Dispensasi</li>
                     </ol>
                 </div>
             </div>
@@ -209,34 +252,62 @@ onMounted(() => {
 
     <div class="content">
         <div class="container-fluid">
-            <div class="d-flex justify-content-between">
-                <div class="d-flex">
-                    <button @click="AddDispen" type="button" class="mb-2 btn btn-primary">
-                        <i class="fa fa-plus-circle mr-1"></i>
-                        Add New Dispen
+            <router-link to="/admin/dispens/create">
+                <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i>Tambah Dispensasi</button>
+            </router-link>
+            <div class="row  mb-2 mt-2">
+                <div class="col-md-3" v-if="selectedDispen.length > 0">
+                    <button @click="confirmDispenDeletion" type="button" class="w-100 btn btn-danger">
+                        <i class="fa fa-trash mr-1"></i>
+                        Hapus {{ selectedDispen.length }} data
                     </button>
-                    <div v-if="selectedDispen.length > 0">
-                        <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
-                            <i class="fa fa-trash mr-1"></i>
-                            Delete Selected
-                        </button>
-                        <span class="ml-2">Selected {{ selectedDispen.length }} dispens</span>
-                    </div>
                 </div>
-                <div>
-                    <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
+                <div class="col-md">
+                    <input type="text" v-model="searchQuery" class="form-control " placeholder="Search..." />
                 </div>
             </div>
             <table class="table table-bordered">
                 <thead>
                     <tr>
                         <th><input type="checkbox" v-model="selectAll" @change="selectAllDispens" /></th>
-                        <th>Name</th>
-                        <th>Periode</th>
-                        <th>Pay At</th>
-                        <th>Description</th>
-                        <th>Updated At</th>
-                        <th>Created At</th>
+                        <th>Nama
+                            <span class="float-right" @click="sort('nis')">
+                                <i :class="{ 'text-primary': filter.nis == false }" class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.nis == true }" class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th>Periode
+                            <span class="float-right" @click="sort('dispen_periode')">
+                                <i :class="{ 'text-primary': filter.dispen_periode == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.dispen_periode == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th>Jatuh Tempo
+                            <span class="float-right" @click="sort('pay_at')">
+                                <i :class="{ 'text-primary': filter.pay_at == false }" class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.pay_at == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th>Deskripsi</th>
+                        <th>Status
+                            <span class="float-right" @click="sort('status')">
+                                <i :class="{ 'text-primary': filter.status == false }" class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.status == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th>Update
+                            <span class="float-right" @click="sort('updated_at')">
+                                <i :class="{ 'text-primary': filter.updated_at == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.updated_at == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody v-if="dispens.data.length > 0">
@@ -246,12 +317,18 @@ onMounted(() => {
                 </tbody>
                 <tbody v-else>
                     <tr>
-                        <td colspan="6" class="text-center">No results found...</td>
+                        <td colspan="8" class="text-center">Tidak ada data</td>
                     </tr>
                 </tbody>
             </table>
-            <Bootstrap4Pagination :data="dispens" @pagination-change-page="search" />
-    
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    <li v-for="link in dispens.links" :key="link.label"
+                        :class="{ 'active': link.active, 'disabled': link.url == null }" class="page-item">
+                        <a class="page-link" v-html="link.label" href="#" @click="index(link.url)"></a>
+                    </li>
+                </ul>
+            </nav>
         </div>
 
     </div>
@@ -262,18 +339,18 @@ onMounted(() => {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Delete Dispen</span>
+                        <span>Kofirmasi Penghapusan</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5>Are you sure you want to delete this dispen ?</h5>
+                    <h5>Apakah anda yakin ingin menghapus {{ selectedDispen.length }} data ?</h5>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button @click.prevent="deleteDispen" type="button" class="btn btn-primary">Delete Dispen</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tidak</button>
+                    <button @click.prevent="bulkDelete" type="button" class="btn btn-primary">Yakin</button>
                 </div>
             </div>
         </div>
@@ -284,55 +361,64 @@ onMounted(() => {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span v-if="editing">Edit Dispen</span>
-                        <span v-else>Add New Dispen</span>
+                        <span>Edit Dispen</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editDispenSchema : createDispenSchema"
-                    v-slot="{ errors }" :initial-values="formValues">
+                <form>
                     <div class="modal-body">
                         <div class="form-group">
-                            <label>Name User</label>
-                            <Field @click="getUser" name="userId" as="select" class="form-control"
-                                :class="{ 'is-invalid': errors.userId }" id="userId" aria-describedby="nameHelp"
-                                placeholder="Enter full name">
-                                <option value="" disabled>Select a Name</option>
-                                <option v-for="user in users" :key="user.id" :value="user.id">{{ user.name }}</option>
-
-                            </Field>
-                            <span class="invalid-feedback">{{ errors.userId }}</span>
+                            <label>Nama Santri</label>
+                            <VueMultiselect @click="getSantri" v-model="editformValues.santri" :option-height="9"
+                                :options="santris" :class="{ 'is-invalid': errors.santri }" :multiple="false"
+                                :close-on-select="true" placeholder="Pilih Satu " label="fullname" track-by="nis"
+                                :show-labels="false">
+                                <template v-slot:option="{ option }">
+                                    <div>{{ option.fullname }} - {{ option.nis }} </div>
+                                </template>
+                            </VueMultiselect>
+                            <span class="invalid-feedback">{{ errors.santri }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="desc">Description</label>
-                            <Field name="desc" as="textarea" class="form-control " :class="{ 'is-invalid': errors.desc }"
-                                id="desc" aria-describedby="nameHelp" placeholder="Enter description" />
+                            <label for="desc">Deskripsi</label>
+                            <input v-model="editformValues.desc" type="text" class="form-control "
+                                :class="{ 'is-invalid': errors.desc }" placeholder="Enter description" />
                             <span class="invalid-feedback">{{ errors.desc }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label>Pay At</label>
-                            <Field name="pay_at" type="date" class="form-control " :class="{ 'is-invalid': errors.pay_at }"
-                                id="pay_at" aria-describedby="nameHelp" placeholder="Enter Pay Date" />
-                            <span class="invalid-feedback">{{ errors.pay_date }}</span>
+                            <label>Jatuh Tempo</label>
+                            <input v-model="editformValues.pay_at" type="date" class="form-control "
+                                :class="{ 'is-invalid': errors.pay_at }" placeholder="Enter Pay Date" />
+                            <span class="invalid-feedback">{{ errors.pay_at }}</span>
                         </div>
 
                         <div class="form-group">
                             <label>Periode</label>
-                            <Field name="periode" type="month" class="form-control "
-                                :class="{ 'is-invalid': errors.periode }" id="periode" aria-describedby="nameHelp"
-                                placeholder="Enter Periode Date" />
+                            <input v-model="editformValues.periode" type="month" class="form-control "
+                                :class="{ 'is-invalid': errors.periode }" placeholder="Enter Periode Date" />
                             <span class="invalid-feedback">{{ errors.periode }}</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Status</label>
+                            <div :class="{ 'is-invalid': errors.status }" class="form-control">
+                                <input v-model="editformValues.status" value="1" type="radio" />
+                                Aktif
+                                <input v-model="editformValues.status" value="0" type="radio" />
+                                Tidak Aktif
+                            </div>
+                            <span class="invalid-feedback">{{ errors.status }}</span>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="button" @click="updateDispen" class="btn btn-primary">Simpan</button>
                     </div>
-                </Form>
+                </form>
             </div>
         </div>
     </div>

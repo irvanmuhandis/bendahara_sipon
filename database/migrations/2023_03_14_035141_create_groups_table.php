@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('groups', function (Blueprint $table) {
+        Schema::create('acc_groups', function (Blueprint $table) {
             $table->id();
             $table->string('group_name');
             $table->string('group_desc');

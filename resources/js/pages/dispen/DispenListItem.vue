@@ -1,6 +1,5 @@
 <script setup>
-import { formatDate } from '../../helper.js';
-import { formatDateTimestamp } from '../../helper.js';
+import { formatDate, formatStatusDispen } from '../../helper.js';
 import { ref } from 'vue';
 import { useToastr } from '../../toastr.js';
 import axios from 'axios';
@@ -22,16 +21,14 @@ const toggleSelection = () => {
 <template>
     <tr>
         <td><input type="checkbox" :checked="selectAll" @change="toggleSelection" /></td>
-        <td>{{ dispen.user.name }}</td>
+        <td>{{ dispen.santri.fullname }} - {{ dispen.santri.nis }}</td>
         <td>{{ dispen.dispen_periode }}</td>
         <td>{{ formatDate(dispen.pay_at) }}</td>
         <td>{{ dispen.dispen_desc }}</td>
-        <td>{{ formatDateTimestamp(dispen.updated_at) }}</td>
-        <td>{{ formatDateTimestamp(dispen.created_at) }}</td>
+        <td v-html=" formatStatusDispen( dispen.status)"></td>
+        <td>{{ formatDate(dispen.updated_at) }}</td>
         <td>
             <a href="#" @click.prevent="$emit('editDispen', dispen)"><i class="fa fa-edit"></i></a>
-            <a href="#" @click.prevent="$emit('confirmDispenDeletion', dispen.id)"><i
-                    class="fa fa-trash text-danger ml-2"></i></a>
-        </td>
+           </td>
     </tr>
 </template>

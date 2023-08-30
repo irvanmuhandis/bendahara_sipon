@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('trans', function (Blueprint $table) {
+        Schema::create('acc_trans', function (Blueprint $table) {
 
             $table->id();
             $table->timestamps();
@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('desc');
             $table->bigInteger('operator_id')->unsigned();
             $table->foreign('operator_id')->references('id')->on('users');
-            $table->bigInteger('in');
-            $table->bigInteger('out');
+            $table->bigInteger('debit');
+            $table->bigInteger('credit');
         });
     }
 

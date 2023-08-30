@@ -46,8 +46,8 @@ return [
     |
     */
 
-    'encrypt' => false,
-
+//    'encrypt' => false,
+    'encrypt' => true,
     /*
     |--------------------------------------------------------------------------
     | Session File Location

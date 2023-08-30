@@ -13,15 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('acc_ledgers', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->string('join_at');
-            $table->foreignId('group_id')->nullable();
-            $table->rememberToken();
             $table->timestamps();
+            $table->integer("ledgerable_id");
+            $table->string("ledgerable_type");
         });
     }
 
@@ -32,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('ledgers');
     }
 };

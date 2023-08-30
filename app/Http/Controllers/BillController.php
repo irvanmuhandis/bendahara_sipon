@@ -14,14 +14,30 @@ use App\Http\Controllers\Controller;
 
 class BillController extends Controller
 {
+
+
     public function index()
     {
-        $bill = DB::table('bills')
-            ->join('users', 'users.id', '=', 'bills.user_id')
-            ->join('users as operator', 'operator.id', '=', 'bills.operator_id')
-            ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->select('operator.name as operator','bills.updated_at', 'bills.created_at', 'bills.id', 'bills.payment_status', 'bills.bill_amount', 'bills.due_date', 'bills.bill_remainder', 'bills.due_date', 'users.name', 'accounts.account_name')
-            ->orderBy('bills.id', 'desc')->get();
+        $fil = request('filter');
+        $req = request('value');
+        $searchQuery = request('query');
+
+        if ($fil == '') {
+            $fil = 'id';
+            $req = 'desc';
+        } else {
+            if ($req == 0) {
+                $req = 'asc';
+            } else {
+                $req = 'desc';
+            }
+        }
+        $bill = Bill::whereHas('santri', function ($query) use ($searchQuery) {
+            $query->where('fullname', 'like', "%{$searchQuery}%");
+        })
+            ->with(['santri', 'operator', 'account'])
+            ->orderBy($fil, $req)
+            ->paginate(25);
 
         return $bill;
     }
@@ -40,8 +56,8 @@ class BillController extends Controller
             $bill = Bill::create([
                 'account_id' => request('account'),
                 'user_id' => $user->id,
-                'bill_amount' => request('price'),
-                'bill_remainder' => request('price'),
+                'amount' => request('price'),
+                'remainder' => request('price'),
                 'payment_status' =>  1,
                 'due_date' => request('period'),
             ]);
@@ -67,8 +83,8 @@ class BillController extends Controller
                 $bill = Bill::create([
                     'account_id' =>  request('account'),
                     'user_id' => $user->id,
-                    'bill_amount' => request('price'),
-                    'bill_remainder' => request('price'),
+                    'amount' => request('price'),
+                    'remainder' => request('price'),
                     'payment_status' =>  1,
                     'due_date' => $month->format('Y-m'),
                 ]);
@@ -93,8 +109,8 @@ class BillController extends Controller
             Bill::create([
                 'account_id' => Account::where('account_name', '=', 'Syahriah')->first()->id,
                 'user_id' => $user->id,
-                'bill_amount' => request('syah'),
-                'bill_remainder' => request('syah'),
+                'amount' => request('syah'),
+                'remainder' => request('syah'),
                 'payment_status' =>  1,
                 'due_date' => request('period'),
             ]);
@@ -104,8 +120,8 @@ class BillController extends Controller
             Bill::create([
                 'account_id' => Account::where('account_name', '=', 'Wifi')->first()->id,
                 'user_id' => $user->id,
-                'bill_amount' => request('wifi'),
-                'bill_remainder' => request('wifi'),
+                'amount' => request('wifi'),
+                'remainder' => request('wifi'),
                 'payment_status' =>  1,
                 'due_date' => request('period'),
             ]);
@@ -115,8 +131,8 @@ class BillController extends Controller
             Bill::create([
                 'account_id' => Account::where('account_name', '=', 'Madin')->first()->id,
                 'user_id' => $user->id,
-                'bill_amount' => request('madin'),
-                'bill_remainder' => request('madin'),
+                'amount' => request('madin'),
+                'remainder' => request('madin'),
                 'payment_status' =>  1,
                 'due_date' => request('period'),
             ]);
@@ -142,8 +158,8 @@ class BillController extends Controller
                 $bill = Bill::create([
                     'account_id' => Account::where('account_name', '=', 'Madin')->first()->id,
                     'user_id' => $user->id,
-                    'bill_amount' => request('madin'),
-                    'bill_remainder' => request('madin'),
+                    'amount' => request('madin'),
+                    'remainder' => request('madin'),
                     'payment_status' =>  1,
                     'due_date' => $month->format('Y-m'),
                 ]);
@@ -156,8 +172,8 @@ class BillController extends Controller
                 $bill = Bill::create([
                     'account_id' =>  Account::where('account_name', '=', 'Syahriah')->first()->id,
                     'user_id' => $user->id,
-                    'bill_amount' => request('syah'),
-                    'bill_remainder' => request('syah'),
+                    'amount' => request('syah'),
+                    'remainder' => request('syah'),
                     'payment_status' =>  1,
                     'due_date' => $month->format('Y-m'),
                 ]);
@@ -169,8 +185,8 @@ class BillController extends Controller
                 $bill = Bill::create([
                     'account_id' =>  Account::where('account_name', '=', 'Wifi')->first()->id,
                     'user_id' => $user->id,
-                    'bill_amount' => request('wifi'),
-                    'bill_remainder' => request('wifi'),
+                    'amount' => request('wifi'),
+                    'remainder' => request('wifi'),
                     'payment_status' =>  1,
                     'due_date' => $month->format('Y-m'),
                 ]);
@@ -187,18 +203,40 @@ class BillController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-        foreach (request('user') as $user) {
-            $bill = Bill::create([
-                'account_id' => request('account'),
-                'operator_id' => request('operator'),
-                'user_id' => $user,
-                'bill_amount' => request('price'),
-                'bill_remainder' => request('price'),
-                'payment_status' =>  1,
-                'due_date' => request('period'),
-            ]);
+        $log = [];
+        if (request('account')) {
+            foreach (request('santri') as $user) {
+
+                $bill = Bill::create([
+                    'account_id' => request('account')['id'],
+                    'nis' => $user['nis'],
+                    'operator_id' => request('operator'),
+                    'amount' => request('price'),
+                    'remainder' => request('price'),
+                    'payment_status' =>  1,
+                    'due_date' => request('period'),
+                ]);
+                array_push($log, $bill);
+            }
+        } else {
+            foreach (request('periodic') as $account) {
+                if ($account['value'] != '') {
+                    foreach (request('santri') as $user) {
+                        $bill = Bill::create([
+                            'account_id' => $account['id'],
+                            'nis' => $user['nis'],
+                            'operator_id' => request('operator'),
+                            'amount' => $account['value'],
+                            'remainder' => $account['value'],
+                            'payment_status' =>  1,
+                            'due_date' => request('period'),
+                        ]);
+                        array_push($log, $bill);
+                    }
+                }
+            }
         }
-        return request();
+        return $log;
     }
 
     public function store_singleRange()
@@ -210,46 +248,70 @@ class BillController extends Controller
         // ]);
         $period_start = request('period_start');
         $period_end = request('period_end');
-        foreach (request('user') as $user) {
-            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
-                $bill = Bill::create([
-                    'account_id' => request('account'),
-                    'user_id' => $user,
-                    'operator_id' => request('operator'),
-                    'bill_amount' => request('price'),
-                    'bill_remainder' => request('price'),
-                    'payment_status' =>  1,
-                    'due_date' => $month->format('Y-m'),
-                ]);
+        $log = [];
+        if (request('account')) {
+            foreach (request('santri') as $user) {
+                for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
+                    $bill = Bill::create([
+                        'account_id' => request('account')['id'],
+                        'nis' => $user['nis'],
+                        'operator_id' => request('operator'),
+                        'amount' => request('price'),
+                        'remainder' => request('price'),
+                        'payment_status' =>  1,
+                        'due_date' => $month->format('Y-m'),
+                    ]);
+                    array_push($log, $bill);
+                }
+            }
+        } else {
+            foreach (request('periodic') as $account) {
+                if ($account['value'] != '') {
+                    foreach (request('santri') as $user) {
+                        for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
+                            $bill = Bill::create([
+                                'account_id' => $account['id'],
+                                'nis' => $user['nis'],
+                                'operator_id' => request('operator'),
+                                'amount' => $account['value'],
+                                'remainder' => $account['value'],
+                                'payment_status' =>  1,
+                                'due_date' => $month->format('Y-m'),
+                            ]);
+                            array_push($log, $bill);
+                        }
+                    }
+                }
             }
         }
-        return request();
+
+        return $log;
     }
 
-    public function update(Bill $dispen)
+    public function update()
     {
         //     request()->validate([
         //         'name' => 'required',
         //         'peiod' => 'required|unique:dispens,email,' . $dispen->id,
         //         'password' => 'sometimes|min:8',
         //     ]);
-
-        $dispen->update([
-
-            'name' => request('name'),
-            'prev_saldo' => request('prev_saldo'),
-            'saldo' => request('saldo'),
-            'created_at' => request('created_at'),
-            'updated_at' => request('updated_at')
+        $bill = Bill::where('id', '=', request('id'))->first();
+        // dd(request());
+        $bill->update([
+            'operator_id' => request('operator'),
+            'account_id' => request('account')['id'],
+            'amount' => request('price'),
+            'remainder' => request('remain'),
+            'nis' => request('santri')['nis'],
+            'due_date' => request('period'),
         ]);
 
-        return $dispen;
+        return $bill;
     }
     public function bulkDelete()
     {
-        Bill::whereIn('id', request('ids'))->delete();
-
-        return response()->json(['message' => 'Bills deleted successfully!']);
+        $a = Bill::whereIn('id', request('ids'))->delete();
+        return response()->json(['message' => $a . ' tagihan terhapus ']);
     }
 
     public function deleteDay()
@@ -282,7 +344,7 @@ class BillController extends Controller
             $row->delete();
         }
 
-        return response()->json(['message' => `Last `+request('type')+` rows deleted successfully`]);
+        return response()->json(['message' => `Last ` + request('type') + ` rows deleted successfully`]);
     }
 
     public function destroy(Bill $dispen)
@@ -290,13 +352,5 @@ class BillController extends Controller
         $dispen->delete();
 
         return response()->noContent();
-    }
-
-    public function search()
-    {
-        $searchQuery = request('query');
-
-        $group = Bill::where('name', 'like', "%{$searchQuery}%")->latest()->paginate(3);
-        return response()->json($group);
     }
 }

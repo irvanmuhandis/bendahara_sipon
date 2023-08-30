@@ -12,51 +12,76 @@ use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 
 class PayController extends Controller
 
 {
     public function index()
     {
-        return  DB::table('pays')
-            ->join('wallets', 'pays.wallet_id', '=', 'wallets.id')
-            ->join('users', 'users.id', '=', 'pays.user_id')
-            ->select('pays.id', 'pays.wallet_id', 'users.name', 'pays.user_id', 'pays.payment', 'pays.payable_type', 'pays.payable_id', 'wallets.wallet_name', 'wallets.saldo', 'wallets.prev_saldo', 'pays.created_at', 'pays.updated_at')
+        return  Pay::
+            with(['wallet', 'user'])
             ->get();
     }
 
 
     public function show($id)
     {
-        return DB::table('pays')->where('id', '=', $id)->get();
+        return Pay::where('id', '=', $id)->get();
     }
 
     public function indexDebt()
     {
-        $pay = DB::table('pays')
-            ->where('pays.payable_type', '=', Debt::class)
-            ->join('debts', 'debts.id', '=', 'pays.payable_id')
-            ->join('accounts', 'accounts.id', '=', 'debts.account_id')
-            ->join('wallets', 'pays.wallet_id', '=', 'wallets.id')
-            ->join('users', 'users.id', '=', 'debts.user_id')
-            ->select('pays.*', 'users.name', 'pays.payment', 'debts.payment_status', 'debts.title', 'debts.amount', 'debts.remainder', 'wallets.wallet_name', 'wallets.saldo', 'wallets.prev_saldo')
-            ->get();
+        $fil = request('filter');
+        $req = request('value');
+        $searchQuery = request('query');
 
-        return $pay;
+        if ($fil == '') {
+            $fil = 'id';
+            $req = 'desc';
+        } else {
+            if ($req == 0) {
+                $req = 'asc';
+            } else {
+                $req = 'desc';
+            }
+        }
+        $data = Pay::where('acc_pays.payable_type', '=', Debt::class)
+            ->whereHas('santridebt', function ($query) use ($searchQuery) {
+                $query->where('fullname', 'like', "%{$searchQuery}%");
+            })
+            ->with(['payable.account', 'payable.santri', 'wallet', 'operator'])
+            ->orderBy($fil, $req)
+            ->paginate(20);
+
+        return $data;
     }
 
     public function indexBill()
     {
-        $pay = DB::table('pays')
-            ->join('bills', 'bills.id', '=', 'pays.payable_id')
-            ->join('wallets', 'pays.wallet_id', '=', 'wallets.id')
-            ->join('accounts', 'accounts.id', '=', 'bills.account_id')
-            ->join('users', 'users.id', '=', 'bills.user_id')
-            ->where('pays.payable_type', '=', Bill::class)
-            ->select('pays.*', 'users.name', 'pays.payment', 'bills.payment_status', 'accounts.account_name', 'bills.bill_amount', 'bills.bill_remainder', 'wallets.wallet_name', 'wallets.saldo', 'wallets.prev_saldo')
-            ->get();
+        $fil = request('filter');
+        $req = request('value');
+        $searchQuery = request('query');
 
-        return $pay;
+        if ($fil == '') {
+            $fil = 'id';
+            $req = 'desc';
+        } else {
+            if ($req == 0) {
+                $req = 'asc';
+            } else {
+                $req = 'desc';
+            }
+        }
+        $data = Pay::where('acc_pays.payable_type', '=', Bill::class)
+            ->whereHas('santribill', function ($query) use ($searchQuery) {
+                $query->where('fullname', 'like', "%{$searchQuery}%");
+            })
+            ->with(['payable.account', 'payable.santri', 'wallet', 'operator'])
+            ->orderBy($fil, $req)
+            ->paginate(20);
+
+        return $data;
     }
 
     public function store_bill()
@@ -71,16 +96,14 @@ class PayController extends Controller
         $bills = request('bill');
         $pay = request('payment');
         $remainder = request('remainder');
+        $k = request('wallet');
 
         $cookieValue = request()->cookie('sipon_session');
-        $cookie = explode("|", $cookieValue);
-        $id_user = $cookie[0];
 
-
+        $operator = User::inRandomOrder()->first();
         $pay_bll = 0;
         $status = 0;
         $bill_rem = 0;
-        $saldo = 0;
 
         $map = collect($remainder)->reduce(function ($carry, $item, $index) use ($bills) {
             $carry[] = ['remainder' => $item, 'bill' => $bills[$index]];
@@ -93,69 +116,121 @@ class PayController extends Controller
 
         $log = [];
 
-        foreach ($map as $item) {
-            //update bill
-            if ($pay >= $item['remainder']) {
-                $pay = $pay - $item['remainder'];
-                $pay_bll = $item['remainder'];
+        if ($map[0]['remainder'] > $pay) {
+            if ($pay >= $map[0]['remainder']) {
+                $pay = $pay - $map[0]['remainder'];
+                $pay_bll = $map[0]['remainder'];
                 $status = 3;
                 $bill_rem = 0;
             } else {
                 $pay_bll = $pay;
                 $status = 2;
-                $bill_rem = $item['remainder'] - $pay;
+                $bill_rem = $map[0]['remainder'] - $pay;
             }
-            DB::table('bills')->where('id', '=', $item['bill'])
+
+            Bill::where('id', '=', $map[0]['bill'])
                 ->update(
                     [
                         'payment_status' => $status,
-                        'bill_remainder' => $bill_rem
+                        'remainder' => $bill_rem
                     ]
                 );
-            $p = DB::table('bills')->where('id', '=', $item['bill'])->first();
+
+            $p = Bill::where('id', '=', $map[0]['bill'])->first();
 
             //insert ke dompet
 
-            $k = DB::table('wallets')->where('id', '=', request('wallet'))->first();
-            if ($saldo == 0) {
-                $saldo = $k->saldo;
-            }
+
+
             $wallet = Wallet::create([
-                'wallet_type' => $k->wallet_type,
-                'wallet_name' => $k->wallet_name,
-                'prev_saldo' => $saldo,
-                'saldo' => $k->saldo + $pay_bll,
+                'wallet_type' => $k['wallet_type'],
+                'wallet_name' => $k['wallet_name'],
+                'debit' => $pay_bll,
+                'credit' => 0
             ]);
 
             // insert ke pay
             $i =  Pay::create([
-                'user_id' => request('user'),
+                'nis' => request('santri')['nis'],
                 'payment' => $pay_bll,
                 'wallet_id' => $wallet->id,
-                'payable_id' =>  $item['bill'],
+                'payable_id' =>  $map[0]['bill'],
                 'payable_type' => Bill::class,
-                'operator_id' => $id_user,
+                'operator_id' => $operator->id,
                 'created_at' => $date,
                 'updated_at' => $date
             ]);
+            //inser ke buku besar
 
-            // insert ke buku besar
-            $big = Ledger::create([
+            $ledger = Ledger::create([
                 'ledgerable_id' => $i->id,
-                'ledgerable_type' => Pay::class,
+                'created_at' => $date,
+                'updated_at' => $date,
+                'ledgerable_type' => Pay::class
             ]);
-
-
-
-
-
-            $saldo = $saldo + $pay_bll;
             array_push($log, $i);
             array_push($log, $p);
-            array_push($log, $big);
+            array_push($log, $ledger);
             array_push($log, $wallet);
-        }
+        } else {
+            foreach ($map as $item) {
+                //update bill
+                if ($pay >= $item['remainder']) {
+                    $pay = $pay - $item['remainder'];
+                    $pay_bll = $item['remainder'];
+                    $status = 3;
+                    $bill_rem = 0;
+                } else {
+                    $pay_bll = $pay;
+                    $status = 2;
+                    $bill_rem = $item['remainder'] - $pay;
+                    $pay = 0;
+                }
+                Bill::where('id', '=', $item['bill'])
+                    ->update(
+                        [
+                            'payment_status' => $status,
+                            'remainder' => $bill_rem
+                        ]
+                    );
+                $p = Bill::where('id', '=', $item['bill'])->first();
 
+                //insert ke dompet
+
+
+                $wallet = Wallet::create([
+                    'wallet_type' => $k['wallet_type'],
+                    'wallet_name' => $k['wallet_name'],
+                    'debit' => $pay_bll,
+                    'credit' => 0
+                ]);
+
+                // insert ke pay
+                $i =  Pay::create([
+                    'nis' => request('santri')['nis'],
+                    'payment' => $pay_bll,
+                    'wallet_id' => $wallet->id,
+                    'payable_id' =>  $item['bill'],
+                    'payable_type' => Bill::class,
+                    'operator_id' => $operator->id,
+                    'created_at' => $date,
+                    'updated_at' => $date
+                ]);
+                //inser ke buku besar
+
+                $ledger = Ledger::create([
+                    'ledgerable_id' => $i->id,
+                    'created_at' => $date,
+                    'updated_at' => $date,
+                    'ledgerable_type' => Pay::class
+                ]);
+
+                array_push($log, $i);
+                array_push($log, $p);
+                array_push($log, $ledger);
+                array_push($log, $wallet);
+            }
+        }
         return $log;
     }
 
@@ -167,87 +242,135 @@ class PayController extends Controller
         //     'password' => 'required|min:8',
         //     ''
         // ]);
-        $bills = request('debt');
+        $debts = request('debt');
         $pay = request('payment');
         $remainder = request('remainder');
+        $k = request('wallet');
+        // $cookieValue = request()->cookie('sipon_session');
+        // $cookie = json_decode($cookieValue);
+        // $id_user = $cookie->id;
+        $id_user = User::inRandomOrder()->first()->id;
 
-        $cookieValue = request()->cookie('sipon_session');
-        $cookie = explode("|", $cookieValue);
-        $id_user = $cookie[0];
 
         $log = [];
         $pay_bll = 0;
         $status = 0;
-        $bill_rem = 0;
-        $saldo = 0;
+        $debt_rem = 0;
 
-        $map = collect($remainder)->reduce(function ($carry, $item, $index) use ($bills) {
-            $carry[] = ['remainder' => $item, 'debt' => $bills[$index]];
+        $map = collect($remainder)->reduce(function ($carry, $item, $index) use ($debts) {
+            $carry[] = ['remainder' => $item, 'debt' => $debts[$index]];
             return $carry;
         }, []);
 
         usort($map, function ($a, $b) {
             return $a['remainder'] <=> $b['remainder'];
         });
-
-        foreach ($map as $item) {
-            //update debt
-            if ($pay >= $item['remainder']) {
-                $pay = $pay - $item['remainder'];
-                $pay_bll = $item['remainder'];
+        if ($map[0]['remainder'] > $pay) {
+            if ($pay >= $map[0]['remainder']) {
+                $pay = $pay - $map[0]['remainder'];
+                $pay_bll = $map[0]['remainder'];
                 $status = 3;
-                $bill_rem = 0;
+                $debt_rem = 0;
             } else {
                 $pay_bll = $pay;
                 $status = 2;
-                $bill_rem = $item['remainder'] - $pay;
+                $debt_rem = $map[0]['remainder'] - $pay;
             }
-            DB::table('debts')->where('id', '=', $item['debt'])
+
+            Debt::where('id', '=', $map[0]['debt'])
                 ->update(
                     [
                         'payment_status' => $status,
-                        'remainder' => $bill_rem
+                        'remainder' => $debt_rem
                     ]
                 );
-            $p = DB::table('debts')->where('id', '=', $item['debt'])->first();
 
-            //insert wallet
-            $k = DB::table('wallets')->where('id', '=', request('wallet'))->first();
-            if ($saldo == 0) {
-                $saldo = $k->saldo;
-            }
+            $p = Debt::where('id', '=', $map[0]['debt'])->first();
+
+            //insert ke dompet
+
+            // $k = DB::table('wallets')->where('wallet_type', '=', Wallet::find(request('wallet'))->wallet_type)->orderBy('id', 'desc')->first();
+
+
+
             $wallet = Wallet::create([
-                'wallet_type' => $k->wallet_type,
-                'wallet_name' => $k->wallet_name,
-                'prev_saldo' => $saldo,
-                'saldo' => $saldo + $pay_bll,
+                'wallet_type' => $k['wallet_type'],
+                'wallet_name' => $k['wallet_name'],
+                'debit' => $pay_bll,
+                'credit' => 0,
             ]);
 
-            //insert pay
-            $q = Pay::create([
-                'user_id' => request('user'),
+            // insert ke pay
+            $i =  Pay::create([
+                'nis' => request('santri')['nis'],
                 'payment' => $pay_bll,
                 'wallet_id' => $wallet->id,
-                'payable_id' =>  $item['debt'],
+                'payable_id' =>  $map[0]['debt'],
                 'payable_type' => Debt::class,
                 'operator_id' => $id_user,
-                'created_at' => Carbon::now('Asia/Jakarta'),
-                'updated_at' => Carbon::now('Asia/Jakarta')
             ]);
-            //insert buku besar
+            //inser ke buku besar
 
-            $big = Ledger::create([
-                'ledgerable_id' => $q->id,
-                'ledgerable_type' => Pay::class,
+            $ledger = Ledger::create([
+                'ledgerable_id' => $i->id,
+                'ledgerable_type' => Pay::class
             ]);
-
-            $saldo = $saldo + $pay_bll;
-            array_push($log, $q);
+            array_push($log, $i);
             array_push($log, $p);
-            array_push($log, $big);
+            array_push($log, $ledger);
             array_push($log, $wallet);
-        }
+        } else {
+            foreach ($map as $item) {
+                //update debt
+                if ($pay >= $item['remainder']) {
+                    $pay = $pay - $item['remainder'];
+                    $pay_bll = $item['remainder'];
+                    $status = 3;
+                    $debt_rem = 0;
+                } else {
+                    $pay_bll = $pay;
+                    $status = 2;
+                    $debt_rem = $item['remainder'] - $pay;
+                }
+                Debt::where('id', '=', $item['debt'])
+                    ->update(
+                        [
+                            'payment_status' => $status,
+                            'remainder' => $debt_rem
+                        ]
+                    );
+                $p = Debt::where('id', '=', $item['debt'])->first();
 
+
+                $wallet = Wallet::create([
+                    'wallet_type' => request('wallet')['wallet_type'],
+                    'wallet_name' => request('wallet')['wallet_name'],
+                    'debit' => $pay_bll,
+                    'credit' => 0
+                ]);
+
+                //insert pay
+                $q = Pay::create([
+                    'nis' => request('santri')['nis'],
+                    'payment' => $pay_bll,
+                    'wallet_id' => $wallet->id,
+                    'payable_id' =>  $item['debt'],
+                    'payable_type' => Debt::class,
+                    'operator_id' => $id_user
+                ]);
+                //insert buku besar
+
+                $big = Ledger::create([
+                    'ledgerable_id' => $q->id,
+                    'ledgerable_type' => Pay::class,
+                ]);
+
+                array_push($log, $q);
+                array_push($log, $p);
+                array_push($log, $big);
+                array_push($log, $wallet);
+            }
+        }
 
         array_push($log, $map);
         return $log;
@@ -260,27 +383,76 @@ class PayController extends Controller
         //         'peiod' => 'required|unique:dispens,email,' . $dispen->id,
         //         'password' => 'sometimes|min:8',
         //     ]);
-
-        $dispen->update([
-
-            'name' => request('name'),
-            'prev_saldo' => request('prev_saldo'),
-            'saldo' => request('saldo'),
-            'created_at' => request('created_at'),
-            'updated_at' => request('updated_at')
+        // dd(request());
+        $log = [];
+        $data = '';
+        $pay = Pay::where('id', '=', request('id'))->first();
+        $wallet = Wallet::where('id', '=', request('wallet')['id'])->first();
+        $ledger = Ledger::where('ledgerable_id', request('id'))->first();
+        if (request('type') == Bill::class) {
+            $data = Bill::where('id', '=', request('bill')['id'])->first();
+        } else {
+            $data = Debt::where('id', '=', request('debt')['id'])->first();
+        }
+        $data->update([
+            'remainder' => request('remain'),
         ]);
-
-        return $dispen;
+        $pay->update([
+            'operator_id' => request('operator'),
+            'created_at' => request('date'),
+            'updated_at' => request('date'),
+            'payment' => request('paymentAft'),
+        ]);
+        $data->update([
+            'remainder' => request('remain'),
+        ]);
+        $ledger->update([
+            'created_at' => request('date'),
+            'updated_at' => request('date')
+        ]);
+        $wallet->update([
+            'debit' => request('paymentAft'),
+            'credit' => 0,
+        ]);
+        array_push($log, $pay);
+        array_push($log, $data);
+        array_push($log, $wallet);
+        array_push($log, $ledger);
+        return $log;
     }
     public function bulkDelete()
     {
-        Pay::whereIn('id', request('ids'))->delete();
+        $log = [];
 
-        return response()->json(['message' => 'Pays deleted successfully!']);
+        foreach (request('pay') as $update) {
+            $data = '';
+            if ($update['payable_type'] == Bill::class) {
+                $data = Bill::where('id', '=', $update['payable_id'])->first();
+            } else {
+                $data = Debt::where('id', '=', $update['payable_id'])->first();
+            }
+            $data->update([
+                'remainder' => $data['remainder'] + $update['payment'],
+            ]);
+
+
+            $pay = Pay::where('id', $update['id'])->delete();
+            $ledger = Ledger::where('ledgerable_type', '=', Pay::class)
+                ->where('ledgerable_id', $update['id'])
+                ->delete();
+            $wallet = Wallet::where('id', request('wall_ids'))
+                ->delete();
+            array_push($log, $data);
+            array_push($log, $pay);
+            array_push($log, $ledger);
+            array_push($log, $wallet);
+        }
+
+        return $log;
     }
     public function destroy($id)
     {
-        $r = DB::table('pays')->where('id', '=', $id)->delete();
+        $r = Pay::where('id', '=', $id)->delete();
 
         return response()->json();
     }

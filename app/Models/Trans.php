@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Trans extends Model
 {
     use HasFactory;
-
+    protected $table = 'acc_trans';
     protected $guarded = [];
 
     public function wallet()
@@ -26,8 +26,25 @@ class Trans extends Model
         return $this->belongsTo(User::class, 'operator_id', 'id');
     }
 
+    public function santri()
+    {
+        return $this->hasOneThrough(
+            Santri::class,
+            User::class,
+            'id', // refers to id column on user table
+            'nis', // refers to id column on santri table
+            'operator_id', // refers to user table
+            'nis' // refers to santri table
+        );
+    }
+
     public function account()
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function ledger()
+    {
+        return $this->morphOne(Ledger::class, 'ledgerable');
     }
 }

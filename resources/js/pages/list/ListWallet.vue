@@ -6,7 +6,7 @@ import { Form, Field, useResetForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
-import { formatDate, formatMoney } from "../../helper";
+import { formatDate, formatMoney, formatDiff } from "../../helper";
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
@@ -16,12 +16,20 @@ const formValues = ref({
     'saldo': 0
 });
 const form = ref(null);
-const searchQuery = ref(null);
+
 const types = ref([]);
 const IdBeingDeleted = ref({
-    'id':0
+    'id': 0
 });
 const saldo = ref(null);
+const searchQuery = ref(null);
+const filter = ref({
+    'created_at': null,
+    'saldo': null,
+    'debit': null,
+    'credit': null,
+    'wallet_name': null
+})
 
 const createWalletSchema = yup.object({
     saldo: yup.number().required('Saldo harus diisi !'),
@@ -42,7 +50,7 @@ const createWallet = (values, { resetForm, setErrors }) => {
         axios.post('/api/wallet', values)
             .then((response) => {
                 $('#FormModal').modal('hide');
-                getWallet();
+                fetchData();
                 getWalletType();
                 resetForm();
                 toastr.success('Dompet berhasil dibuat !');
@@ -80,7 +88,7 @@ const updateWallet = (values, { setErrors }) => {
     values.id = formValues.value.id;
     axios.put('/api/wallet/' + formValues.value.id, values)
         .then((response) => {
-            getWallet();
+            fetchData();
             getWalletType();
             $('#FormModal').modal('hide');
             toastr.success('Wallet updated successfully!');
@@ -99,35 +107,8 @@ const handleSubmit = (values, actions) => {
     }
 }
 
-const search = (page = 1) => {
-    const param = {};
-    param.query = searchQuery.value
-
-    axios.get(`/api/wallet/search?page=${page}`, {
-        params: param
-    })
-        .then(response => {
-            listwallets.value = response.data;
-            selectedWallet.value = [];
-            selectAll.value = false;
-        })
-        .catch(error => {
-            console.log(error);
-        })
-};
-
-watch(searchQuery, debounce(() => {
-    search();
-}, 300));
 
 
-const getWallet = (page = 1) => {
-
-    axios.get(`/api/wallet?page=${page}`).then((response) => {
-        listwallets.value = response.data;
-    })
-
-}
 
 const getWalletType = () => {
 
@@ -138,52 +119,72 @@ const getWalletType = () => {
 
 }
 
-const getTest = () => {
-
-    axios.get('/sanctum/csrf-cookie').then(response => {
-        console.log(response);
-        axios.post('/api/wallet', values)
-            .then((response) => {
-                listwallets.value.data.unshift(response.data);
-                $('#FormModal').modal('hide');
-                resetForm();
-                toastr.success('Dompet berhasil dibuat !');
-            })
-            .catch((error) => {
-                if (error.response.data.errors) {
-                    setErrors(error.response.data.errors);
-                }
-            })
-    });
-
-    axios.get('/test').then(response => {
-        console.log(response);
-    });
-}
 
 const confirmWalletDeletion = () => {
     $('#deleteModal').modal('show');
 };
 
 const deleteWallet = () => {
-    axios.post(`/api/wallet/delete`,IdBeingDeleted.value)
+    axios.post(`/api/wallet/delete`, IdBeingDeleted.value)
         .then(() => {
             $('#deleteModal').modal('hide');
             toastr.success('Wallet deleted successfully!');
-            getWallet();
+            searchQuery.value = null;
+            fetchData();
             IdBeingDeleted.value = null;
             getWalletType();
         });
 };
 
-const test = (x) => {
-    console.log(x)
+
+const sort = (a) => {
+    for (const key in filter.value) {
+        if (a != key) {
+            filter.value[key] = null;
+        }
+    }
+    if (filter.value[a] == null) {
+        filter.value[a] = true;
+    } else {
+        filter.value[a] = !filter.value[a];
+    }
+    fetchData();
+    console.log(filter.value);
 }
 
 
+watch(searchQuery, debounce(() => {
+    fetchData();
+}, 300));
+
+
+const fetchData = (link = `/api/wallet`) => {
+    var fil = {
+        'key': null,
+        'value': null
+    };
+    for (const key in filter.value) {
+        if (filter.value[key] != null) {
+            fil.value = filter.value[key] ? 1 : 0;
+            fil.key = key;
+        }
+    }
+    if (link != null) {
+        axios.get(link, {
+            params: {
+                filter: fil.key,
+                value: fil.value,
+                query: searchQuery.value
+            }
+        }).then((response) => {
+            listwallets.value = response.data;
+        })
+    }
+
+}
 
 onMounted(() => {
-    getWallet();
+    fetchData();
     // getTest();
     getWalletType();
 })
@@ -201,7 +202,7 @@ onMounted(() => {
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><router-link to="/admin/dashboard">Home</router-link></li>
+                        <li class="breadcrumb-item"><router-link to="/">Beranda</router-link></li>
                         <li class="breadcrumb-item active">Wallets</li>
                     </ol>
                 </div>
@@ -243,7 +244,8 @@ onMounted(() => {
 
                                 </div>
                                 <div class="col-2">
-                                    <button type="button" @click="confirmWalletDeletion" class="btn btn-danger">Hapus</button>
+                                    <button type="button" @click="confirmWalletDeletion"
+                                        class="btn btn-danger">Hapus</button>
                                 </div>
 
                             </div>
@@ -285,31 +287,79 @@ onMounted(() => {
                     <table class="display table table-bordered dataTables">
                         <thead>
                             <tr>
-                                <th scope="col">Nama Dompet</th>
-                                <th scope="col">Saldo Sebelumnya</th>
-                                <th scope="col">Saldo</th>
-                                <th scope="col">Dibuat</th>
+                                <th scope="col">Dibuat
+                                    <span class="float-right" @click="sort('created_at')">
+                                        <i :class="{ 'text-primary': filter.created_at == false }"
+                                            class="fas fa-long-arrow-alt-up"></i>
+                                        <i :class="{ 'text-primary': filter.created_at == true }"
+                                            class="fas fa-long-arrow-alt-down"></i>
+                                    </span>
+                                </th>
+                                <th scope="col">Nama Dompet
+                                    <span class="float-right" @click="sort('wallet_name')">
+                                        <i :class="{ 'text-primary': filter.wallet_name == false }"
+                                            class="fas fa-long-arrow-alt-up"></i>
+                                        <i :class="{ 'text-primary': filter.wallet_name == true }"
+                                            class="fas fa-long-arrow-alt-down"></i>
+                                    </span>
+                                </th>
+                                <th scope="col">Pemasukan
+                                    <span class="float-right" @click="sort('debit')">
+                                        <i :class="{ 'text-primary': filter.debit == false }"
+                                            class="fas fa-long-arrow-alt-up"></i>
+                                        <i :class="{ 'text-primary': filter.debit == true }"
+                                            class="fas fa-long-arrow-alt-down"></i>
+                                    </span>
+                                </th>
+                                <th scope="col">Pengeluaran
+                                    <span class="float-right" @click="sort('credit')">
+                                        <i :class="{ 'text-primary': filter.credit == false }"
+                                            class="fas fa-long-arrow-alt-up"></i>
+                                        <i :class="{ 'text-primary': filter.credit == true }"
+                                            class="fas fa-long-arrow-alt-down"></i>
+                                    </span>
+                                </th>
+                                <th>Saldo
+                                    <span class="float-right" @click="sort('saldo')">
+                                        <i :class="{ 'text-primary': filter.saldo == false }"
+                                            class="fas fa-long-arrow-alt-up"></i>
+                                        <i :class="{ 'text-primary': filter.saldo == true }"
+                                            class="fas fa-long-arrow-alt-down"></i>
+                                    </span>
+                                </th>
                                 <th scope="col">Aksi</th>
                             </tr>
 
                         </thead>
                         <tbody>
                             <tr v-for="(wal) in listwallets.data" :key="wal.id">
-
-                                <td>{{ wal.wallet_name }}</td>
-                                <td>{{ formatMoney(wal.prev_saldo) }}</td>
-                                <td>{{ formatMoney(wal.saldo) }}</td>
                                 <td>{{ formatDate(wal.created_at) }}</td>
+                                <td>{{ wal.wallet_name }}</td>
+                                <td v-if="wal.debit != 0">{{ formatMoney(wal.debit) }}</td>
+                                <td v-else>-</td>
+                                <td v-if="wal.credit != 0">{{ formatMoney(wal.credit) }}</td>
+                                <td v-else>-</td>
+                                <td>{{ formatMoney(wal.saldo) }}</td>
                                 <td class="text-center">
                                     <a href="#" @click="editWallet(wal)">
                                         <i class="fa fa-edit mr-2"></i>
                                     </a>
                                 </td>
                             </tr>
+                            <tr v-if="listwallets.data.length==0">
+                                <td class="text-center" colspan="6">Tidak ada data</td>
+                            </tr>
                         </tbody>
                     </table>
-                    <Bootstrap4Pagination :data="listwallets" @pagination-change-page="getWallet" />
 
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li v-for="link in listwallets.links" :key="link.label"
+                                :class="{ 'active': link.active, 'disabled': link.url == null }" class="page-item">
+                                <a class="page-link" v-html="link.label" href="#" @click="fetchData(link.url)"></a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
 
             </div>

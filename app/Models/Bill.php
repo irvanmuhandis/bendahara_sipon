@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Bill extends Model
 {
     use HasFactory;
+    protected $table = 'acc_bills';
     protected $guarded = [];
 
 
@@ -25,9 +26,14 @@ class Bill extends Model
         return $this->belongsTo(Account::class);
     }
 
-    public function user()
+    public function santri()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Santri::class,'nis','nis');
+    }
+
+    public function operator()
+    {
+        return $this->belongsTo(User::class,'operator_id','id');
     }
 
 }

@@ -13,13 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('bills', function (Blueprint $table) {
+        Schema::create('acc_bills', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('bill_amount');
-            $table->bigInteger('bill_remainder');
+            $table->bigInteger('amount');
+            $table->bigInteger('remainder');
             $table->string('due_date');
-            $table->foreignId('user_id');
-            $table->foreignId('account_id');
+            $table->string('nis');
+            $table->foreign('nis')->references('nis')->on('santris');
+              $table->foreignId('account_id');
             $table->bigInteger('operator_id')->unsigned();
             $table->foreign('operator_id')->references('id')->on('users');
             $table->integer('payment_status');

@@ -12,7 +12,28 @@ class DispenController extends Controller
 {
     public function index()
     {
-        return Dispen::with('user')->paginate(5);
+        $fil = request('filter');
+        $req = request('value');
+        $searchQuery = request('query');
+
+        if ($fil == '') {
+            $fil = 'id';
+            $req = 'desc';
+        } else {
+            if ($req == 0) {
+                $req = 'asc';
+            } else {
+                $req = 'desc';
+            }
+        }
+        $bill = Dispen::whereHas('santri', function ($query) use ($searchQuery) {
+            $query->where('fullname', 'like', "%{$searchQuery}%");
+        })
+            ->with(['santri'])
+            ->orderBy($fil, $req)
+            ->paginate(10);
+
+        return $bill;
     }
 
     public function store()
@@ -24,10 +45,11 @@ class DispenController extends Controller
         // ]);
 
         $dispen = Dispen::create([
-            'user_id' => request('userId'),
+            'nis' => request('santri'),
             'dispen_periode' => request('periode'),
             'pay_at' => request('pay_at'),
-            'dispen_desc' => request('desc')
+            'dispen_desc' => request('desc'),
+            'status' => 1
         ]);
         return $dispen;
     }
@@ -43,10 +65,11 @@ class DispenController extends Controller
         $data = Dispen::where('id', '=', request('id'))->first();
 
         $data->update([
-            'user_id' => request('userId'),
+            'nis' => request('santri')['nis'],
             'dispen_periode' => request('periode'),
             'pay_at' => request('pay_at'),
-            'dispen_desc' => request('desc')
+            'dispen_desc' => request('desc'),
+            'status' => request('status')
         ]);
 
         return $data;
@@ -55,7 +78,7 @@ class DispenController extends Controller
     {
         Dispen::whereIn('id', request('ids'))->delete();
 
-        return response()->json(['message' => 'Dispens deleted successfully!']);
+        return response()->json(['message' => 'Dispensasi berhasil dihapus!']);
     }
     public function destroy(Dispen $dispen)
     {
@@ -76,7 +99,7 @@ class DispenController extends Controller
     public function search()
     {
         $searchQuery = request('query');
-        $dispens = DB::table('dispens')->join('users', 'users.id', '=', 'dispens.user_id')->where('users.name', 'like', "%{$searchQuery}%")->paginate(5);
+        $dispens = DB::table('acc_dispens')->join('users', 'users.id', '=', 'dispens.user_id')->where('users.name', 'like', "%{$searchQuery}%")->paginate(5);
 
         return $dispens;
     }

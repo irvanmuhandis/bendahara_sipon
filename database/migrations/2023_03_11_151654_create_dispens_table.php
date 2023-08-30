@@ -13,11 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('dispens', function (Blueprint $table) {
+        Schema::create('acc_dispens', function (Blueprint $table) {
             $table->id();
             $table->string('dispen_desc');
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('dispen_periode');
+            $table->string('nis');
+            $table->tinyInteger('status');
+            $table->foreign('nis')->references('nis')->on('santris');
+             $table->string('dispen_periode');
             $table->date('pay_at');
             $table->timestamps();
         });

@@ -1,21 +1,28 @@
 <?php
 
+use App\Models\Debt;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Cookie;
 use App\Http\Controllers\PayController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\DebtController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\TransController;
 use App\Http\Controllers\DispenController;
+use App\Http\Controllers\LedgerController;
 use App\Http\Controllers\WalletController;
 use App\Http\Controllers\AccountController;
-use App\Http\Controllers\LedgerController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Status\PayStatusController;
 use App\Http\Controllers\Admin\AppointStatusController;
-use App\Models\Debt;
+use App\Http\Controllers\SantriController;
+use App\Models\Ledger;
+use App\Models\Santri;
+use App\Models\Trans;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,7 +54,6 @@ Route::post('/api/pay/bill', [PayController::class, 'store_bill']);
 Route::post('/api/pay/debt', [PayController::class, 'store_debt']);
 Route::get('/api/pay/status', [PayStatusController::class, 'status']);
 
-Route::get('/api/bill/search', [BillController::class, 'search']);
 Route::delete('/api/bill', [BillController::class, 'bulkDelete']);
 Route::delete('/api/bill/delHour', [BillController::class, 'deleteHour']);
 Route::delete('/api/bill/delDay', [BillController::class, 'deleteDay']);
@@ -60,7 +66,6 @@ Route::post('/api/bill-grouprange', [BillController::class, 'store_groupRange'])
 Route::post('/api/bill-group-mult', [BillController::class, 'store_groupMult']);
 Route::post('/api/bill-grouprange-mult', [BillController::class, 'store_groupRangeMult']);
 
-Route::get('/api/wallet/search', [WalletController::class, 'search']);
 Route::get('/api/wallet/list', [WalletController::class, 'list']);
 Route::post('/api/wallet/delete', [WalletController::class, 'delType']);
 
@@ -69,45 +74,45 @@ Route::delete('/api/group', [GroupController::class, 'bulkDelete']);
 Route::get('/api/group/list', [GroupController::class, 'list']);
 Route::get('/api/group/santri', [GroupController::class, 'santri']);
 Route::get('/api/group/santri/form', [GroupController::class, 'form']);
-Route::get('/api/group/user/search', [GroupController::class, 'user_search']);
+Route::get('/api/group/user/search', [GroupController::class, 'santri_search']);
 Route::put('/api/group/link', [GroupController::class, 'link']);
 
 Route::get('/api/debt/search', [DebtController::class, 'search']);
 Route::delete('/api/debt', [DebtController::class, 'bulkDelete']);
 
-Route::get('/api/userlist', [UserController::class, 'list']);
-Route::get('/api/user/group/{id}', [UserController::class, 'group']);
-Route::get('/api/user/bill/{id}', [UserController::class, 'bill']);
-Route::get('/api/user/debt/{id}', [UserController::class, 'debt']);
-Route::get('/api/users/search', [UserController::class, 'search']);
-Route::patch('/api/users/{user}/change-role', [UserController::class, 'changeRole']);
-Route::delete('/api/users', [UserController::class, 'bulkDelete']);
-
+Route::get('/api/santrilist', [SantriController::class, 'list']);
+Route::get('/api/santri/group/{id}', [SantriController::class, 'group']);
+Route::get('/api/santri/bill/{id}', [SantriController::class, 'bill']);
+Route::get('/api/santri/debt/{id}', [SantriController::class, 'debt']);
 
 Route::get('/api/dispens/search', [DispenController::class, 'search']);
 Route::delete('/api/dispens', [DispenController::class, 'bulkDelete']);
 
-
 Route::get('/api/ledger', [LedgerController::class, 'index']);
+Route::get('/api/ledger/circul', [LedgerController::class, 'circulation']);
 Route::get('/api/ledger/{id}', [LedgerController::class, 'show']);
 Route::get('/api/ledger/billing/search', [LedgerController::class, 'billing']);
+Route::get('/api/inout',[LedgerController::class,'inout']);
+Route::get('/api/accsum',[LedgerController::class,'accountSum']);
+Route::get('/api/stat',[LedgerController::class,'statistic']);
 
-
-Route::get('/api/account/except', [AccountController::class, 'allExcept']);
+Route::get('/api/account/only', [AccountController::class, 'only']);
 Route::get('/api/account/list', [AccountController::class, 'list']);
 Route::get('/api/account/period', [AccountController::class, 'periodic']);
 
-Route::get('/test', [DebtController::class, 'test'])->middleware('auth:sanctum');
+Route::delete('/api/trans', [TransController::class, 'bulkDelete']);
+
+
+Route::get('/logout', [ApplicationController::class, 'logout'])->name('logout');
+Route::get('/token', [ApplicationController::class, 'getToken']);
+Route::get('/api/operator', [ApplicationController::class,'getOperator']);
 
 Route::resource('/api/account', AccountController::class)
     ->only(['index', 'store', 'update', 'destroy']);
-
 Route::resource('/api/trans', TransController::class)
-    ->only(['index', 'store', 'update', 'destroy']);
+    ->only(['index', 'store', 'update']);
 Route::resource('/api/bill', BillController::class)
     ->only(['index', 'update', 'destroy']);
-Route::resource('/api/bigbook', BigBookController::class)
-    ->only(['index', 'store', 'update', 'destroy']);
 Route::resource('/api/wallet', WalletController::class)
     ->only(['index', 'store', 'update', 'destroy']);
 Route::resource('/api/dispens', DispenController::class)
@@ -116,18 +121,7 @@ Route::resource('/api/debt', DebtController::class)
     ->only(['index', 'store', 'update', 'destroy']);;
 Route::resource('/api/group', GroupController::class)
     ->only(['index', 'store', 'update', 'destroy']);
-Route::resource('/api/bill', BillController::class)
-    ->only(['index', 'store', 'update', 'destroy']);;
 Route::resource('/api/pay', PayController::class)
     ->only(['index', 'store', 'show', 'update', 'destroy']);
-// Route::resource('/api/users',UserController::class)
-// ->only(['index','store','update','destroy']);
 
-Route::middleware("sipon")->group(function () {
-    // Route::get('/', function () {
-    //     return view('welcome');
-    // });
-    // Route::get('{view}', ApplicationController::class)->where('view', '(.*)');
-});
-
-Route::get('{view}', ApplicationController::class)->where('view', '(.*)');
+    Route::get('/{view}', ApplicationController::class)->where('view', '(.*)');

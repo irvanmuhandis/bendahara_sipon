@@ -62,11 +62,12 @@
 
                 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                     <div class="image">
-                        <img src="https://adminlte.io/themes/v3/dist/img/user2-160x160.jpg" class="img-circle"
+                        <img src="https://ui-avatars.com/api/?name=John+Doe" class="img-circle"
                             alt="User Image">
+
                     </div>
                     <div class="info">
-                        <a href="#" class="d-block">Alexander Pierce</a>
+                        <a href="#" class="d-block">Koor Bendahara</a>
                     </div>
                 </div>
 
@@ -74,7 +75,7 @@
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                         data-accordion="false">
                         <li class="nav-item">
-                            <router-link to="/admin/dashboard" active-class="active" class="nav-link">
+                            <router-link to="/"  :class="{ 'active': $route.path === '/' }" active-class="active" class="nav-link">
                                 <i class="nav-icon fas fa-tachometer-alt"></i>
                                 <p>
                                     Dashboard
@@ -83,7 +84,7 @@
                         </li>
                         <li class="nav-item">
                             <router-link to="/admin/income"
-                                :class="$route.path.startsWith('/admin/pay') ? 'active' : ''" active-class="active"
+                                :class="$route.path.startsWith('/admin/income') ? 'active' : ''" active-class="active"
                                 class="nav-link">
                                 <i class="nav-icon fas fa-arrow-down"></i>
                                 <p>
@@ -99,22 +100,46 @@
                                 </p>
                             </router-link>
                         </li>
-                        <li class="nav-item">
-                            <router-link to="/admin/ledger" active-class="active" class="nav-link">
-                                <i class="nav-icon fas fa-book-open"></i>
-                                <p>
-                                    Laporan
-                                </p>
-                            </router-link>
+
+                        <li class="nav-item"><a href="#"
+                                :class="$route.path.startsWith('/admin/report') ? 'active' : ''" to="/admin/report"
+                                class="nav-link"><i class="nav-icon fas  fa-book-open"></i>
+                                <p> Laporan <i class="right fas fa-angle-left"></i></p>
+                            </a>
+                            <ul class="nav nav-treeview"
+                                style="background: rgb(255, 255, 255);border:grey solid 2px;border-radius:8px">
+                                <li class="nav-item">
+                                    <router-link to="/admin/report/arrear" active-class="active" class="nav-link">
+                                        <i class="nav-icon fas fa-book"></i>
+                                        <p>
+                                            Tunggakan
+                                        </p>
+                                    </router-link>
+                                </li>
+                                <li class="nav-item">
+                                    <router-link to="/admin/report/money"
+                                        :class="$route.path.startsWith('/admin/money') ? 'active' : ''"
+                                        active-class="active" class="nav-link">
+                                        <i class="nav-icon fas fa-chart-line"></i>
+                                        <p>
+                                            Keuangan
+                                        </p>
+                                    </router-link>
+                                </li>
+                            </ul>
                         </li>
-                        <li class="nav-item"><a href="#" class="nav-link"><i
-                                    class="nav-icon fas fa-money-bill"></i>
+
+                        <li class="nav-item"><a href="#"
+                                :class="$route.path.startsWith('/admin/billing') ? 'active' : ''" to="/admin/billings"
+                                class="nav-link"><i class="nav-icon fas fa-money-bill"></i>
                                 <p> Tagihan <i class="right fas fa-angle-left"></i></p>
                             </a>
                             <ul class="nav nav-treeview"
                                 style="background: rgb(255, 255, 255);border:grey solid 2px;border-radius:8px">
                                 <li class="nav-item">
-                                    <router-link to="/admin/debt" active-class="active" class="nav-link">
+                                    <router-link to="/admin/billing/debt" active-class="active"
+                                        :class="$route.path.startsWith('/admin/billing/debt') ? 'active' : ''"
+                                        class="nav-link">
                                         <i class="nav-icon fas fa-piggy-bank"></i>
                                         <p>
                                             Hutang
@@ -122,8 +147,8 @@
                                     </router-link>
                                 </li>
                                 <li class="nav-item">
-                                    <router-link to="/admin/bill"
-                                        :class="$route.path.startsWith('/admin/bill') ? 'active' : ''"
+                                    <router-link to="/admin/billing/bill"
+                                        :class="$route.path.startsWith('/admin/billing/bill') ? 'active' : ''"
                                         active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-money-check-alt"></i>
                                         <p>
@@ -134,21 +159,25 @@
                             </ul>
                         </li>
 
-                        <li class="nav-item"><a href="#" class="nav-link"><i
-                                    class="nav-icon fas fa-tools"></i>
+                        <li class="nav-item"><a href="#"
+                                :class="$route.path.startsWith('/admin/master') ? 'active' : ''" to="/admin/master"
+                                class="nav-link"><i class="nav-icon fas fa-tools"></i>
                                 <p> Master <i class="right fas fa-angle-left"></i></p>
                             </a>
                             <ul class="nav nav-treeview"
                                 style="background: rgb(255, 255, 255);border:grey solid 2px;border-radius:8px">
                                 <li class="nav-item">
-                                    <router-link to="/admin/group" active-class="active" class="nav-link">
+                                    <router-link :class="$route.path.startsWith('/admin/master/group') ? 'active' : ''"
+                                        to="/admin/master/group" active-class="active" class="nav-link">
 
                                         <i class="nav-icon fas fa-sitemap"></i>
                                         <p>Grup</p>
                                     </router-link>
                                 </li>
                                 <li class="nav-item">
-                                    <router-link to="/admin/account" active-class="active" class="nav-link">
+                                    <router-link
+                                        :class="$route.path.startsWith('/admin/master/account') ? 'active' : ''"
+                                        to="/admin/master/account" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-users"></i>
                                         <p>
                                             Akun
@@ -158,7 +187,8 @@
 
 
                                 <li class="nav-item">
-                                    <router-link to="/admin/wallet" active-class="active" class="nav-link">
+                                    <router-link :class="$route.path.startsWith('/admin/master/wallet') ? 'active' : ''"
+                                        to="/admin/master/wallet" active-class="active" class="nav-link">
                                         <i class="nav-icon fas fa-wallet"></i>
                                         <p>
                                             Dompet
@@ -169,7 +199,8 @@
                             </ul>
                         </li>
                         <li class="nav-item">
-                            <router-link to="/admin/dispens" active-class="active" class="nav-link">
+                            <router-link :class="$route.path.startsWith('/admin/dispens') ? 'active' : ''"
+                                to="/admin/dispens" active-class="active" class="nav-link">
                                 <i class="nav-icon fas fa-scroll"></i>
                                 <p>
                                     Surat Dispensasi
@@ -177,12 +208,14 @@
                             </router-link>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-sign-out-alt"></i>
-                                <p>
-                                    Logout
-                                </p>
-                            </a>
+                            <form action="/logout" method="get">
+                                <button active-class="active" type="submit" class="nav-link">
+                                    <i class="nav-icon fas fa-sign-out-alt"></i>
+                                    <p>
+                                        Logout
+                                    </p>
+                                </button>
+                            </form>
                         </li>
                     </ul>
                 </nav>
@@ -213,12 +246,12 @@
 
         <footer class="main-footer">
 
-            <div class="float-right d-none d-sm-inline">
+            {{-- <div class="float-right d-none d-sm-inline">
                 Anything you want
             </div>
 
             <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong> All rights
-            reserved.
+            reserved. --}}
         </footer>
     </div>
 
@@ -226,8 +259,3 @@
 </body>
 
 </html>
-<script>
-    window.Laravel = {
-        csrfToken: '{{ csrf_token() }}'
-    }
-</script>

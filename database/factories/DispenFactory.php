@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\User;
+use App\Models\Santri;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,11 +18,14 @@ class DispenFactory extends Factory
      */
     public function definition()
     {
+
+        $santri = Santri::inRandomOrder()->first();
         return [
             'dispen_desc'=>$this->faker->sentence(),
             'pay_at'=>date(now()),
             'dispen_periode'=>$this->faker->randomElement(['2023-02','2023-07','2023-04','2023-06']),
-            'user_id'=>rand(1,5),
+            'nis'=>$santri->nis,
+            'status'=>1
             ];
     }
 }

@@ -4,27 +4,21 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Debt;
+use App\Models\Ledger;
+use App\Models\Wallet;
 use App\Enums\PayStatus;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-
+use App\Models\Trans;
 
 class DebtController extends Controller
 {
 
-    function test(Request $request)
-    {
-        return $request->user();
-    }
-
     public function index()
     {
-        $debt = DB::table('debts')
-            ->join('users', 'users.id', '=', 'debts.user_id')
-            ->join('users as operator', 'operator.id', '=', 'debts.user_id')
-            ->select('debts.created_at','debts.updated_at','debts.id','operator.name as operator', 'users.name as user', 'debts.amount as debt', 'debts.payment_status', 'debts.title', 'debts.remainder')
-            ->orderBy('debts.id', 'desc')->paginate(20);
+
+        $debt = Debt::with(['santri', 'operator'])
+            ->orderBy('id', 'desc')->paginate(20);
 
         return $debt;
     }
@@ -36,35 +30,73 @@ class DebtController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-        foreach (request('user') as $user) {
-            $bill = Debt::create([
-                'account_id' => 1,
-                'user_id' => $user,
-                'operator_id' => rand(1,3),
+        $log = [];
+        foreach (request('santri') as $santri) {
+
+
+            $wallet = Wallet::create([
+                'wallet_type' => request('wallet')['wallet_type'],
+                'wallet_name' => request('wallet')['wallet_name'],
+                'debit' => 0,
+                'credit' => request('price'),
+            ]);
+
+            $debt = Debt::create([
+                'account_id' => request('account')['id'],
+                'wallet_id' => $wallet->id,
+                'nis' => $santri['nis'],
+                'operator_id' => request('operator'),
                 'amount' => request('price'),
                 'remainder' => request('price'),
                 'payment_status' =>  1,
                 'title' => request('title'),
             ]);
+
+
+            $ledger = Ledger::create([
+                'ledgerable_id' => $debt->id,
+                'ledgerable_type' => Debt::class,
+            ]);
+
+            array_push($log, $debt);
+            array_push($log, $wallet);
+            array_push($log, $ledger);
         }
-        return request();
+
+
+        return $log;
     }
 
     public function search()
     {
         $debtorName = request('query');
         $status = request('status');
+        $fil = request('filter');
+        $req = request('value');
+
+        if ($fil == '') {
+            $fil = 'id';
+            $req = 'desc';
+        } else {
+            if ($req == 0) {
+                $req = 'asc';
+            } else {
+                $req = 'desc';
+            }
+        }
+
 
         $debts = Debt::query()
-            ->with('user:id,name')
+            ->with(['santri', 'operator', 'account'])
             ->when($debtorName, function ($query) use ($debtorName) {
-                return $query->whereHas('user', function ($q) use ($debtorName) {
-                    $q->where('name', 'LIKE', "%$debtorName%");
+                return $query->whereHas('santri', function ($q) use ($debtorName) {
+                    $q->where('fullname', 'LIKE', "%$debtorName%");
                 });
             })
             ->when($status, function ($query) use ($status) {
                 return $query->where('payment_status', PayStatus::from($status));
             })
+            ->orderBy($fil, $req)
             ->paginate();
 
         return response()->json($debts);
@@ -76,13 +108,21 @@ class DebtController extends Controller
     public function bulkDelete()
     {
         Debt::whereIn('id', request('ids'))->delete();
-
-        return response()->json(['message' => 'Debt deleted successfully!']);
+        Ledger::where('ledgerable_type', '=', Debt::class)
+        ->whereIn('ledgerable_id', request('ids'))
+        ->delete();
+        Wallet::whereIn('id', request('wall_ids'))
+        ->delete();
+        return response()->json(['message' => 'Hutang berhasil dihapus!']);
     }
 
     public function destroy($debt)
     {
         Debt::where('id', request('id'))->delete();
+        Wallet::where('id', request('wallet_id'))->delete();
+        Ledger::where('ledgerable_id', '=', request('id'))
+            ->where('ledgerable_type', '=', Debt::class)
+            ->delete();
 
         return response()->noContent();
     }
@@ -95,16 +135,29 @@ class DebtController extends Controller
         //         'password' => 'sometimes|min:8',
         //     ]);
 
+        $log = [];
+
+        $debt = Debt::where('id', '=', request('id'))->first();
+        $wallet = Wallet::where('id', '=', request('wallet_id'))->first();
+        // dd(request());
 
         $debt->update([
-            'user_id' => request('user_id'),
-            'debt' => request('debt'),
-            'remainder' => request('remainder'),
+            'operator_id' => request('operator'),
+            'nis' => request('santri')['nis'],
+            'amount' => request('price'),
+            'remainder' => request('remain'),
             'title' => request('title'),
-            'status' => request('status')
+            'account_id' => request('account')['id'],
         ]);
 
-        return $debt;
+        $wallet->update([
+            'debit' => 0,
+            'credit' => request('price'),
+        ]);
+
+        array_push($log, $debt);
+        array_push($log, $wallet);
+        return $log;
     }
 
     public function deleteDay()
@@ -137,8 +190,6 @@ class DebtController extends Controller
             $row->delete();
         }
 
-        return response()->json(['message' => `Last `+request('type')+` rows deleted successfully`]);
+        return response()->json(['message' => `Last ` + request('type') + ` rows deleted successfully`]);
     }
-
-
 }

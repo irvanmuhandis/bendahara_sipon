@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Bill;
 use App\Models\User;
 use App\Models\Debts;
+use App\Models\Santri;
 use App\Models\Wallet;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -32,9 +33,11 @@ class PayFactory extends Factory
         //     $bill = Bill::find($id)->first()->bill_amount;
         //     $pay = rand(0, $bill);
         // }
+
+        $santri = Santri::inRandomOrder()->first();
         return [
             'payment' => rand(1000,9000),
-            'user_id'=>rand(1,10),
+            'nis'=>$santri->nis,
             'operator_id'=>rand(1,3),
             'wallet_id' => Wallet::find(rand(1, 3))->id,
             'payable_id' => $id,

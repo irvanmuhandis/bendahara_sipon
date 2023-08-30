@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Models\Pay;
 use App\Models\Bill;
-use App\Models\Debts;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Account extends Model
 {
     use HasFactory;
+
+    protected $table = 'acc_accounts';
 
     public function bill ()
     {
@@ -19,6 +20,11 @@ class Account extends Model
 
     public function debt ()
     {
-        return $this->hasMany(Debts::class);
+        return $this->hasMany(Debt::class);
+    }
+
+    public function trans ()
+    {
+        return $this->hasMany(Trans::class);
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Group;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Santri;
 use Error;
 use Exception;
 
@@ -25,19 +25,12 @@ class GroupController extends Controller
 
     public function list()
     {
-        $apps = Group::all();
-
-        $data = $apps->map(function ($app) {
-            $app->created_at = $app->created_at->format('Y-m-d h:i A');
-            $app->updated_at = $app->updated_at->format('Y-m-d h:i A');
-            return $app;
-        });
-        return $data;
+        return Group::all();
     }
 
     public function santri()
     {
-        $apps = Group::with('user')->paginate(5);
+        $apps = Group::with('santri')->paginate(5);
 
         return $apps;
     }
@@ -45,12 +38,12 @@ class GroupController extends Controller
     public function form()
     {
         try {
-            $id = request('santri');
-            $id = json_decode($id, true);
+            $nis = request('santri');
+            $nis = json_decode($nis, true);
 
-            if ($id) {
-                $users = User::whereIn('id', $id)->with('group')->get();
-                return $users;
+            if ($nis) {
+                $santris = Santri::whereIn('nis', $nis)->with('group')->get();
+                return $santris;
             }
         } catch (Exception $e) {
             logger($e);
@@ -68,9 +61,9 @@ class GroupController extends Controller
     public function link()
     {
         $array = [];
-        $users = request('user');
-        foreach ($users as $user) {
-            $data = User::find($user);
+        $santris = request('santri');
+        foreach ($santris as $santri) {
+            $data = Santri::where('nis','=',$santri)->first();
             $data->group_id = request('group');
             $data->save();
             array_push($array, $data);
@@ -126,13 +119,13 @@ class GroupController extends Controller
         return $RES;
     }
 
-    public function user_search(Group $dispen)
+    public function santri_search(Group $dispen)
     {
         $searchQuery = request('query');
 
 
-        $apps = Group::with(['user' => function ($query) use ($searchQuery) {
-            $query->where('name', 'like', "%{$searchQuery}%")->get();
+        $apps = Group::with(['santri' => function ($query) use ($searchQuery) {
+            $query->where('fullname', 'like', "%{$searchQuery}%")->get();
         }])->paginate(5);
 
         return $apps;

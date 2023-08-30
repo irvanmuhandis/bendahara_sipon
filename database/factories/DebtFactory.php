@@ -2,8 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\Account;
 use App\Models\User;
+use App\Models\Santri;
+use App\Models\Account;
+use App\Models\Wallet;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -32,13 +34,16 @@ class DebtFactory extends Factory
                 $status = 2;
                 break;
         }
+
+        $santri = Santri::inRandomOrder()->first();
         return [
             'account_id' => Account::where('account_name','=','Utang')->first()->id,
             'payment_status' => $status,
             'title' => 'Utang',
+            'wallet_id' => Wallet::first()->id,
             'operator_id'=>rand(1,3),
             'amount' => $end,
-            'user_id' => rand(1,User::count()),
+            'nis' => $santri->nis,
             'remainder' => $remain,
         ];
     }

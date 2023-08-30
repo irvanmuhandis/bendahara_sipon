@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('accounts', function (Blueprint $table) {
+        Schema::create('acc_accounts', function (Blueprint $table) {
             $table->id();
             $table->string('account_name');
             $table->Integer('account_type');
