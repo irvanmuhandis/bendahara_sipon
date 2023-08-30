@@ -291,7 +291,7 @@ class LedgerController extends Controller
         // dd($strt, $ends);
         $pay =  Ledger::query()
             ->where('ledgerable_type', '=', Pay::class)
-            ->join('acc_pays', 'acc_pays.id', '=', 'ledgers.ledgerable_id')
+            ->join('acc_pays', 'acc_pays.id', '=', 'acc_ledgers.ledgerable_id')
             ->whereBetween('acc_pays.created_at', [$strt, $ends])
             ->select(
                 DB::raw('sum(payment) as `sum`'),
@@ -304,7 +304,7 @@ class LedgerController extends Controller
 
         $trans =  Ledger::query()
             ->where('ledgerable_type', '=', Trans::class)
-            ->join('trans', 'trans.id', '=', 'ledgers.ledgerable_id')
+            ->join('trans', 'trans.id', '=', 'acc_ledgers.ledgerable_id')
             ->whereBetween('trans.created_at', [$strt, $ends])
             ->select(
                 DB::raw('sum(debit) as `sum_debit`'),
@@ -317,7 +317,7 @@ class LedgerController extends Controller
 
         $debt =  Ledger::query()
             ->where('ledgerable_type', '=', Debt::class)
-            ->join('debts', 'debts.id', '=', 'ledgers.ledgerable_id')
+            ->join('debts', 'debts.id', '=', 'acc_ledgers.ledgerable_id')
             ->whereBetween('debts.created_at', [$strt, $ends])
             ->select(
                 DB::raw('sum(amount) as `debt`'),
