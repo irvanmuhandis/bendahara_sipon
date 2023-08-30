@@ -291,11 +291,11 @@ class LedgerController extends Controller
         // dd($strt, $ends);
         $pay =  Ledger::query()
             ->where('ledgerable_type', '=', Pay::class)
-            ->join('pays', 'pays.id', '=', 'ledgers.ledgerable_id')
-            ->whereBetween('pays.created_at', [$strt, $ends])
+            ->join('acc_pays', 'acc_pays.id', '=', 'ledgers.ledgerable_id')
+            ->whereBetween('acc_pays.created_at', [$strt, $ends])
             ->select(
                 DB::raw('sum(payment) as `sum`'),
-                DB::raw("DATE_FORMAT(pays.created_at, '%Y-%m') as date")
+                DB::raw("DATE_FORMAT(acc_pays.created_at, '%Y-%m') as date")
             )
             ->groupByRaw('date')
             ->orderBy('date')
