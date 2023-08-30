@@ -86,8 +86,8 @@ const totalize = (event, id) => {
         }
 
     }
-    console.log("bill clicked");
 
+    console.log(total.value);
 }
 
 const clearform = () => {

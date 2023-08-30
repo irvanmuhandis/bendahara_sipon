@@ -93,6 +93,7 @@ const totalize = (event, id) => {
             remainder.value.splice(index, 1);
         }
     }
+    console.log(total.value);
     // console.log(remainder.value);
 }
 
