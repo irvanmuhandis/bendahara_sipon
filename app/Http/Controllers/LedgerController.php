@@ -304,12 +304,12 @@ class LedgerController extends Controller
 
         $trans =  Ledger::query()
             ->where('ledgerable_type', '=', Trans::class)
-            ->join('trans', 'trans.id', '=', 'acc_ledgers.ledgerable_id')
-            ->whereBetween('trans.created_at', [$strt, $ends])
+            ->join('acc_trans', 'acc_trans.id', '=', 'acc_ledgers.ledgerable_id')
+            ->whereBetween('acc_trans.created_at', [$strt, $ends])
             ->select(
                 DB::raw('sum(debit) as `sum_debit`'),
                 DB::raw('sum(credit) as `sum_credit`'),
-                DB::raw("DATE_FORMAT(trans.created_at, '%Y-%m') as date")
+                DB::raw("DATE_FORMAT(acc_trans.created_at, '%Y-%m') as date")
             )
             ->groupByRaw('date')
             ->orderBy('date')
@@ -317,11 +317,11 @@ class LedgerController extends Controller
 
         $debt =  Ledger::query()
             ->where('ledgerable_type', '=', Debt::class)
-            ->join('debts', 'debts.id', '=', 'acc_ledgers.ledgerable_id')
-            ->whereBetween('debts.created_at', [$strt, $ends])
+            ->join('acc_debts', 'acc_debts.id', '=', 'acc_ledgers.ledgerable_id')
+            ->whereBetween('acc_debts.created_at', [$strt, $ends])
             ->select(
                 DB::raw('sum(amount) as `debt`'),
-                DB::raw("DATE_FORMAT(debts.created_at, '%Y-%m') as date")
+                DB::raw("DATE_FORMAT(acc_debts.created_at, '%Y-%m') as date")
             )
             ->groupByRaw('date')
             ->orderBy('date')
