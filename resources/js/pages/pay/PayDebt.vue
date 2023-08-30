@@ -87,7 +87,7 @@ const totalize = (event, id) => {
 
     }
     console.log("bill clicked");
-    console.log(remainder.value);
+    console.log(total.value);
 
 }
 
