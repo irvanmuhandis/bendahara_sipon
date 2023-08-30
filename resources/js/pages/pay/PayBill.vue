@@ -83,11 +83,11 @@ const totalize = (event, id) => {
 
     const item = santribill.value.data.find((item) => item.id === id);
     if (event.target.checked) {
-        total.value += item.remainder;
+        total.value = parseInt(total.value) + parseInt(item.remainder);
         remainder.value.push(item.remainder);
     }
     else {
-        total.value -= item.remainder;
+        total.value = parseInt(total.value) - parseInt(item.remainder);
         let index = remainder.value.indexOf(item.remainder);
         if (index !== -1) {
             remainder.value.splice(index, 1);
