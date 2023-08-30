@@ -87,7 +87,6 @@ const totalize = (event, id) => {
 
     }
     console.log("bill clicked");
-    console.log(total.value);
 
 }
 
@@ -290,6 +289,7 @@ const toggleSelection = (data) => {
     }
     console.log(selected.value);
     console.log(selectedWall.value);
+    console.log(total.value);
 };
 
 

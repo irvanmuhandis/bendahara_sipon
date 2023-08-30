@@ -290,6 +290,7 @@ const toggleSelection = (data) => {
     }
     console.log(selected.value);
     console.log(selectedWall.value);
+    console.log(total.value);
 };
 
 
