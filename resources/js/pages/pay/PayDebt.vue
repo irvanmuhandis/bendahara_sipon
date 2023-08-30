@@ -261,7 +261,7 @@ const bulkDelete = () => {
         data: {
             pay: selected.value,
             wall_ids: selectedWall.value,
-            type:'App\\Models\\Debt'
+            type: 'App\\Models\\Debt'
         }
     })
         .then(response => {
@@ -447,7 +447,7 @@ onMounted(() => {
                                                 {{ debt.title }} | {{ debt.due_date }}
                                                 <span class="text-right text-monospace">
                                                     <div :class="'badge badge-' + debt.color">{{
-                                                        (pay_status.find(obj => obj.value === debt.payment_status)).name
+                                                        '[' + formatDate(debt.created_at) + ']'
                                                     }}</div>
                                                     {{
                                                         formatMoney(
@@ -475,10 +475,9 @@ onMounted(() => {
                                 <div class="form-group">
                                     <label>Santri</label>
                                     <VueMultiselect @click="getSantri" v-model="formValue.santri" :option-height="9"
-                                        @select="santrichange"
-                                        :options="santris" :multiple="false" :class="{ 'is-invalid': errors.santri }"
-                                        :close-on-select="true" placeholder="Pilih Satu" label="fullname" track-by="nis"
-                                        :show-labels="false">
+                                        @select="santrichange" :options="santris" :multiple="false"
+                                        :class="{ 'is-invalid': errors.santri }" :close-on-select="true"
+                                        placeholder="Pilih Satu" label="fullname" track-by="nis" :show-labels="false">
                                         <template v-slot:option="{ option }">
                                             <div>{{ option.fullname }} - {{ option.nis }} </div>
                                         </template>
@@ -740,5 +739,4 @@ onMounted(() => {
             </div>
         </div>
     </div>
-
 </template>
