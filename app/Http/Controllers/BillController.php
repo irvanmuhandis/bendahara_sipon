@@ -11,6 +11,8 @@ use App\Enums\PayStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cookie;
 
 class BillController extends Controller
 {
@@ -204,13 +206,20 @@ class BillController extends Controller
         //     'password' => 'required|min:8',
         // ]);
         $log = [];
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $token = json_decode(Cookie::get('sipon_session'))->token;
+        $response = Http::withHeaders([
+                'Accept' => 'aplication/json',
+                'Authorization' => 'Bearer ' . $token,
+            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
+        $santri=$response->json()['data'];
+
         if (request('account')) {
             foreach (request('santri') as $user) {
-
                 $bill = Bill::create([
                     'account_id' => request('account')['id'],
                     'nis' => $user['nis'],
-                    'operator_id' => request('operator'),
+                    'operator_id' => $santri['id'],
                     'amount' => request('price'),
                     'remainder' => request('price'),
                     'payment_status' =>  1,
@@ -225,7 +234,7 @@ class BillController extends Controller
                         $bill = Bill::create([
                             'account_id' => $account['id'],
                             'nis' => $user['nis'],
-                            'operator_id' => request('operator'),
+                            'operator_id' => $santri['id'],
                             'amount' => $account['value'],
                             'remainder' => $account['value'],
                             'payment_status' =>  1,
