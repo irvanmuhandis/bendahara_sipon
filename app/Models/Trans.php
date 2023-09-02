@@ -34,7 +34,7 @@ class Trans extends Model
             'id', // refers to id column on user table
             'nis', // refers to id column on santri table
             'operator_id', // refers to user table
-            'nis' // refers to santri table
+            'nis_santri' // refers to santri table
         );
     }
 

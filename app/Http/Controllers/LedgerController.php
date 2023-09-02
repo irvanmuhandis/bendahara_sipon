@@ -108,7 +108,7 @@ class LedgerController extends Controller
         // dd(Ledger::first()->created_at);
         // dd($start, $end);
         // dd(request('start'));
-        return Ledger::with(['ledgerable', 'ledgerable.santri'])
+        return Ledger::with(['ledgerable', 'ledgerable'])
             ->with(['ledgerable.wallet' => function ($query) {
                 $query
                     ->select(['created_at', 'id', 'wallet_name', 'wallet_type', 'debit', 'credit'])
