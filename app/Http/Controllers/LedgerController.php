@@ -112,7 +112,7 @@ class LedgerController extends Controller
             ->with(['ledgerable.wallet' => function ($query) {
                 $query
                     ->select(['created_at', 'id', 'wallet_name', 'wallet_type', 'debit', 'credit'])
-                    ->selectRaw('(SELECT SUM(debit) - SUM(credit) FROM wallets AS w2 WHERE w2.id <= wallets.id AND w2.wallet_type = wallets.wallet_type) AS saldo');
+                    ->selectRaw('(SELECT SUM(debit) - SUM(credit) FROM acc_wallets AS w2 WHERE w2.id <= acc_wallets.id AND w2.wallet_type = acc_wallets.wallet_type) AS saldo');
             }])
             ->whereBetween('created_at', [$start, $end])
             ->orderBy($fil, $req)
