@@ -43,16 +43,11 @@ const errors = ref({
     'end': null
 });
 
-const setMode = (int1, int2) => {
-    mode.value.strt = int1;
-    mode.value.end = int2;
-    console.log(" " + mode.value.strt);
-}
 
 function getStatus() {
     const params = {
-        'start': mode.value.strt,
-        'end': mode.value.end,
+        'start': form.value.start,
+        'end': form.value.end,
     };
     axios.get('/status-message')
         .then(response => {
@@ -109,26 +104,14 @@ const getDate = () => {
     let now = today.toLocaleDateString('IN', options);
 
     date.value.number = dates;
-    switch (mode.value.strt) {
-        case -3:
-            today.setMonth(today.getMonth() - 3);
-            months = today.toLocaleDateString('IN', options);
-            date.value.month = months + " - " + now;
-            break;
-        case -6:
-            today.setMonth(today.getMonth() - 6);
-            months = today.toLocaleDateString('IN', options);
-            date.value.month = months + " - " + now;
-            break;
-        case -12:
-
-            options = { year: 'numeric' };
-            today.setFullYear(today.getFullYear() - 1);
-            date.value.month = "Tahun " + today.toLocaleDateString('IN', options);
-            break;
-        default:
-            date.value.month = months;
-            break;
+    if (form.value.start == '') {
+        date.value.month = months;
+    } else {
+        var start = form.value.start.split('-');
+        var end = form.value.end.split('-');
+        start = new Date(start[0],start[1]);
+        end = new Date(end[0],end[1]);
+        date.value.month = (start.toLocaleDateString('IN', options)) + " ~ " + end.toLocaleDateString('IN', options);
     }
     date.value.year = moment().format('YYYY');
     console.log(date.value);
@@ -311,11 +294,6 @@ const inoutForm = (event) => {
     }
 }
 
-
-watch(mode.value, debounce(() => {
-    getInout();
-}, 300));
-
 onMounted(() => {
     getStatus();
     getInout();
@@ -421,19 +399,7 @@ onMounted(() => {
                                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                         <i class="fas fa-minus"></i>
                                     </button>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-tool dropdown-toggle" data-toggle="dropdown"
-                                            aria-expanded="false">
-                                            <i class="fas fa-clock"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-right" role="menu" style="">
-                                            <a class="dropdown-item" @click="setMode(-1, 0)">Bulan Ini</a>
-                                            <a class="dropdown-item" @click="setMode(-3, 0)">3 Bulan</a>
-                                            <a class="dropdown-item" @click="setMode(-6, 0)">6 Bulan</a>
-                                            <a class="dropdown-divider"></a>
-                                            <a class="dropdown-item" @click="setMode(-12, 0)">1 Tahun</a>
-                                        </div>
-                                    </div>
+                                   
                                     <button type="button" class="btn btn-tool" data-card-widget="remove">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -444,7 +410,7 @@ onMounted(() => {
                                 <div class="row">
                                     <div class="col-md-8">
                                         <p class="text-center">
-                                            <strong>Pemasukan {{ date.month }}</strong>
+                                            <strong>{{ date.month }}</strong>
                                         </p>
                                         <div class="chart">
                                             <div class="chartjs-size-monitor">
@@ -475,7 +441,7 @@ onMounted(() => {
                                         <div v-for="data in bills" class="progress-group">
                                             {{ data.account_name }}
                                             <span class="float-right" v-if="data.bill_sum_amount != null">
-                                                <b>{{ formatMoney(data.bill_sum_remainder) }}</b>/
+                                                <b>{{ formatMoney(data.paybill_sum_payment) }}</b>/
                                                 {{ formatMoney(data.bill_sum_amount) }}
                                             </span>
                                             <span class="float-right" v-else>
@@ -483,8 +449,8 @@ onMounted(() => {
                                             </span>
                                             <div class="progress progress-sm">
                                                 <div v-if="data.bill_sum_amount != null" class="progress-bar bg-primary"
-                                                    :style="{ width: data.bill_sum_remainder / data.bill_sum_amount * 100 + '%' }">
-                                                    {{ Math.round(data.bill_sum_remainder / data.bill_sum_amount * 100) +
+                                                    :style="{ width: data.paybill_sum_payment / data.bill_sum_amount * 100 + '%' }">
+                                                    {{ Math.round( data.paybill_sum_payment / data.bill_sum_amount * 100) +
                                                         '%'
                                                     }}</div>
                                                 <div v-else class="progress-bar bg-primary"
@@ -497,7 +463,7 @@ onMounted(() => {
                                         <div v-for="data in debt" class="progress-group">
                                             {{ data.account_name }}
                                             <span class="float-right" v-if="data.debt_sum_amount != null">
-                                                <b>{{ formatMoney(data.debt_sum_amount - data.debt_sum_remainder) }}</b>/
+                                                <b>{{ formatMoney(data.paydebt_sum_payment) }}</b>/
                                                 {{ formatMoney(data.debt_sum_amount) }}
                                             </span>
                                             <span class="float-right" v-else>
@@ -505,8 +471,8 @@ onMounted(() => {
                                             </span>
                                             <div class="progress progress-sm">
                                                 <div v-if="data.debt_sum_amount != null" class="progress-bar bg-primary"
-                                                    :style="{ width: (data.debt_sum_amount - data.debt_sum_remainder) / data.debt_sum_amount * 100 + '%' }">
-                                                    {{ Math.round((data.debt_sum_amount - data.debt_sum_remainder) /
+                                                    :style="{ width:  data.paydebt_sum_payment / data.debt_sum_amount * 100 + '%' }">
+                                                    {{ Math.round( data.paydebt_sum_payment /
                                                         data.debt_sum_amount * 100) +
                                                         '%'
                                                     }}</div>
@@ -578,19 +544,7 @@ onMounted(() => {
                                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                         <i class="fas fa-minus"></i>
                                     </button>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-tool dropdown-toggle" data-toggle="dropdown"
-                                            aria-expanded="false">
-                                            <i class="fas fa-clock"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-right" role="menu" style="">
-                                            <a class="dropdown-item" @click="setMode(-1, 0)">Bulan Ini</a>
-                                            <a class="dropdown-item" @click="setMode(-3, 0)">3 Bulan</a>
-                                            <a class="dropdown-item" @click="setMode(-6, 0)">6 Bulan</a>
-                                            <a class="dropdown-divider"></a>
-                                            <a class="dropdown-item" @click="setMode(-12, 0)">1 Tahun</a>
-                                        </div>
-                                    </div>
+                                   
                                     <button type="button" class="btn btn-tool" data-card-widget="remove">
                                         <i class="fas fa-times"></i>
                                     </button>
@@ -601,7 +555,7 @@ onMounted(() => {
                                 <div class="row">
                                     <div class="col-md-8">
                                         <p class="text-center">
-                                            <strong>Pengeluaran {{ date.month }}</strong>
+                                            <strong>{{ date.month }}</strong>
                                         </p>
                                         <div class="chart">
                                             <div class="chartjs-size-monitor">

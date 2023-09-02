@@ -2,26 +2,32 @@
 import axios from "axios"
 
 import { ref, onMounted, reactive, computed, watch } from 'vue';
-import { Form, Field, useResetForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
 import { formatDate, formatMoney, formatDiff } from "../../helper";
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
+import { event } from "jquery";
 
 const toastr = useToastr();
 const listwallets = ref({ 'data': [{ 'id': 0 }] });
 const editing = ref(false);
 const formValues = ref({
-    'saldo': 0
+    'name': '',
+    'debit': '',
+    'credit': ''
 });
-const form = ref(null);
-
+const errors = ref({
+    'name': null,
+    'debit': null,
+    'credit': null
+});
+const inout = ref();
 const types = ref([]);
 const IdBeingDeleted = ref({
     'id': 0
 });
-const saldo = ref(null);
+
 const searchQuery = ref(null);
 const filter = ref({
     'created_at': null,
@@ -31,42 +37,56 @@ const filter = ref({
     'wallet_name': null
 })
 
-const createWalletSchema = yup.object({
-    saldo: yup.number().required('Saldo harus diisi !'),
-    name: yup.string().required('Nama dompet harus diisi !')
-});
-
-const editWalletSchema = yup.object({
-    saldo: yup.number().required('Saldo harus diisi !'),
-    name: yup.string().required('Nama dompet harus diisi !')
-});
-
-const saldoChange = (event) => {
-    saldo.value = formatMoney(event.target.value);
+const resetForm = () => {
+    for (const key in errors.value) {
+        errors.value[key] = null;
+    }
+}
+const valid = () => {
+    var err = 0;
+    resetForm();
+    if (formValues.value.credit == '') {
+        errors.value.credit = "Masukkan nilai credit !!";
+        err += 1;
+    }
+    if (formValues.value.debit == '') {
+        errors.value.debit = "Masukkan nilai debit !!";
+        err += 1;
+    }
+    if (formValues.value.name == '') {
+        errors.value.name = "Masukkan nama dompet !!";
+        err += 1;
+    }
+    if (err == 0) {
+        return true;
+    }
 }
 
-const createWallet = (values, { resetForm, setErrors }) => {
-    axios.get('/csrf-token').then(() => {
-        axios.post('/api/wallet', values)
-            .then((response) => {
-                $('#FormModal').modal('hide');
-                fetchData();
-                getWalletType();
-                resetForm();
-                toastr.success('Dompet berhasil dibuat !');
-            })
-            .catch((error) => {
-                if (error.response.data.errors) {
-                    setErrors(error.response.data.errors);
-                }
-            })
-    })
 
+const createWallet = () => {
+
+    console.log(formValues.value);
+    if (valid()) {
+        axios.get('/csrf-token').then(() => {
+            axios.post('/api/wallet', formValues.value)
+                .then((response) => {
+                    $('#FormModal').modal('hide');
+                    fetchData();
+                    getWalletType();
+                    resetForm();
+                    toastr.success('Dompet berhasil dibuat !');
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        })
+    }
 };
 
 const AddWallet = () => {
     editing.value = false;
-    formValues.value = {};
+    inout.value = 1;
+    resetForm();
     $('#FormModal').modal('show');
 };
 
@@ -74,36 +94,45 @@ const AddWallet = () => {
 
 const editWallet = (wallet) => {
     editing.value = true;
-    form.value.resetForm();
-    saldo.value = formatMoney(wallet.saldo);
-    $('#FormModal').modal('show');
+    if (wallet.debit == 0) {
+        inout.value = 0;
+    } else {
+        inout.value = 1;
+    }
+    resetForm();
     formValues.value = {
         id: wallet.id,
         name: wallet.wallet_name,
-        saldo: wallet.saldo,
+        credit: wallet.credit,
+        debit: wallet.debit
     };
+    $('#FormModal').modal('show');
 };
 
-const updateWallet = (values, { setErrors }) => {
-    values.id = formValues.value.id;
-    axios.put('/api/wallet/' + formValues.value.id, values)
-        .then((response) => {
-            fetchData();
-            getWalletType();
-            $('#FormModal').modal('hide');
-            toastr.success('Wallet updated successfully!');
-        }).catch((error) => {
-            setErrors(error.response.data.errors);
-            console.log(error);
-        });
+const updateWallet = () => {
+
+    console.log(formValues.value);
+    if (valid()) {
+        axios.put('/api/wallet/' + formValues.value.id, formValues.value)
+            .then((response) => {
+                fetchData();
+                getWalletType();
+                $('#FormModal').modal('hide');
+                toastr.success('Dompet berhasil diupdate !');
+            }).catch((error) => {
+                console.log(error);
+            });
+    }
+
 }
 
-const handleSubmit = (values, actions) => {
+const handleSubmit = (event) => {
     // console.log(actions);
+    event.preventDefault();
     if (editing.value) {
-        updateWallet(values, actions);
+        updateWallet();
     } else {
-        createWallet(values, actions);
+        createWallet();
     }
 }
 
@@ -156,7 +185,6 @@ const sort = (a) => {
 watch(searchQuery, debounce(() => {
     fetchData();
 }, 300));
-
 
 const fetchData = (link = `/api/wallet`) => {
     var fil = {
@@ -346,7 +374,7 @@ onMounted(() => {
                                     </a>
                                 </td>
                             </tr>
-                            <tr v-if="listwallets.data.length==0">
+                            <tr v-if="listwallets.data.length == 0">
                                 <td class="text-center" colspan="6">Tidak ada data</td>
                             </tr>
                         </tbody>
@@ -384,32 +412,36 @@ onMounted(() => {
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editWalletSchema : createWalletSchema"
-                    v-slot="{ errors }" :initial-values="formValues">
+                <form @submit="handleSubmit">
                     <div class="modal-body">
-
-
                         <div class="form-group">
                             <label for="desc">Nama Dompet</label>
-                            <Field name="name" type="text" class="form-control " :class="{ 'is-invalid': errors.name }"
-                                id="desc" aria-describedby="nameHelp" placeholder="Enter description" />
+                            <input v-model="formValues.name" type="text" class="form-control "
+                                :class="{ 'is-invalid': errors.name }" id="desc" aria-describedby="nameHelp"
+                                placeholder="Masukkan nama dompet" />
                             <span class="invalid-feedback">{{ errors.name }}</span>
                         </div>
 
-                        <div class="form-group">
-                            <label>Saldo</label>
-                            <Field name="saldo" @change="saldoChange" type="number" class="form-control "
-                                :class="{ 'is-invalid': errors.saldo }" id="pay_at" aria-describedby="nameHelp"
-                                placeholder="Enter Pay Date" />
-                            <p>{{ saldo }}</p>
-                            <span class="invalid-feedback">{{ errors.saldo }}</span>
+                        <div class="form-group" v-if="inout == 1">
+                            <label>Debit</label>
+                            <input v-model="formValues.debit" type="number" class="form-control "
+                                :class="{ 'is-invalid': errors.debit }" placeholder="Masukkan Nilai Debit" />
+                            <p>{{ formatMoney(formValues.debit) }}</p>
+                            <span class="invalid-feedback">{{ errors.debit }}</span>
+                        </div>
+                        <div class="form-group" v-else>
+                            <label>Credit</label>
+                            <input v-model="formValues.credit" type="number" class="form-control "
+                                :class="{ 'is-invalid': errors.credit }" placeholder="Masukkan Nilai Credit" />
+                            <p>{{ formatMoney(formValues.credit) }}</p>
+                            <span class="invalid-feedback">{{ errors.credit }}</span>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
-                </Form>
+                </form>
             </div>
         </div>
     </div>

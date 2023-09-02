@@ -96,9 +96,9 @@ class WalletController extends Controller
         $wal =  Wallet::where('id', '=', request('id'))->first();
         $data = $wal->update([
 
-            'prev_saldo' => $wal->saldo,
-            'wallet_name' => request('name'),
-            'saldo' => request('saldo'),
+            'debit' => request('debit'),
+            'credit' => request('credit'),
+            'wallet_name' => request('name')
         ]);
 
         return $data;

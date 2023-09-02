@@ -49,6 +49,18 @@ class Pay extends Model
         );;
     }
 
+    public function accountdebt()
+    {
+        return $this->hasOneThrough(
+            Account::class,
+            Debt::class,
+            'id', // refers to id column on trans table
+            'id', // refers to id column on wallet table
+            'payable_id', // refers to trans table
+            'account_id' // refers to wallet table
+        );;
+    }
+
     public function santribill()
     {
         return $this->hasOneThrough(

@@ -47,13 +47,13 @@ const toggleSelection = () => {
         <td>{{ account.account_name }}</td>
         <td>{{ formatDate(account.created_at) }}</td>
         <td>
-            <select class="form-control" @change="changeRole(account, $event.target.value)">
+            {{ account.account_type==1?"Hutang":account.account_type==2?"Tagihan":"Lain lain" }}
+            <!-- <select class="form-control" @change="changeRole(account, $event.target.value)">
                 <option v-for="role in type" :key="role.id" :value="role.value" :selected="(account.account_type === role.value)">{{ role.name }}</option>
-            </select>
+            </select> -->
         </td>
-        <td>
-            <a href="#" @click.prevent="$emit('editUser', account)"><i class="fa fa-edit"></i></a>
-            <a  v-if="account.deletable==1" href="#" @click.prevent="$emit( 'confirmUserDeletion',account.id)"><i class="fa fa-trash text-danger ml-2"></i></a>
+        <td class="text-center">
+            <a href="#" @click.prevent="$emit('editAccount', account)"><i class="fa fa-edit"></i></a>
         </td>
     </tr>
 

@@ -177,48 +177,76 @@ class LedgerController extends Controller
 
     public function accountSum(Request $request)
     {
+        DB::enableQueryLog();
+        // query
+        // DB::getQueryLog();
         $queryParams = $request->query();
+        // or $queryParams = $request->all();
+
+        // Access and use the query parameters
         $start = $queryParams['start'];
         $end = $queryParams['end'];
-        $today = Carbon::now();
-        $today2 = Carbon::now();
-        if ($start >= 0) {
-            $strt =  $today->copy()->addMonth($start)->startOfMonth();
-        } else {
-            $strt = $today->copy()->subMonth(-$start)->startOfMonth();
+
+        if ($start == '') {
+            $start = Carbon::now()->startOfMonth();
         }
-        if ($end >= 0) {
-            $ends = $today2->copy()->addMonth($end)->lastOfMonth();
-        } else {
-            $ends = $today2->copy()->subMonth(-$end)->lastOfMonth();
+        if ($end == '') {
+            $end = Carbon::now()->lastOfMonth();
         }
+
+        $dateStart = explode('-', $start);
+        $dateEnd = explode('-', $end);
+
+        // dd($dateStart);
+        $strt = Carbon::createFromDate($dateStart[0], $dateStart[1], 1);
+        $ends = Carbon::createFromDate($dateEnd[0], $dateEnd[1], 1)->endOfMonth();
+
         // dd($strt);
-        $bill = Account::where('account_type', '=', 2)
+
+        // $latestPosts = Account::where('account_type', 2)
+        //     ->select('acc_bills.id as billid','account_name')
+        //     ->join('acc_bills', 'acc_bills.account_id', '=', 'acc_accounts.id');
+
+        // $bill_remain = DB::table('acc_pays')
+        // ->selectRaw('sum(payment)')
+        //     ->where('payable_type', Bill::class)
+        //     ->joinSub($latestPosts, 'latest_posts', function ($join) {
+        //         $join->on('acc_pays.payable_id', '=', 'latest_posts.billid');
+        //     })
+        //     ->whereBetween('created_at', [$strt, $ends])
+        //     ->groupBy('account_name')
+        //     ->groupBy('billid');
+
+        $bill = Account::where('account_type', 2)
+            ->withSum(['paybill' => function ($query) use ($strt, $ends) {
+                $query->whereBetween('acc_pays.created_at', [$strt, $ends]);
+            }], 'payment')
             ->withSum(['bill' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('created_at', [$strt, $ends]);
+                $query->whereBetween('updated_at', [$strt, $ends]);
             }], 'amount')
-            ->withSum(['bill' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('created_at', [$strt, $ends]);
-            }], 'remainder')
+
             ->get();
 
-        $debt =    Account::where('account_type', '=', 1)
+        $debt = Account::where('account_type', 1)
+            ->withSum(['paydebt' => function ($query) use ($strt, $ends) {
+                $query->whereBetween('acc_pays.created_at', [$strt, $ends]);
+            }], 'payment')
             ->withSum(['debt' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('created_at', [$strt, $ends]);
+                $query->whereBetween('updated_at', [$strt, $ends]);
             }], 'amount')
-            ->withSum(['debt' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('created_at', [$strt, $ends]);
-            }], 'remainder')->get();
+
+            ->get();
 
         $other = Account::where('account_type', '=', 3)
             ->withSum(['trans' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'debit')
             ->withSum(['trans' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('created_at', [$strt, $ends]);
-            }], 'credit')->get();
+                $query->whereBetween('updated_at', [$strt, $ends]);
+            }], 'credit')
+            ->get();
         return response()->json([
-            'bill' => $bill,
+            'bill' => json_decode($bill),
             'debt' => $debt,
             'other' => $other
         ]);

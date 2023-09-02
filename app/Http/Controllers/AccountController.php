@@ -11,7 +11,9 @@ class AccountController extends Controller
 {
     public function index()
     {
-        return Account::latest()->paginate(10);
+        $searchQuery = request('query');
+        return Account::latest()
+            ->where('account_name', 'like', "%{$searchQuery}%")->paginate(10);
     }
 
     public function list()
@@ -45,6 +47,15 @@ class AccountController extends Controller
         //     'size'=>$size
         // ]);
         return $data;
+    }
+
+    public function store()
+    {
+        return Account::create([
+            'account_name' => request('name'),
+            'account_type' => request('type'),
+            'deletable' => 1
+        ]);
     }
 
     public function changeType(Account $account)

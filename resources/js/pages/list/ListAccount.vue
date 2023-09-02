@@ -18,13 +18,17 @@ const selectAll = ref(false);
 const searchQuery = ref(null);
 const selectedAccounts = ref([]);
 
-const fetchData = (link) => {
+const fetchData = (link = '/api/account') => {
 
-if (link != null) {
-    axios.get(link).then((response) => {
-        accounts.value = response.data;
-    })
-}
+    if (link != null) {
+        axios.get(link, {
+            params: {
+                query: searchQuery.value
+            }
+        }).then((response) => {
+            accounts.value = response.data;
+        })
+    }
 
 }
 
@@ -52,26 +56,23 @@ const getAccounts = (page = 1) => {
 }
 
 const createAccountSchema = yup.object({
-    name: yup.string().required(),
-    email: yup.string().email().required(),
-    password: yup.string().required().min(8),
+    name: yup.string().required("Isi nama akun !"),
+    type: yup.number().required("Pilih tipe !"),
 });
 
 const editAccountSchema = yup.object({
-    name: yup.string().required(),
-    email: yup.string().email().required(),
-    password: yup.string().when((password, schema) => {
-        return password ? schema.required().min(8) : schema;
-    }),
+    name: yup.string().required("Isi nama akun !"),
+    type: yup.number().required("Pilih tipe !"),
+
 });
 
 const createAccount = (values, { resetForm, setErrors }) => {
-    axios.post('/api/accounts', values)
+    axios.post('/api/account', values)
         .then((response) => {
             accounts.value.data.unshift(response.data);
             $('#accountFormModal').modal('hide');
             resetForm();
-            toastr.success('Account created successfully!');
+            toastr.success('Akun berhasil dibuat !');
         })
         .catch((error) => {
             if (error.response.data.errors) {
@@ -92,7 +93,7 @@ const editAccount = (account) => {
     formValues.value = {
         id: account.id,
         name: account.name,
-        email: account.email,
+        type: account.email,
     };
 };
 
@@ -102,7 +103,7 @@ const updateAccount = (values, { setErrors }) => {
             const index = accounts.value.data.findIndex(account => account.id === response.data.id);
             accounts.value.data[index] = response.data;
             $('#accountFormModal').modal('hide');
-            toastr.success('Account updated successfully!');
+            toastr.success('Akun berhasil diperbaharui !');
         }).catch((error) => {
             setErrors(error.response.data.errors);
             console.log(error);
@@ -124,7 +125,7 @@ const accountDeleted = (accountId) => {
 
 
 const search = () => {
-    axios.get('/api/accounts/search', {
+    axios.get('/api/account/search', {
         params: {
             query: searchQuery.value
         }
@@ -174,7 +175,7 @@ const selectAllAccounts = () => {
 }
 
 watch(searchQuery, debounce(() => {
-    search();
+    fetchData();
 }, 300));
 
 onMounted(() => {
@@ -207,14 +208,14 @@ onMounted(() => {
                 <div class="d-flex">
                     <button @click="addAccount" type="button" class="mb-2 btn btn-primary">
                         <i class="fa fa-plus-circle mr-1"></i>
-                        Add New Account
+                        Tambah Akun
                     </button>
                     <div v-if="selectedAccounts.length > 0">
                         <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
                             <i class="fa fa-trash mr-1"></i>
-                            Delete Selected
+                            Hapus {{ selectedAccounts.length }} akun
                         </button>
-                        <span class="ml-2">Selected {{ selectedAccounts.length }} accounts</span>
+                        <span class="ml-2">Terpilih {{ selectedAccounts.length }} akun</span>
                     </div>
                 </div>
                 <div>
@@ -228,17 +229,17 @@ onMounted(() => {
                         <th>Nama</th>
                         <th>Dibuat</th>
                         <th>Tipe</th>
-                        <th>Aksi</th>
+                        <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody v-if="accounts.data.length > 0" class="text-center">
+                <tbody v-if="accounts.data.length > 0">
                     <AccountListItem v-for="(account, index) in accounts.data" :key="account.id" :account=account
                         :index=index @edit-account="editAccount" @confirm-account-deletion="confirmAccountDeletion"
                         @toggle-selection="toggleSelection" :select-all="selectAll" />
                 </tbody>
                 <tbody v-else>
                     <tr>
-                        <td colspan="6" class="text-center">No results found...</td>
+                        <td colspan="6" class="text-center">Data tidak ditemukan...</td>
                     </tr>
                 </tbody>
             </table>
@@ -259,18 +260,18 @@ onMounted(() => {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Delete Account</span>
+                        <span>Hapus Akun</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5>Are you sure you want to delete this account ?</h5>
+                    <h5>Apakah anda yakin ingin menghapus akun ?</h5>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button @click.prevent="deleteAccount" type="button" class="btn btn-primary">Delete Account</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button @click.prevent="deleteAccount" type="button" class="btn btn-primary">Hapus</button>
                 </div>
             </div>
         </div>
@@ -281,8 +282,8 @@ onMounted(() => {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span v-if="editing">Edit Account</span>
-                        <span v-else>Add New Account</span>
+                        <span v-if="editing">Edit Akun</span>
+                        <span v-else>Tambah Akun</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -293,30 +294,38 @@ onMounted(() => {
                     :initial-values="formValues">
                     <div class="modal-body">
                         <div class="form-group">
-                            <label for="name">Name</label>
+                            <label for="name">Nama Akun</label>
                             <Field name="name" type="text" class="form-control" :class="{ 'is-invalid': errors.name }"
-                                id="name" aria-describedby="nameHelp" placeholder="Enter full name" />
+                                id="name" aria-describedby="nameHelp" placeholder="Isi nama akun" />
                             <span class="invalid-feedback">{{ errors.name }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="email">Email</label>
-                            <Field name="email" type="email" class="form-control " :class="{ 'is-invalid': errors.email }"
-                                id="email" aria-describedby="nameHelp" placeholder="Enter full name" />
-                            <span class="invalid-feedback">{{ errors.email }}</span>
+                            <label>Tipe</label>
+                            <Field name="type" as="select" class="form-control " :class="{ 'is-invalid': errors.type }"
+                                id="type" aria-describedby="nameHelp">
+                                <option value="1">Hutang</option>
+                                <option value="2">Tagihan</option>
+                                <option value="3">Lainnya</option>
+                            </Field>
+                            <span class="invalid-feedback">{{ errors.type }}</span>
                         </div>
 
-                        <div class="form-group">
-                            <label for="email">Password</label>
-                            <Field name="password" type="password" class="form-control "
-                                :class="{ 'is-invalid': errors.password }" id="password" aria-describedby="nameHelp"
-                                placeholder="Enter password" />
-                            <span class="invalid-feedback">{{ errors.password }}</span>
-                        </div>
+                        <!-- <div class="form-group form-check">
+                            <Field name="deletable" :class="{ 'is-invalid': errors.deletable }" type="checkbox"
+                                class="form-check-input" id="exampleCheck1" />
+                            <label class="form-check-label" for="exampleCheck1">Dapat dihapus</label>
+                            <span class="invalid-feedback">{{ errors.deletable }}</span>
+                            <p class="text-danger"><small>Hati hati dalam mengelola akun yang dapat menghapus
+                                    akun karena akun yang dihapus akan memengaruhi semua transaksi pada akun tersebut.
+                                    </small>
+                            </p>
+                        </div> -->
+
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
                 </Form>
             </div>
