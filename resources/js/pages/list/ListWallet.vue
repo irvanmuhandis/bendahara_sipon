@@ -49,17 +49,17 @@ const valid = () => {
         errors.value.credit = "Masukkan nilai credit !!";
         err += 1;
     }
-    if(inout.value ==1){
+    if  (inout.value ==  1) {
         if (formValues.value.debit == '') {
-        errors.value.debit = "Masukkan nilai debit !!";
-        err += 1;
+                errors.value.debit = "Masukkan nilai debit !!";
+                err += 1;
+            }
     }
-    }
-    else{
+    else  {
         if (formValues.value.name == '') {
-        errors.value.name = "Masukkan nama dompet !!";
-        err += 1;
-    }
+                errors.value.name = "Masukkan nama dompet !!";
+                err += 1;
+            }
     }
 
     if (err == 0) {
