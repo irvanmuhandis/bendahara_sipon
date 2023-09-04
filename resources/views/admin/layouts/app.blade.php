@@ -56,12 +56,12 @@
 
                 <div class="user-panel mt-3 pb-3 mb-3 d-flex">
                     <div class="image">
-                        <img src="https://ui-avatars.com/api/?name=John+Doe" class="img-circle"
+                        <img src="https://ui-avatars.com/api/?name={{$operator['nickname']}}" class="img-circle"
                             alt="User Image">
 
                     </div>
                     <div class="info">
-                        <a href="#" class="d-block">Koor Bendahara</a>
+                        <a href="#" class="d-block">{{$operator['nickname']}}</a>
                     </div>
                 </div>
 

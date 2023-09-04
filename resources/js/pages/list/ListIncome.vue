@@ -160,7 +160,6 @@ const validate = () => {
 }
 
 const update = () => {
-    form.value.operator = 1;
     form.value.type = 'debit';
     console.log(form.value);
     console.log(errors.value);
@@ -221,7 +220,6 @@ const createTrans = (event) => {
     event.preventDefault();
 
     if (valid()) {
-        formValue.value.operator = 1;
         axios.post('/api/trans', formValue.value)
             .then((response) => {
                 clearform();
@@ -552,7 +550,7 @@ onMounted(() => {
 
                             <td>{{ data.desc }}</td>
 
-                            <td>{{ data.operator.name }}</td>
+                            <td>{{ data.operator.fullname }}</td>
                             <td>
                                 <a href="#" @click="editData(data)">
                                     <i class="fa fa-edit mr-2"></i>

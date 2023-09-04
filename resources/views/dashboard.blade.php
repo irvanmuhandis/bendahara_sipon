@@ -61,7 +61,7 @@
                                 <img src="https://adminlte.io/themes/v3/dist/img/user1-128x128.jpg" alt="User Avatar" class="img-size-50 mr-3 img-circle">
                                 <div class="media-body">
                                     <h3 class="dropdown-item-title">
-                                        Brad Diesel
+                                        {{$operator}}
                                         <span class="float-right text-sm text-danger"><i class="fas fa-star"></i></span>
                                     </h3>
                                     <p class="text-sm">Call me whenever you can...</p>

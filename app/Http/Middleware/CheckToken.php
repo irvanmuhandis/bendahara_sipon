@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Contracts\Encryption\DecryptException;
 
 class CheckToken
 {
@@ -24,54 +23,40 @@ class CheckToken
 
             if ($request->data) {
 
-
-                $data = Crypt::decryptString($request->data);
-                $data_array = json_decode($data);
-                $token = $data_array->token;
-
-                Cookie::queue('sipon_session', $token, 10080);
-
-                // setcookie('sipon_session', $token, 10080);
-
+                Cookie::queue('sipon_session', Crypt::decryptString($request->data), 10080);
 
                 //https://psb.kyaigalangsewu.net/
-                return redirect('/admin/dashboard');
+                return redirect('https://keuangan.kyaigalangsewu.net');
             }
-            $token = Cookie::get('sipon_session');
-// dd($token);
+
+            $token = json_decode(Cookie::get('sipon_session'))->token;
+
             $response = Http::withHeaders([
                 'Accept' => 'aplication/json',
-                'Authorization' => 'Bearer ' . json_decode($token)->token,
-            ])->get('http://127.0.0.1:8000/api/token');
+                'Authorization' => 'Bearer ' . $token,
+            ])->get('https://sipon.kyaigalangsewu.net/api/v1/token');
 
-            dd($response);
+            // dd($response->status());
 
             if ($response->status() != 200) {
 
                 setcookie('sipon_session', '', time() - 1);
 
                 //https://sipon.kyaigalangsewu.net/logout
-                return redirect('/logout');
+                return redirect('https://sipon.kyaigalangsewu.net/logout');
             }
 
             return $next($request);
         } else {
             if ($request->data) {
-                $data = Crypt::decryptString($request->data);
-                $data_array = json_decode($data);
-                $token = $data_array->token;
 
-                Cookie::queue('sipon_session', $token, 10080);
+                Cookie::queue('sipon_session', Crypt::decryptString($request->data), 10080);
 
-
-                //  setcookie('sipon_session', $token, 10080);
-
-                //  dd($token);
                 //https://psb.kyaigalangsewu.net/
-                return redirect('/admin/dashboard');
+                return redirect('https://keuangan.kyaigalangsewu.net');
             } else {
                 //https://sipon.kyaigalangsewu.net/
-                return redirect('/login');
+                return redirect('https://sipon.kyaigalangsewu.net');
             }
         }
     }

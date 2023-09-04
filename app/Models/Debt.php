@@ -28,7 +28,14 @@ class Debt extends Model
 
     public function operator()
     {
-        return $this->belongsTo(User::class,'operator_id','id');
+        return $this->hasOneThrough(
+            Santri::class,
+            User::class,
+            'id', 
+            'nis', 
+            'operator_id', 
+            'nis_santri' 
+        );
     }
 
     public function wallet(){

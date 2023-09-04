@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Http;
 
 class PayController extends Controller
 
@@ -93,6 +95,14 @@ class PayController extends Controller
         //     'password' => 'required|min:8',
         //     ''
         // ]);
+         $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $token = json_decode(Cookie::get('sipon_session'))->token;
+        $response = Http::withHeaders([
+                'Accept' => 'aplication/json',
+                'Authorization' => 'Bearer ' . $token,
+            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
+        $operator=$response->json()['data'];
+        
         $bills = request('bill');
         $pay = request('payment');
         $remainder = request('remainder');
@@ -100,7 +110,6 @@ class PayController extends Controller
 
         $cookieValue = request()->cookie('sipon_session');
 
-        $operator = User::inRandomOrder()->first();
         $pay_bll = 0;
         $status = 0;
         $bill_rem = 0;
@@ -156,7 +165,7 @@ class PayController extends Controller
                 'wallet_id' => $wallet->id,
                 'payable_id' =>  $map[0]['bill'],
                 'payable_type' => Bill::class,
-                'operator_id' => $operator->id,
+                'operator_id' => $operator['id'],
                 'created_at' => $date,
                 'updated_at' => $date
             ]);
@@ -212,7 +221,7 @@ class PayController extends Controller
                     'wallet_id' => $wallet->id,
                     'payable_id' =>  $item['bill'],
                     'payable_type' => Bill::class,
-                    'operator_id' => $operator->id,
+                    'operator_id' => $operator-['id'],
                     'created_at' => $date,
                     'updated_at' => $date
                 ]);
@@ -249,8 +258,14 @@ class PayController extends Controller
         // $cookieValue = request()->cookie('sipon_session');
         // $cookie = json_decode($cookieValue);
         // $id_user = $cookie->id;
-        $id_user = User::inRandomOrder()->first()->id;
-
+        
+ $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $token = json_decode(Cookie::get('sipon_session'))->token;
+        $response = Http::withHeaders([
+                'Accept' => 'aplication/json',
+                'Authorization' => 'Bearer ' . $token,
+            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
+        $operator=$response->json()['data'];
 
         $log = [];
         $pay_bll = 0;
@@ -307,7 +322,7 @@ class PayController extends Controller
                 'wallet_id' => $wallet->id,
                 'payable_id' =>  $map[0]['debt'],
                 'payable_type' => Debt::class,
-                'operator_id' => $id_user,
+                'operator_id' => $operator['id'],
             ]);
             //inser ke buku besar
 
@@ -356,7 +371,7 @@ class PayController extends Controller
                     'wallet_id' => $wallet->id,
                     'payable_id' =>  $item['debt'],
                     'payable_type' => Debt::class,
-                    'operator_id' => $id_user
+                    'operator_id' => $operator['id']
                 ]);
                 //insert buku besar
 
@@ -385,6 +400,15 @@ class PayController extends Controller
         //     ]);
         // dd(request());
         $log = [];
+         $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $token = json_decode(Cookie::get('sipon_session'))->token;
+        $response = Http::withHeaders([
+                'Accept' => 'aplication/json',
+                'Authorization' => 'Bearer ' . $token,
+            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
+        $operator=$response->json()['data'];
+        
+        
         $data = '';
         $pay = Pay::where('id', '=', request('id'))->first();
         $wallet = Wallet::where('id', '=', request('wallet')['id'])->first();
@@ -398,7 +422,7 @@ class PayController extends Controller
             'remainder' => request('remain'),
         ]);
         $pay->update([
-            'operator_id' => request('operator'),
+            'operator_id' => $operator['id'],
             'created_at' => request('date'),
             'updated_at' => request('date'),
             'payment' => request('paymentAft'),

@@ -179,7 +179,6 @@ const validate = () => {
 }
 
 const update = () => {
-    form.value.operator = 1;
     form.value.type = 'credit';
     console.log(form.value);
     console.log(errors.value);
@@ -232,7 +231,6 @@ const createTrans = (event) => {
     event.preventDefault();
 
     if (valid()) {
-        formValue.value.operator = 1;
         axios.post('/api/trans', formValue.value)
             .then((response) => {
                 clearform();
@@ -447,7 +445,7 @@ onMounted(() => {
                                 <span v-if="data.ledgerable.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan</span>
                                 <span v-else>Pembayaran Hutang</span>
                             </td>
-                            <td v-if="data.ledgerable.operator != null">{{ data.ledgerable.operator.name }}</td>
+                            <td v-if="data.ledgerable.operator != null">{{ data.ledgerable.operator.fullname }}</td>
                             <!-- <td>
                                 <a href="#" @click="showDetail(data)">
                                 </a>
