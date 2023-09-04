@@ -52,13 +52,13 @@ const valid = () => {
     }
     if (inout.value == 1) {
         if (formValues.value.debit == '') {
-            errors.value.debit = "Masukkan nilai debit !!";
+            errors.value.debit = "Masukkan jumlah pemasukan !!";
             err += 1;
         }
     }
     else {
         if (formValues.value.credit == '') {
-            errors.value.credit = "Masukkan nilai credit !!";
+            errors.value.credit = "Masukkan jumlah pengeluaran !!";
             err += 1;
         }
     }
