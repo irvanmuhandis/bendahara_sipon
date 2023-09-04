@@ -423,16 +423,16 @@ onMounted(() => {
                         </div>
 
                         <div class="form-group" v-if="inout == 1">
-                            <label>Debit</label>
+                            <label>Pemasukan</label>
                             <input v-model="formValues.debit" type="number" class="form-control "
-                                :class="{ 'is-invalid': errors.debit }" placeholder="Masukkan Nilai Debit" />
+                                :class="{ 'is-invalid': errors.debit }" placeholder="Masukkan Jumlah Pemasukan" />
                             <p>{{ formatMoney(formValues.debit) }}</p>
                             <span class="invalid-feedback">{{ errors.debit }}</span>
                         </div>
                         <div class="form-group" v-else>
-                            <label>Credit</label>
+                            <label>Pengeluaran</label>
                             <input v-model="formValues.credit" type="number" class="form-control "
-                                :class="{ 'is-invalid': errors.credit }" placeholder="Masukkan Nilai Credit" />
+                                :class="{ 'is-invalid': errors.credit }" placeholder="Masukkan Jumlah Pengeluaran" />
                             <p>{{ formatMoney(formValues.credit) }}</p>
                             <span class="invalid-feedback">{{ errors.credit }}</span>
                         </div>
