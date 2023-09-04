@@ -135,7 +135,6 @@ const clearform = () => {
 const createDebt = (event) => {
     event.preventDefault();
     if (valid()) {
-        form.value.operator = 1;
         axios.post('/api/debt', form.value)
             .then((response) => {
                 clearAll();

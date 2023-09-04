@@ -9,6 +9,8 @@ use App\Models\BigBook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Http;
 
 class TransController extends Controller
 {
@@ -28,7 +30,13 @@ class TransController extends Controller
         //     'password' => 'required|min:8',
         // ]);
         $data = [];
-
+ $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $token = json_decode(Cookie::get('sipon_session'))->token;
+        $response = Http::withHeaders([
+                'Accept' => 'aplication/json',
+                'Authorization' => 'Bearer ' . $token,
+            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
+        $operator=$response->json()['data'];
 
         if (request()->has('in')) {
             $wallet = Wallet::create([
@@ -52,7 +60,7 @@ class TransController extends Controller
         $trans = Trans::create([
             'wallet_id' => $wallet->id,
             'desc' => request('desc'),
-            'operator_id' => request('operator'),
+            'operator_id' => $operator['id'],
             'account_id' => request('account')['id'],
             'debit' => request()->has('in') ? request('in') : 0,
             'credit' => request()->has('out') ? request('out') : 0,

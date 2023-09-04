@@ -370,7 +370,6 @@ const validate = () => {
 }
 
 const update = () => {
-    editValues.value.operator = 1;
     editValues.value.type = 'App\\Models\\Debt';
     console.log(editValues.value);
     console.log(errors.value);

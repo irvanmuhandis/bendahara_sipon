@@ -40,6 +40,9 @@ use App\Models\Trans;
 // });
 
 
+
+    Route::middleware('sipon')->group(function () {
+        
 Route::get('/api/debt/search', [DebtController::class, 'search']);
 Route::delete('/api/debt', [DebtController::class, 'bulkDelete']);
 Route::delete('/api/debt/delHour', [DebtController::class, 'deleteHour']);
@@ -123,5 +126,7 @@ Route::resource('/api/group', GroupController::class)
     ->only(['index', 'store', 'update', 'destroy']);
 Route::resource('/api/pay', PayController::class)
     ->only(['index', 'store', 'show', 'update', 'destroy']);
+        Route::get('/{view}', ApplicationController::class)->where('view', '(.*)');
+    });
 
-    Route::get('/{view}', ApplicationController::class)->where('view', '(.*)');
+

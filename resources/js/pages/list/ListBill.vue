@@ -359,7 +359,6 @@ const validate = () => {
 }
 
 const update = () => {
-    form.value.operator = 1;
 
     console.log(form.value);
     console.log(errors.value);
@@ -554,7 +553,7 @@ onMounted(() => {
                         <td>{{ formatMoney(bill.remainder) }}</td>
                         <td>{{ bill.due_date }}</td>
 
-                        <td>{{ bill.operator.name }}</td>
+                        <td>{{ bill.operator.fullname }}</td>
                         <td class="text-center">
                             <a href="#" @click="editData(bill)">
                                 <i class="mx-auto fa fa-edit mr-2"></i>

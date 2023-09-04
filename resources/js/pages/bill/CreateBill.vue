@@ -117,7 +117,6 @@ const createBillSchema_rMult = yup.object({
 
 
 const createBill = () => {
-    form2.value.operator = 1;
 
     console.log(form2.value);
     console.log(errors2.value);
@@ -330,7 +329,6 @@ const createBill_s = (event) => {
     console.log(errors.value);
     event.preventDefault();
     if (validateBill()) {
-        form.value.operator = 1;
         if (!switchRange.value) {
             axios.post('/api/bill-single', form.value)
                 .then(() => {

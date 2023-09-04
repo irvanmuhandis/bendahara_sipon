@@ -5,12 +5,20 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Http;
 
 class ApplicationController extends Controller
 {
     public function __invoke()
     {
-        return view('admin.layouts.app');
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $token = json_decode(Cookie::get('sipon_session'))->token;
+        $response = Http::withHeaders([
+                'Accept' => 'aplication/json',
+                'Authorization' => 'Bearer ' . $token,
+            ])->get('https://sipon.kyaigalangsewu.net/api/v1/santri/'.$nis);
+        $santri=$response->json()['data'];
+        return view('admin.layouts.app',['operator'=>$santri]);
     }
 
 
@@ -25,7 +33,7 @@ class ApplicationController extends Controller
 
     function getOperator(Request $request)
     {
-        $cookie = Cookie::get('sipon_session');;
+        $cookie = json_decode(Cookie::get('sipon_session'))->user;
         return $cookie;
     }
 
