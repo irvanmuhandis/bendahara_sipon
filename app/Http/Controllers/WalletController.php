@@ -75,7 +75,7 @@ class WalletController extends Controller
         $wallet = Wallet::create([
             'wallet_type' => (Wallet::orderByDesc('wallet_type')->first()->wallet_type) + 1,
             'wallet_name' => request('name'),
-            'debit' => request('saldo'),
+            'debit' => request('debit'),
             'credit' => 0,
         ]);
         return $wallet;

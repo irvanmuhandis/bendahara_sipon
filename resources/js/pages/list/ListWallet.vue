@@ -45,10 +45,11 @@ const resetForm = () => {
 const valid = () => {
     var err = 0;
     resetForm();
-    if (formValues.value.credit == '') {
-        errors.value.credit = "Masukkan nilai credit !!";
-        err += 1;
-    }
+
+    if (formValues.value.name == '') {
+                errors.value.name = "Masukkan nama dompet !!";
+                err += 1;
+            }
     if  (inout.value ==  1) {
         if (formValues.value.debit == '') {
                 errors.value.debit = "Masukkan nilai debit !!";
@@ -56,15 +57,18 @@ const valid = () => {
             }
     }
     else  {
-        if (formValues.value.name == '') {
-                errors.value.name = "Masukkan nama dompet !!";
-                err += 1;
-            }
+        if (formValues.value.credit == '') {
+        errors.value.credit = "Masukkan nilai credit !!";
+        err += 1;
+    }
     }
 
+    console.log(inout.value);
+    console.log(errors.value);
     if (err == 0) {
         return true;
     }
+
 }
 
 
