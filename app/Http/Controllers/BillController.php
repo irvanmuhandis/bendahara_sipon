@@ -11,8 +11,10 @@ use App\Enums\PayStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Http;
+
 
 class BillController extends Controller
 {
@@ -213,13 +215,12 @@ class BillController extends Controller
             ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
         $operator=$response->json()['data'];
         $log = [];
-        // dd($operator['id']);
         if (request('account')) {
             foreach (request('santri') as $user) {
-
                 $bill = Bill::create([
                     'account_id' => request('account')['id'],
                     'nis' => $user['nis'],
+
                     'operator_id' => $operator['id'],
                     'amount' => request('price'),
                     'remainder' => request('price'),
@@ -235,6 +236,7 @@ class BillController extends Controller
                         $bill = Bill::create([
                             'account_id' => $account['id'],
                             'nis' => $user['nis'],
+
                             'operator_id' => $operator['id'],
                             'amount' => $account['value'],
                             'remainder' => $account['value'],
