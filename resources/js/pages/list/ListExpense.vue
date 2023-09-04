@@ -541,7 +541,7 @@ onMounted(() => {
 
                             <td>{{ data.desc }}</td>
 
-                            <td v-if="data.operator != null">{{ data.operator.name }}</td>
+                            <td v-if="data.operator != null">{{ data.operator.fullname }}</td>
                             <td>
                                 <a href="#" @click="editData(data)">
                                     <i class="fa fa-edit mr-2"></i>

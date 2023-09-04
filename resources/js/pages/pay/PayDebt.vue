@@ -583,7 +583,7 @@ onMounted(() => {
                                 <td>{{ pay.payable.title }}</td>
                                 <td>{{ pay.wallet.wallet_name }}</td>
                                 <td>{{ pay.payable.account.account_name }}</td>
-                                <td>{{ pay.operator.name }}</td>
+                                <td>{{ pay.operator.fullname }}</td>
                                 <td>
                                     <a href="#" @click="editData(pay)">
                                         <i class="fa fa-edit mr-2"></i>

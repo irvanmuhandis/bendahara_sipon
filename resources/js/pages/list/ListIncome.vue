@@ -456,7 +456,7 @@ onMounted(() => {
                                 <span v-if="data.ledgerable_type == 'App\\Models\\Pay'">Pembayaran Santri</span>
                                 <span v-else>Penambahan Hutang santri</span>
                             </td>
-                            <td>{{ data.ledgerable.operator.name }}</td>
+                            <td>{{ data.ledgerable.operator.fullname }}</td>
                             <!-- <td>
 
                                 <RouterLink :to="`/admin/ledger/${data.id}`">
