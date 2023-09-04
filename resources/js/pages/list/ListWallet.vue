@@ -49,14 +49,19 @@ const valid = () => {
         errors.value.credit = "Masukkan nilai credit !!";
         err += 1;
     }
-    if (formValues.value.debit == '') {
+    if(inout.value ==1){
+        if (formValues.value.debit == '') {
         errors.value.debit = "Masukkan nilai debit !!";
         err += 1;
     }
-    if (formValues.value.name == '') {
+    }
+    else{
+        if (formValues.value.name == '') {
         errors.value.name = "Masukkan nama dompet !!";
         err += 1;
     }
+    }
+
     if (err == 0) {
         return true;
     }
