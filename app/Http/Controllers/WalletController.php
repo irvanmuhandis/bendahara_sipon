@@ -71,9 +71,9 @@ class WalletController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-
+$type = Wallet::orderByDesc('wallet_type')->first();
         $wallet = Wallet::create([
-            'wallet_type' => Wallet::orderByDesc('wallet_type')->first()==null?(Wallet::orderByDesc('wallet_type')->first()->wallet_type) + 1:1,
+            'wallet_type' => $type==null?1:$type->wallet_type+1,
             'wallet_name' => request('name'),
             'debit' => request('debit'),
             'credit' => 0,
