@@ -11,7 +11,11 @@ import { debounce } from 'lodash';
 const toastr = useToastr();
 const accounts = ref({ 'data': [] });
 const editing = ref(false);
-const formValues = ref();
+const formValues = ref({
+    'id': null,
+    'name': null,
+    'type': null
+});
 const form = ref(null);
 // const accountIdBeingDeleted = ref(null);
 const selectAll = ref(false);
@@ -115,20 +119,6 @@ const handleSubmit = (values, actions) => {
 // };
 
 
-const search = () => {
-    axios.get('/api/account/search', {
-        params: {
-            query: searchQuery.value
-        }
-    })
-        .then(response => {
-            accounts.value = response.data;
-        })
-        .catch(error => {
-            console.log(error);
-        })
-};
-
 const toggleSelection = (account) => {
     const index = selectedAccounts.value.indexOf(account.id);
     if (index === -1) {
@@ -226,8 +216,8 @@ onMounted(() => {
                 </thead>
                 <tbody v-if="accounts.data.length > 0">
                     <AccountListItem v-for="(account, index) in accounts.data" :key="account.id" :account=account
-                        :index=index @edit-account="editAccount" @confirm-account-deletion="confirmAccountDeletion"
-                        @toggle-selection="toggleSelection" :select-all="selectAll" />
+                        :index=index @edit-account="editAccount" @toggle-selection="toggleSelection"
+                        :select-all="selectAll" />
                 </tbody>
                 <tbody v-else>
                     <tr>
@@ -235,8 +225,6 @@ onMounted(() => {
                     </tr>
                 </tbody>
             </table>
-
-            
         </div>
     </div>
     <nav aria-label="Page navigation example">
