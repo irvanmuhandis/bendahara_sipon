@@ -33,18 +33,9 @@ const fetchData = (link = '/api/account') => {
 }
 
 const confirmAccountDeletion = (id) => {
-    accountIdBeingDeleted.value = id;
     $('#deleteAccountModal').modal('show');
 };
 
-const deleteAccount = () => {
-    axios.delete(`/api/accounts/${accountIdBeingDeleted.value}`)
-        .then(() => {
-            $('#deleteAccountModal').modal('hide');
-            toastr.success('Account deleted successfully!');
-            accountDeleted(accountIdBeingDeleted.value)
-        });
-};
 
 const getAccounts = (page = 1) => {
     axios.get(`/api/account`)
@@ -98,7 +89,7 @@ const editAccount = (account) => {
 };
 
 const updateAccount = (values, { setErrors }) => {
-    axios.put('/api/accounts/' + formValues.value.id, values)
+    axios.put('/api/account/' + formValues.value.id, values)
         .then((response) => {
             const index = accounts.value.data.findIndex(account => account.id === response.data.id);
             accounts.value.data[index] = response.data;
@@ -149,7 +140,7 @@ const toggleSelection = (account) => {
 };
 
 const bulkDelete = () => {
-    axios.delete('/api/accounts', {
+    axios.delete('/api/account', {
         data: {
             ids: selectedAccounts.value
         }
@@ -211,7 +202,7 @@ onMounted(() => {
                         Tambah Akun
                     </button>
                     <div v-if="selectedAccounts.length > 0">
-                        <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
+                        <button @click="confirmAccountDeletion" type="button" class="ml-2 mb-2 btn btn-danger">
                             <i class="fa fa-trash mr-1"></i>
                             Hapus {{ selectedAccounts.length }} akun
                         </button>
@@ -267,11 +258,11 @@ onMounted(() => {
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5>Apakah anda yakin ingin menghapus akun ?</h5>
+                    <h5>Apakah anda yakin ingin menghapus {{ selectedAccounts.length }} akun ?</h5>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button @click.prevent="deleteAccount" type="button" class="btn btn-primary">Hapus</button>
+                    <button @click.prevent="bulkDelete" type="button" class="btn btn-primary">Hapus</button>
                 </div>
             </div>
         </div>
