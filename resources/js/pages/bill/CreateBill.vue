@@ -430,6 +430,20 @@ const getPeriodic = () => {
         })
 }
 
+const AccChange_S = () => {
+    switchAcc_s.value = !switchAcc_s.value;
+    form.value.account = null;
+    form.value.periodic = [];
+    form.value.price = '';
+}
+
+const changeMonth_S = () => {
+    switchRange.value = !switchRange.value;
+    form.value.period = '';
+    form.value.period_start = '';
+    form.value.period_end = '';
+}
+
 onMounted(() => {
     getSantri();
     getGroup();
@@ -498,8 +512,8 @@ onMounted(() => {
                                             <div class="form-group">
                                                 <label>Akun</label><br>
                                                 <div class="custom-control custom-switch">
-                                                    <input type="checkbox" v-model="switchAcc" class="custom-control-input"
-                                                        id="customSwitch1">
+                                                    <input type="checkbox" v-model="switchAcc" @change="AccChange"
+                                                        class="custom-control-input" id="customSwitch1">
                                                     <label class="font-weight-lighter font-italic custom-control-label"
                                                         for="customSwitch1">Tunggal / Jamak</label>
                                                 </div>
@@ -566,8 +580,8 @@ onMounted(() => {
                                         <div class="form-group">
                                             <label>Bulan</label>
                                             <div class="custom-control custom-switch">
-                                                <input type="checkbox" v-model="switchRange_g" class="custom-control-input"
-                                                    id="customSwitch3">
+                                                <input type="checkbox" v-model="switchRange_g" @change="RangeChange"
+                                                    class="custom-control-input" id="customSwitch3">
                                                 <label class="font-weight-lighter font-italic custom-control-label"
                                                     for="customSwitch3">Tunggal / Periode</label>
                                             </div>
@@ -658,15 +672,16 @@ onMounted(() => {
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <div v-if="!switchAcc_s">
-                                            <div class="form-group">
-                                                <label>Akun</label><br>
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox" v-model="switchAcc_s"
-                                                        class="custom-control-input" id="customSwitch6">
-                                                    <label class="font-weight-lighter font-italic custom-control-label"
-                                                        for="customSwitch6">Tunggal / Jamak</label>
-                                                </div>
+                                        <div class="form-group">
+                                            <label>Akun</label><br>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" @change="AccChange_S" v-model="switchAcc_s"
+                                                    class="custom-control-input" id="customSwitch6">
+                                                <label class="font-weight-lighter font-italic custom-control-label"
+                                                    for="customSwitch6">Tunggal / Jamak</label>
+                                            </div>
+
+                                            <div v-if="!switchAcc_s">
                                                 <VueMultiselect v-model="form.account" :option-height="9"
                                                     :options="accounts" :class="{ 'is-invalid': errors.account }"
                                                     :multiple="false" :close-on-select="true" placeholder="Pilih Satu "
@@ -677,17 +692,7 @@ onMounted(() => {
                                                 </VueMultiselect>
                                                 <span class="invalid-feedback">{{ errors.account }}</span>
                                             </div>
-                                        </div>
-                                        <div v-else>
-                                            <div class="form-group">
-                                                <label>Akun</label><br>
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox" v-model="switchAcc_s"
-                                                        class="custom-control-input" id="customSwitch7">
-                                                    <label class="font-weight-lighter font-italic custom-control-label"
-                                                        for="customSwitch7">Tunggal / Jamak</label>
-                                                </div>
-
+                                            <div v-else>
                                                 <div v-for="(data, index) in form.periodic">
                                                     <label class="text-right text-primary font-weight-normal">{{
                                                         data.name }}</label>
@@ -696,7 +701,6 @@ onMounted(() => {
                                                     <span>{{ formatMoney(data.value) }}</span>
                                                     <span class="invalid-feedback">{{ errors.account }}</span>
                                                 </div>
-
                                             </div>
                                         </div>
                                     </div>
@@ -705,8 +709,8 @@ onMounted(() => {
                                         <div class="form-group">
                                             <label>Bulan</label>
                                             <div class="custom-control custom-switch">
-                                                <input type="checkbox" v-model="switchRange" class="custom-control-input"
-                                                    id="customSwitch4">
+                                                <input type="checkbox" v-model="switchRange" @change="changeMonth_S"
+                                                    class="custom-control-input" id="customSwitch4">
                                                 <label class="font-weight-lighter font-italic custom-control-label"
                                                     for="customSwitch4">Tunggal / Periode</label>
                                             </div>
