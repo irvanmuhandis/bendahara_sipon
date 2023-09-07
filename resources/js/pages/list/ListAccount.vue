@@ -150,6 +150,7 @@ const bulkDelete = () => {
             selectedAccounts.value = [];
             selectAll.value = false;
             toastr.success(response.data.message);
+            $('#deleteAccountModal').modal('hide');
         });
 };
 
