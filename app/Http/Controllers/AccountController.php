@@ -37,6 +37,14 @@ class AccountController extends Controller
         return $acc;
     }
 
+
+    public function destroy()
+    {
+        Account::whereIn('id', request('ids'))->delete();
+        return response()->json(['message' => 'Akun berhasil dihapus!']);
+    }
+
+
     public function periodic()
     {
         $data = Account::where('account_type', '=', '2')->get();

@@ -239,7 +239,7 @@ const validateBill = () => {
         }
     }
     else {
-        if (form.value.price == '') {
+        if (form.value.price == ''||form.value.period == null) {
             errors.value.price = 'Pilih jumlah tagihan '
             err += 1;
         }
@@ -251,7 +251,7 @@ const validateBill = () => {
 
 
     if (!switchRange.value) {
-        if (form.value.period == '') {
+        if (form.value.period == ''||form.value.period == null) {
             errors.value.period = 'Pilih Periode '
             err += 1;
         }
