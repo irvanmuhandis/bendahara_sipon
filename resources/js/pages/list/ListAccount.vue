@@ -83,8 +83,8 @@ const editAccount = (account) => {
     $('#accountFormModal').modal('show');
     formValues.value = {
         id: account.id,
-        name: account.name,
-        type: account.email,
+        name: account.account_name,
+        type: account.account_type,
     };
 };
 
