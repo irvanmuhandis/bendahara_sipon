@@ -6,14 +6,14 @@ import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
 import AccountListItem from '../account/AccountListItem.vue';
 import { debounce } from 'lodash';
-import { Bootstrap4Pagination } from 'laravel-vue-pagination';
+// import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 
 const toastr = useToastr();
 const accounts = ref({ 'data': [] });
 const editing = ref(false);
 const formValues = ref();
 const form = ref(null);
-const accountIdBeingDeleted = ref(null);
+// const accountIdBeingDeleted = ref(null);
 const selectAll = ref(false);
 const searchQuery = ref(null);
 const selectedAccounts = ref([]);
@@ -110,9 +110,9 @@ const handleSubmit = (values, actions) => {
     }
 }
 
-const accountDeleted = (accountId) => {
-    accounts.value.data = accounts.value.data.filter(account => account.id !== accountId);
-};
+// const accountDeleted = (accountId) => {
+//     accounts.value.data = accounts.value.data.filter(account => account.id !== accountId);
+// };
 
 
 const search = () => {
@@ -235,6 +235,8 @@ onMounted(() => {
                     </tr>
                 </tbody>
             </table>
+
+            
         </div>
     </div>
     <nav aria-label="Page navigation example">
