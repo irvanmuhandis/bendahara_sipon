@@ -38,7 +38,7 @@ class AccountController extends Controller
     }
 
 
-    public function destroy()
+    public function bulkDelete()
     {
         Account::whereIn('id', request('ids'))->delete();
         return response()->json(['message' => 'Akun berhasil dihapus!']);
