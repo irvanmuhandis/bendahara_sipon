@@ -31,10 +31,10 @@ class Debt extends Model
         return $this->hasOneThrough(
             Santri::class,
             User::class,
-            'id', 
-            'nis', 
-            'operator_id', 
-            'nis_santri' 
+            'id',
+            'nis',
+            'operator_id',
+            'nis_santri'
         );
     }
 
@@ -46,4 +46,8 @@ class Debt extends Model
     {
         return $this->morphOne(Ledger::class, 'ledgerable');
     }
+
+   
+
+
 }
