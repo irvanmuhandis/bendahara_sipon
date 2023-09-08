@@ -57,11 +57,6 @@ class Account extends Model
     {
         parent::boot();
         self::deleting(function ($account) { // before delete() method call this
-            $account->bill()->each(function ($bill) {
-                $bill->wallet()->each(function ($wallet) {
-                    $wallet->delete();
-                }); // <-- direct deletion
-            });
             $account->debt()->each(function ($debt) {
                 $debt->wallet()->each(function ($wallet) {
                     $wallet->delete();
@@ -69,6 +64,16 @@ class Account extends Model
             });
             $account->trans()->each(function ($trans) {
                 $trans->wallet()->each(function ($wallet) {
+                    $wallet->delete();
+                }); // <-- direct deletion
+            });
+            $account->paydebt()->each(function ($debt) {
+                $debt->wallet()->each(function ($wallet) {
+                    $wallet->delete();
+                }); // <-- direct deletion
+            });
+            $account->paybill()->each(function ($paybill) {
+                $paybill->wallet()->each(function ($wallet) {
                     $wallet->delete();
                 }); // <-- direct deletion
             });
