@@ -42,7 +42,7 @@ use App\Models\Trans;
 
 
     Route::middleware('sipon')->group(function () {
-        
+
 Route::get('/api/debt/search', [DebtController::class, 'search']);
 Route::delete('/api/debt', [DebtController::class, 'bulkDelete']);
 Route::delete('/api/debt/delHour', [DebtController::class, 'deleteHour']);
@@ -102,6 +102,7 @@ Route::get('/api/stat',[LedgerController::class,'statistic']);
 Route::get('/api/account/only', [AccountController::class, 'only']);
 Route::get('/api/account/list', [AccountController::class, 'list']);
 Route::get('/api/account/period', [AccountController::class, 'periodic']);
+Route::delete('/api/account', [AccountController::class, 'destroy']);
 
 Route::delete('/api/trans', [TransController::class, 'bulkDelete']);
 
@@ -111,7 +112,7 @@ Route::get('/token', [ApplicationController::class, 'getToken']);
 Route::get('/api/operator', [ApplicationController::class,'getOperator']);
 
 Route::resource('/api/account', AccountController::class)
-    ->only(['index', 'store', 'update', 'destroy']);
+    ->only(['index', 'store', 'update']);
 Route::resource('/api/trans', TransController::class)
     ->only(['index', 'store', 'update']);
 Route::resource('/api/bill', BillController::class)
