@@ -40,7 +40,11 @@ class AccountController extends Controller
 
     public function bulkDelete()
     {
-        Account::whereIn('id', request('ids'))->delete();
+        $acc = Account::whereIn('id', request('ids'));
+        $acc->bill()->delete();
+        $acc->debt()->delete();
+        $acc->trans()->delete();
+        $acc->delete();
         return response()->json(['message' => 'Akun berhasil dihapus!']);
     }
 
