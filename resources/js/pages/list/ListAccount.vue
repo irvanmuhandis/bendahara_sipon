@@ -139,7 +139,7 @@ const bulkDelete = () => {
             accounts.value.data = accounts.value.data.filter(account => !selectedAccounts.value.includes(account.id));
             selectedAccounts.value = [];
             selectAll.value = false;
-            toastr.success(response.data.message);
+            toastr.success("Berhasil Menghapus Akun !");
             $('#deleteAccountModal').modal('hide');
         });
 };
