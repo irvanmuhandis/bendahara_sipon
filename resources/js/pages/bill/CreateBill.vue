@@ -650,7 +650,7 @@ onMounted(() => {
                                             <label>Santri</label>
                                             <VueMultiselect v-model="form.santri" :option-height="9" :options="santris"
                                                 :class="{ 'is-invalid': errors.santri }" :multiple="true"
-                                                :close-on-select="true" placeholder="Pilih Satu / Lebih ..."
+                                                :close-on-select="false" placeholder="Pilih Satu / Lebih ..."
                                                 label="fullname" track-by="nis" :show-labels="false">
                                                 <template v-slot:option="{ option }">
                                                     <div>{{ option.fullname }} - {{ option.nis }} </div>
