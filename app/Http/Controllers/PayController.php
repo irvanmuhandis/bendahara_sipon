@@ -102,7 +102,7 @@ class PayController extends Controller
                 'Authorization' => 'Bearer ' . $token,
             ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
         $operator=$response->json()['data'];
-        
+
         $bills = request('bill');
         $pay = request('payment');
         $remainder = request('remainder');
@@ -221,7 +221,7 @@ class PayController extends Controller
                     'wallet_id' => $wallet->id,
                     'payable_id' =>  $item['bill'],
                     'payable_type' => Bill::class,
-                    'operator_id' => $operator-['id'],
+                    'operator_id' => $operator['id'],
                     'created_at' => $date,
                     'updated_at' => $date
                 ]);
@@ -258,7 +258,7 @@ class PayController extends Controller
         // $cookieValue = request()->cookie('sipon_session');
         // $cookie = json_decode($cookieValue);
         // $id_user = $cookie->id;
-        
+
  $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
@@ -407,8 +407,8 @@ class PayController extends Controller
                 'Authorization' => 'Bearer ' . $token,
             ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
         $operator=$response->json()['data'];
-        
-        
+
+
         $data = '';
         $pay = Pay::where('id', '=', request('id'))->first();
         $wallet = Wallet::where('id', '=', request('wallet')['id'])->first();

@@ -62,7 +62,7 @@ class SantriController extends Controller
 
     public function list()
     {
-        return Santri::orderBy('fullname', 'asc')
+        return Santri::select('nis','fullname','nickname')->orderBy('fullname', 'asc')
             ->get();
     }
 }
