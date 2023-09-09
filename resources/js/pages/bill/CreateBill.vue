@@ -431,14 +431,12 @@ const getPeriodic = () => {
 }
 
 const AccChange_S = () => {
-    switchAcc_s.value = !switchAcc_s.value;
     form.value.account = null;
     form.value.periodic = [];
     form.value.price = '';
 }
 
 const changeMonth_S = () => {
-    switchRange.value = !switchRange.value;
     form.value.period = '';
     form.value.period_start = '';
     form.value.period_end = '';
