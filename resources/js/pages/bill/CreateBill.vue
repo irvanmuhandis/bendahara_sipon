@@ -432,7 +432,9 @@ const getPeriodic = () => {
 
 const AccChange_S = () => {
     form.value.account = null;
-    form.value.periodic = [];
+    form.value.periodic.forEach((element) => {
+        element.value = '';
+      });
     form.value.price = '';
 }
 
