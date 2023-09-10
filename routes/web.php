@@ -107,7 +107,7 @@ Route::middleware('sipon')->group(function () {
     Route::delete('/api/trans', [TransController::class, 'bulkDelete']);
 
 
-    //cuakkkk
+    //cuakkkktes
 
     Route::get('/logout', [ApplicationController::class, 'logout'])->name('logout');
     Route::get('/token', [ApplicationController::class, 'getToken']);
