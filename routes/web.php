@@ -41,7 +41,6 @@ use App\Models\Trans;
 
 
 
-Route::middleware('sipon')->group(function () {
 
     Route::get('/api/debt/search', [DebtController::class, 'search']);
     Route::delete('/api/debt', [DebtController::class, 'bulkDelete']);
@@ -130,4 +129,4 @@ Route::middleware('sipon')->group(function () {
     Route::resource('/api/pay', PayController::class)
         ->only(['index', 'store', 'show', 'update', 'destroy']);
     Route::get('/{view}', ApplicationController::class)->where('view', '(.*)');
-});
+
