@@ -21,8 +21,7 @@ class PayController extends Controller
 {
     public function index()
     {
-        return  Pay::
-            with(['wallet', 'user'])
+        return  Pay::with(['wallet', 'user'])
             ->get();
     }
 
@@ -95,13 +94,13 @@ class PayController extends Controller
         //     'password' => 'required|min:8',
         //     ''
         // ]);
-         $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
-                'Accept' => 'aplication/json',
-                'Authorization' => 'Bearer ' . $token,
-            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
-        $operator=$response->json()['data'];
+            'Accept' => 'aplication/json',
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
+        $operator = $response->json()['data'];
 
         $bills = request('bill');
         $pay = request('payment');
@@ -259,13 +258,13 @@ class PayController extends Controller
         // $cookie = json_decode($cookieValue);
         // $id_user = $cookie->id;
 
- $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
-                'Accept' => 'aplication/json',
-                'Authorization' => 'Bearer ' . $token,
-            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
-        $operator=$response->json()['data'];
+            'Accept' => 'aplication/json',
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
+        $operator = $response->json()['data'];
 
         $log = [];
         $pay_bll = 0;
@@ -400,13 +399,13 @@ class PayController extends Controller
         //     ]);
         // dd(request());
         $log = [];
-         $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
-                'Accept' => 'aplication/json',
-                'Authorization' => 'Bearer ' . $token,
-            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
-        $operator=$response->json()['data'];
+            'Accept' => 'aplication/json',
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
+        $operator = $response->json()['data'];
 
 
         $data = '';
@@ -418,17 +417,24 @@ class PayController extends Controller
         } else {
             $data = Debt::where('id', '=', request('debt')['id'])->first();
         }
+        if (request('remain') != 0) {
+            if ($data->amount == request('remain')) {
+                $status = 1;
+            } else {
+                $status = 2;
+            }
+        } else {
+            $status = 3;
+        }
         $data->update([
             'remainder' => request('remain'),
+            'payment_status' => $status
         ]);
         $pay->update([
             'operator_id' => $operator['id'],
             'created_at' => request('date'),
             'updated_at' => request('date'),
             'payment' => request('paymentAft'),
-        ]);
-        $data->update([
-            'remainder' => request('remain'),
         ]);
         $ledger->update([
             'created_at' => request('date'),
