@@ -218,21 +218,21 @@ class LedgerController extends Controller
         //     ->groupBy('billid');
 
         $bill = Account::where('account_type', 2)
-            ->withSum(['paybill' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('acc_pays.created_at', [$strt, $ends]);
-            }], 'payment')
             ->withSum(['bill' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('updated_at', [$strt, $ends]);
+                $query->whereBetween('due_date', [$strt->format('Y-m'), $ends->format('Y-m')]);
+            }], 'remainder')
+            ->withSum(['bill' => function ($query) use ($strt, $ends) {
+                $query->whereBetween('due_date', [$strt->format('Y-m'), $ends->format('Y-m')]);
             }], 'amount')
 
             ->get();
 
         $debt = Account::where('account_type', 1)
-            ->withSum(['paydebt' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('acc_pays.created_at', [$strt, $ends]);
-            }], 'payment')
             ->withSum(['debt' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('updated_at', [$strt, $ends]);
+                $query->whereBetween('created_at', [$strt, $ends]);
+            }], 'remainder')
+            ->withSum(['debt' => function ($query) use ($strt, $ends) {
+                $query->whereBetween('created_at', [$strt, $ends]);
             }], 'amount')
 
             ->get();
@@ -242,11 +242,11 @@ class LedgerController extends Controller
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'debit')
             ->withSum(['trans' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('updated_at', [$strt, $ends]);
+                $query->whereBetween('created_at', [$strt, $ends]);
             }], 'credit')
             ->get();
         return response()->json([
-            'bill' => json_decode($bill),
+            'bill' => $bill,
             'debt' => $debt,
             'other' => $other
         ]);
@@ -316,14 +316,27 @@ class LedgerController extends Controller
         $strt = Carbon::createFromDate($dateStart[0], $dateStart[1], 1);
         $ends = Carbon::createFromDate($dateEnd[0], $dateEnd[1], 1)->endOfMonth();
 
-        // dd($strt, $ends);
-        $pay =  Ledger::query()
-            ->where('ledgerable_type', '=', Pay::class)
-            ->join('acc_pays', 'acc_pays.id', '=', 'acc_ledgers.ledgerable_id')
-            ->whereBetween('acc_pays.created_at', [$strt, $ends])
+        // dd($strt->format('Y-m'), $ends->format('Y-m'));
+        $paybill =  Pay::query()
+            ->where('payable_type', Bill::class)
+            ->join('acc_bills', 'acc_bills.id', '=', 'acc_pays.payable_id')
+            ->whereBetween('acc_bills.due_date', [$strt->format('Y-m'), $ends->format('Y-m')])
             ->select(
                 DB::raw('sum(payment) as `sum`'),
-                DB::raw("DATE_FORMAT(acc_pays.created_at, '%Y-%m') as date")
+                DB::raw("acc_bills.due_date as date")
+            )
+            ->groupByRaw('date')
+            ->orderBy('date')
+            ->get();
+
+        $paydebt =  Pay::query()
+            ->where('payable_type', Debt::class)
+            ->with(['payable' => function ($query) use ($strt, $ends) {
+                $query->whereBetween('created_at', [$strt, $ends]);
+            }])
+            ->select(
+                DB::raw('sum(payment) as `sum`'),
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as date")
             )
             ->groupByRaw('date')
             ->orderBy('date')
@@ -358,7 +371,8 @@ class LedgerController extends Controller
         return response()->json([
             'debt' => $debt,
             'trans' => $trans,
-            'pay' => $pay
+            'paybill' => $paybill,
+            'paydebt' => $paydebt
         ]);
     }
 }
