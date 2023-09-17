@@ -63,7 +63,7 @@ const form2 = ref({
 const getSantri = async () => {
 
     try {
-        const response = await axios.get(`http://sipon.kyaigalangsewu.net/api/v1/santri/pa`)
+        const response = await axios.get(`https://sipon.kyaigalangsewu.net/api/v1/santri/pa`)
         santris.value = response.data;
         console.log('santri added');
     } catch (error) {
