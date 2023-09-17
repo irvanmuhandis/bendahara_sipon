@@ -9,6 +9,8 @@ use App\Models\Debt;
 use App\Models\Santri;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cookie;
 
 class SantriController extends Controller
 {
@@ -62,7 +64,14 @@ class SantriController extends Controller
 
     public function list()
     {
-        return Santri::select('nis','fullname','nickname')->orderBy('nis', 'desc')
-            ->get();
+        // return Santri::select('nis','fullname','nickname')->orderBy('nis', 'desc')
+        //     ->get();
+
+        $data = Http::withHeaders([
+            'Authorization' => 'Bearer ' . json_decode(Cookie::get('sipon_session'))->token,
+            'Accept' => 'application/json'
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/santri/pa');
+
+        return $data;
     }
 }
