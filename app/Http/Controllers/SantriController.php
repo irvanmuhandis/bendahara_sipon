@@ -72,6 +72,6 @@ class SantriController extends Controller
             'Accept' => 'application/json'
         ])->get('https://sipon.kyaigalangsewu.net/api/v1/santri/pa');
 
-        return $data;
+        return $data['data'];
     }
 }
