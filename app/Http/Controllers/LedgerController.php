@@ -100,6 +100,7 @@ class LedgerController extends Controller
             $end = Carbon::now();
         } else {
             $start = Carbon::parse(request('start'));
+            $start->setTime(0, 0, 0);
             $start->format('Y-m-d 00:00:00');
             $end = Carbon::parse(request('end'));
             $end->setTime(23, 59, 59);
