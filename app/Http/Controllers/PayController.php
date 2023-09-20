@@ -87,13 +87,13 @@ class PayController extends Controller
 
     public function store_bill()
     {
-        $date = request('date');
         // request()->validate([
         //     'user' => 'required',
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         //     ''
         // ]);
+
         $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
@@ -107,7 +107,6 @@ class PayController extends Controller
         $remainder = request('remainder');
         $k = request('wallet');
 
-        $cookieValue = request()->cookie('sipon_session');
 
         $pay_bll = 0;
         $status = 0;
@@ -165,15 +164,12 @@ class PayController extends Controller
                 'payable_id' =>  $map[0]['bill'],
                 'payable_type' => Bill::class,
                 'operator_id' => $operator['id'],
-                'created_at' => $date,
-                'updated_at' => $date
             ]);
             //inser ke buku besar
 
             $ledger = Ledger::create([
                 'ledgerable_id' => $i->id,
-                'created_at' => $date,
-                'updated_at' => $date,
+
                 'ledgerable_type' => Pay::class
             ]);
             array_push($log, $i);
@@ -221,15 +217,12 @@ class PayController extends Controller
                     'payable_id' =>  $item['bill'],
                     'payable_type' => Bill::class,
                     'operator_id' => $operator['id'],
-                    'created_at' => $date,
-                    'updated_at' => $date
                 ]);
                 //inser ke buku besar
 
                 $ledger = Ledger::create([
                     'ledgerable_id' => $i->id,
-                    'created_at' => $date,
-                    'updated_at' => $date,
+
                     'ledgerable_type' => Pay::class
                 ]);
 

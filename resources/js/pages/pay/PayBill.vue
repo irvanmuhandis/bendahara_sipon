@@ -30,14 +30,12 @@ const init = ref(true);
 const errors = ref({
     'santri': null,
     'bill': null,
-    'date': null,
     'wallet': null,
     'payment': null
 });
 const formValue = ref({
     'santri': null,
     'bill': [],
-    'date': new Date(new Date().getTime() + 7 * 60 * 60 * 1000).toISOString().slice(0, 16),
     'wallet': null,
     'payment': null
 });
@@ -494,12 +492,7 @@ onMounted(() => {
 
                                     <span class="invalid-feedback">{{ errors.wallet }}</span>
                                 </div>
-                                <div class="form-group">
-                                    <label for="description">Tanggal Pembayaran</label>
-                                    <input :class="{ 'is-invalid': errors.date }" class="form-control"
-                                        v-model="formValue.date" type="datetime-local" />
-                                    <span class="invalid-feedback">{{ errors.date }}</span>
-                                </div>
+
                                 <div class="form-group">
                                     <label>Jumlah Pembayaran</label><br>
                                     <span>Total Tagihan : {{ formatMoney(total, "Rp", 0) }}</span>

@@ -174,9 +174,9 @@ onMounted(() => {
                             <RouterLink to="/">Beranda</RouterLink>
                         </li>
                         <li class="breadcrumb-item">
-                            <RouterLink to="/admin/billing/debt">Hutang</RouterLink>
+                            <RouterLink to="/admin/billing/debt">Piutang</RouterLink>
                         </li>
-                        <li class="breadcrumb-item active">Tambah Hutang</li>
+                        <li class="breadcrumb-item active">Tambah Piutang</li>
                     </ol>
                 </div>
             </div>
@@ -248,7 +248,7 @@ onMounted(() => {
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Jumlah Hutang</label>
+                                    <label>Jumlah Piutang</label>
                                     <input :class="{ 'is-invalid': errors.price }" @keyup="handleChange"
                                         class="form-control" v-model="form.price" type="number" />
                                     <span class="invalid-feedback">{{ errors.price }}</span>

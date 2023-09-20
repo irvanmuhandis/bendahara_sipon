@@ -180,11 +180,11 @@ onMounted(() => {
                         <div class="row">
                             <div class="col-md-6 ">
                                 <div class="form-group">
-                                    <label>Jumlah Minimal Tunggakan</label>
+                                    <label>Menunggak berapa bulan</label>
                                     <select :class="{ 'is-invalid': errors.length }" v-model="form.length"
                                         class="form-control">
-                                        <option value="10" disabled>Pilih satu</option>
-                                        <option v-for="i in 12" :value="i">{{ i }}</option>
+                                        <option value="10" disabled>Pilih berapa bulan menunggak</option>
+                                        <option v-for="i in 12" :value="i">{{ i }} Bulan</option>
                                     </select>
                                     <span class="invalid-feedback">{{ errors.length }}</span>
                                 </div>
