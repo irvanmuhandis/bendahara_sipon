@@ -507,7 +507,7 @@ onMounted(() => {
                         </div>
                         <div class="row">
                             <div class="col">
-                                <button type="submit" class="btn btn-primary w-100">Submit</button>
+                                <button type="button" @onclick="createPay()" class="btn btn-primary w-100">Submit</button>
                             </div>
                         </div>
 
