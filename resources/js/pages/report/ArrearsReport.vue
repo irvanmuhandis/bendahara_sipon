@@ -237,7 +237,7 @@ onMounted(() => {
                                                     <th>Sisa</th>
                                                 </tr>
                                                 <tr v-for="bill in data.bill">
-                                                    <td>{{ bill.due_date }}</td>
+                                                    <td>{{ bill.month }}</td>
                                                     <td>{{ formatMoney(bill.sum_amount) }}</td>
                                                     <td>{{ formatMoney(bill.sum_remain) }}</td>
                                                 </tr>
