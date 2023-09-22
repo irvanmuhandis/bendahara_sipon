@@ -223,6 +223,7 @@ const validateBill = () => {
 }
 
 const createPay = (event) => {
+    console.log('Bayar...');
     event.preventDefault();
     formValue.value.remainder = remainder.value;
     if (validateBill()) {
@@ -243,7 +244,7 @@ const createPay = (event) => {
                 toastr.error(error);
             })
     }
-
+    console.log('Selesai');
 };
 
 
@@ -261,7 +262,7 @@ const bulkDelete = () => {
         data: {
             pay: selected.value,
             wall_ids: selectedWall.value,
-            type:'App\\Models\\Bill'
+            type: 'App\\Models\\Bill'
         }
     })
         .then(response => {
