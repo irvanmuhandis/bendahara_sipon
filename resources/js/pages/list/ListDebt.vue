@@ -346,19 +346,19 @@ const validate = () => {
         err += 1;
     }
     if (form.value.price == '') {
-        errors.value.price = 'Isi Jumlah Hutang '
+        errors.value.price = 'Isi Jumlah Piutang '
         err += 1;
     }
     if (form.value.remain == '') {
-        errors.value.remain = 'Isi Sisa Hutang '
+        errors.value.remain = 'Isi Sisa Piutang '
         err += 1;
     }
     if (form.value.title == '') {
-        errors.value.title = 'Isi Judul Hutang '
+        errors.value.title = 'Isi Judul Piutang '
         err += 1;
     }
     if (form.value.remain > form.value.price) {
-        errors.value.remain = 'Sisa hutang tidak boleh lebih dari total hutang'
+        errors.value.remain = 'Sisa Piutang tidak boleh lebih dari total Piutang'
         err += 1;
     }
     if (err == 0) {
@@ -428,14 +428,14 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0 text-primary"><strong>Debt | Hutang</strong></h1>
-                    <p><small>List hutang di pondok pesantren</small></p>
+                    <h1 class="m-0 text-primary"><strong>Debt | Piutang</strong></h1>
+                    <p><small>List Piutang di pondok pesantren</small></p>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item ">
                         <RouterLink to="/">Beranda</RouterLink></li>
-                        <li class="breadcrumb-item active">Hutang</li>
+                        <li class="breadcrumb-item active">Piutang</li>
                     </ol>
                 </div>
             </div>
@@ -448,7 +448,7 @@ onMounted(() => {
             <div class="mb-2">
 
                 <router-link to="/admin/billing/debt/create" class="w-100 ">
-                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Tambah Hutang
+                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Tambah Piutang
                     </button>
                 </router-link>
 
@@ -568,7 +568,7 @@ onMounted(() => {
                                 <i :class="{ 'text-primary': filter.nis == true }" class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
-                        <th>Hutang
+                        <th>Piutang
                             <span class="float-right" @click="sort('amount')">
                                 <i :class="{ 'text-primary': filter.amount == false }" class="fas fa-long-arrow-alt-up"></i>
                                 <i :class="{ 'text-primary': filter.amount == true }"
@@ -679,7 +679,7 @@ onMounted(() => {
                         <div class="col-8"> : {{ formatMoney(form.price) }}</div>
                     </div>
                     <div class="row">
-                        <div class="col-4">Judul Hutang </div>
+                        <div class="col-4">Judul Piutang </div>
                         <div class="col-8"> : {{ form.title }}</div>
                     </div>
                     <div class="row">
@@ -754,7 +754,7 @@ onMounted(() => {
 
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Jumlah Hutang</label>
+                                    <label>Jumlah Piutang</label>
                                     <input class="form-custom" :class="{ 'is-invalid': errors.price }" v-model="form.price"
                                         type="number" />
                                     <span class="invalid-feedback">{{ errors.price }}</span>

@@ -260,15 +260,14 @@ onMounted(() => {
                 </div>
                 <div class="col-md-6">
 
-                    <h4 class="mt-3">Hutang</h4>
+                    <h4 class="mt-3">Piutang</h4>
                     <p>Debitur : Yang berhutang</p>
                     <table class="text-navy table-sm table-bordered table-hover w-100">
                         <thead>
                             <tr>
-
                                 <th>Debitur</th>
-                                <th>Jumlah Hutang</th>
-                                <th>Sisa Hutang</th>
+                                <th>Jumlah Piutang</th>
+                                <th>Sisa Piutang</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>

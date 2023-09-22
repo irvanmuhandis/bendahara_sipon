@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('amount');
             $table->bigInteger('remainder');
-            $table->string('due_date');
+            $table->string('month');
             $table->string('nis');
             $table->foreign('nis')->references('nis')->on('santris');
               $table->foreignId('account_id');

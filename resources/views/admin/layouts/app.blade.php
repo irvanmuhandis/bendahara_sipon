@@ -136,7 +136,7 @@
                                         class="nav-link">
                                         <i class="nav-icon fas fa-piggy-bank"></i>
                                         <p>
-                                            Hutang
+                                            Piutang
                                         </p>
                                     </router-link>
                                 </li>

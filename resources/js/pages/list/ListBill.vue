@@ -67,7 +67,7 @@ const filter = ref({
     'amount': null,
     'nis': null,
     'remainder': null,
-    'due_date': null,
+    'month': null,
     'created_at': null
 })
 
@@ -305,7 +305,7 @@ const editData = (bill) => {
     form.value.price = bill.amount;
     form.value.santri = bill.santri;
     form.value.account = bill.account;
-    form.value.period = bill.due_date;
+    form.value.period = bill.month;
     form.value.remain = bill.remainder;
 
     $('#editDataModal').modal('show');
@@ -528,10 +528,10 @@ onMounted(() => {
                             </span>
                         </th>
                         <th> <span>Periode </span>
-                            <span class="float-right" @click="sort('due_date')">
-                                <i :class="{ 'text-primary': filter.due_date == false }"
+                            <span class="float-right" @click="sort('month')">
+                                <i :class="{ 'text-primary': filter.month == false }"
                                     class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.due_date == true }"
+                                <i :class="{ 'text-primary': filter.month == true }"
                                     class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
@@ -551,7 +551,7 @@ onMounted(() => {
                         <td>{{ bill.santri.fullname }}</td>
                         <td>{{ formatMoney(bill.amount) }}</td>
                         <td>{{ formatMoney(bill.remainder) }}</td>
-                        <td>{{ bill.due_date }}</td>
+                        <td>{{ bill.month }}</td>
 
                         <td>{{ bill.operator.fullname }}</td>
                         <td class="text-center">

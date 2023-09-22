@@ -63,7 +63,7 @@ class BillController extends Controller
                 'amount' => request('price'),
                 'remainder' => request('price'),
                 'payment_status' =>  1,
-                'due_date' => request('period'),
+                'month' => request('period'),
             ]);
         }
 
@@ -90,7 +90,7 @@ class BillController extends Controller
                     'amount' => request('price'),
                     'remainder' => request('price'),
                     'payment_status' =>  1,
-                    'due_date' => $month->format('Y-m'),
+                    'month' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -116,7 +116,7 @@ class BillController extends Controller
                 'amount' => request('syah'),
                 'remainder' => request('syah'),
                 'payment_status' =>  1,
-                'due_date' => request('period'),
+                'month' => request('period'),
             ]);
         }
 
@@ -127,7 +127,7 @@ class BillController extends Controller
                 'amount' => request('wifi'),
                 'remainder' => request('wifi'),
                 'payment_status' =>  1,
-                'due_date' => request('period'),
+                'month' => request('period'),
             ]);
         }
 
@@ -138,7 +138,7 @@ class BillController extends Controller
                 'amount' => request('madin'),
                 'remainder' => request('madin'),
                 'payment_status' =>  1,
-                'due_date' => request('period'),
+                'month' => request('period'),
             ]);
         }
 
@@ -165,7 +165,7 @@ class BillController extends Controller
                     'amount' => request('madin'),
                     'remainder' => request('madin'),
                     'payment_status' =>  1,
-                    'due_date' => $month->format('Y-m'),
+                    'month' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -179,7 +179,7 @@ class BillController extends Controller
                     'amount' => request('syah'),
                     'remainder' => request('syah'),
                     'payment_status' =>  1,
-                    'due_date' => $month->format('Y-m'),
+                    'month' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -192,7 +192,7 @@ class BillController extends Controller
                     'amount' => request('wifi'),
                     'remainder' => request('wifi'),
                     'payment_status' =>  1,
-                    'due_date' => $month->format('Y-m'),
+                    'month' => $month->format('Y-m'),
                 ]);
             }
         }
@@ -225,7 +225,7 @@ class BillController extends Controller
                     'amount' => request('price'),
                     'remainder' => request('price'),
                     'payment_status' =>  1,
-                    'due_date' => request('period'),
+                    'month' => request('period'),
                 ]);
                 array_push($log, $bill);
             }
@@ -241,7 +241,7 @@ class BillController extends Controller
                             'amount' => $account['value'],
                             'remainder' => $account['value'],
                             'payment_status' =>  1,
-                            'due_date' => request('period'),
+                            'month' => request('period'),
                         ]);
                         array_push($log, $bill);
                     }
@@ -278,7 +278,7 @@ class BillController extends Controller
                         'amount' => request('price'),
                         'remainder' => request('price'),
                         'payment_status' =>  1,
-                        'due_date' => $month->format('Y-m'),
+                        'month' => $month->format('Y-m'),
                     ]);
                     array_push($log, $bill);
                 }
@@ -295,7 +295,7 @@ class BillController extends Controller
                                 'amount' => $account['value'],
                                 'remainder' => $account['value'],
                                 'payment_status' =>  1,
-                                'due_date' => $month->format('Y-m'),
+                                'month' => $month->format('Y-m'),
                             ]);
                             array_push($log, $bill);
                         }
@@ -314,7 +314,7 @@ class BillController extends Controller
         //         'peiod' => 'required|unique:dispens,email,' . $dispen->id,
         //         'password' => 'sometimes|min:8',
         //     ]);
-        
+
          $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
@@ -330,7 +330,7 @@ class BillController extends Controller
             'amount' => request('price'),
             'remainder' => request('remain'),
             'nis' => request('santri')['nis'],
-            'due_date' => request('period'),
+            'month' => request('period'),
         ]);
 
         return $bill;
