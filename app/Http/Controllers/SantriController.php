@@ -43,7 +43,7 @@ class SantriController extends Controller
             where('acc_bills.nis', '=', $id)
             ->where('acc_bills.payment_status', '<', 3)
             ->with(['santri', 'account'])
-            ->orderBy('acc_bills.due_date', 'desc')
+            ->orderBy('acc_bills.month', 'desc')
             ->latest()->paginate(9);
 
 
