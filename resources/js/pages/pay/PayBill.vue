@@ -440,7 +440,7 @@ onMounted(() => {
                                             <input type="checkbox" @change="totalize($event, bill.id)"
                                                 v-model="formValue.bill" :value="bill.id" />
                                             <label class="ml-2">
-                                                {{ bill.account.account_name }} | {{ bill.due_date }} |
+                                                {{ bill.account.account_name }} | {{ bill.month }} |
                                                 <span class="text-right text-monospace">
                                                     {{
                                                         formatMoney(
@@ -654,7 +654,7 @@ onMounted(() => {
                     <div class="row">
                         <div class="col-5">Tagihan </div>
                         <div v-if="editValues.bill != null" class="col"> : {{ editValues.bill.account.account_name + ' / ' +
-                            editValues.bill.due_date }}</div>
+                            editValues.bill.month }}</div>
                     </div>
                     <div class="row">
                         <div class="col-5">Dompet </div>
