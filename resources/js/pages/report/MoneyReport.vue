@@ -55,7 +55,9 @@ const errors = ref({
 
 async function getInout(params) {
 
-    axios.get('/api/accsum')
+    axios.get('/api/accsum',{
+        params
+    })
         .then(response => {
             if (response.data) {
                 // Update the Vue component's data with the status message
@@ -70,7 +72,9 @@ async function getInout(params) {
         });
 
     try {
-        const response = await axios.get('/api/inout');
+        const response = await axios.get('/api/inout', {
+            params
+        })
         inoutData.value = response.data;
         graph();
     } catch (error) {
@@ -240,7 +244,8 @@ onMounted(() => {
     getData();
     fetchCircul();
     getDate();
-    getInout();
+    const params = { 'start': '', 'end': '' };
+    getInout(params);
 })
 
 </script>
