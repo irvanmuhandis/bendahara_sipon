@@ -143,29 +143,29 @@ class LedgerController extends Controller
             ->with('bill.account')
             ->withCount(['bill as bill_count' => function ($bill) use ($account) {
                 $bill
-                    ->select(DB::raw('count(distinct(due_date))'))
-                    ->whereBetween('due_date', [request('start'), request('end')])
+                    ->select(DB::raw('count(distinct(month))'))
+                    ->whereBetween('month', [request('start'), request('end')])
                     ->whereIn('account_id', $account)
                     ->where('payment_status', '<', 3);
             }])
             ->with(['bill' => function ($query) use ($account) {
-                $query->selectRaw('due_date,nis,sum(amount) as sum_amount,sum(remainder) as sum_remain,count(id) as count')
-                    ->whereBetween('due_date', [request('start'), request('end')])
+                $query->selectRaw('month,nis,sum(amount) as sum_amount,sum(remainder) as sum_remain,count(id) as count')
+                    ->whereBetween('month', [request('start'), request('end')])
                     ->whereIn('account_id', $account)
                     ->where('payment_status', '<', 3)
-                    ->groupBy('due_date')
+                    ->groupBy('month')
                     ->groupBy('nis')
-                    ->orderBy('due_date');
+                    ->orderBy('month');
             }])
             ->withSum(['bill as sum_remain' => function ($bill) use ($account) {
                 $bill
-                    ->whereBetween('due_date', [request('start'), request('end')])
+                    ->whereBetween('month', [request('start'), request('end')])
                     ->whereIn('account_id', $account)
                     ->where('payment_status', '<', 3);
             }], 'remainder')
             ->withSum(['bill as sum_amount' => function ($bill) use ($account) {
                 $bill
-                    ->whereBetween('due_date', [request('start'), request('end')])
+                    ->whereBetween('month', [request('start'), request('end')])
                     ->whereIn('account_id', $account)
                     ->where('payment_status', '<', 3);
             }], 'amount')
@@ -220,10 +220,10 @@ class LedgerController extends Controller
 
         $bill = Account::where('account_type', 2)
             ->withSum(['bill' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('due_date', [$strt->format('Y-m'), $ends->format('Y-m')]);
+                $query->whereBetween('month', [$strt->format('Y-m'), $ends->format('Y-m')]);
             }], 'remainder')
             ->withSum(['bill' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('due_date', [$strt->format('Y-m'), $ends->format('Y-m')]);
+                $query->whereBetween('month', [$strt->format('Y-m'), $ends->format('Y-m')]);
             }], 'amount')
 
             ->get();
@@ -321,10 +321,10 @@ class LedgerController extends Controller
         $paybill =  Pay::query()
             ->where('payable_type', Bill::class)
             ->join('acc_bills', 'acc_bills.id', '=', 'acc_pays.payable_id')
-            ->whereBetween('acc_bills.due_date', [$strt->format('Y-m'), $ends->format('Y-m')])
+            ->whereBetween('acc_bills.month', [$strt->format('Y-m'), $ends->format('Y-m')])
             ->select(
                 DB::raw('sum(payment) as `sum`'),
-                DB::raw("acc_bills.due_date as date")
+                DB::raw("acc_bills.month as date")
             )
             ->groupByRaw('date')
             ->orderBy('date')
