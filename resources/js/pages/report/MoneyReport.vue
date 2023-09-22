@@ -70,9 +70,7 @@ async function getInout(params) {
         });
 
     try {
-        const response = await axios.get('/api/inout', {
-            params
-        })
+        const response = await axios.get('/api/inout');
         inoutData.value = response.data;
         graph();
     } catch (error) {
@@ -242,8 +240,7 @@ onMounted(() => {
     getData();
     fetchCircul();
     getDate();
-    const params = { 'start': -1, 'end': 1 };
-    getInout(params);
+    getInout();
 })
 
 </script>
