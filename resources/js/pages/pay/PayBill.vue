@@ -205,10 +205,6 @@ const validateBill = () => {
         errors.value.wallet = 'Pilih dompet '
         err += 1;
     }
-    if (formValue.value.date == null) {
-        errors.value.date = 'Pilih tanggal '
-        err += 1;
-    }
     if (formValue.value.payment > total.value) {
         errors.value.payment = 'Pembayaran tidak boleh lebih dari total '
         err += 1;
@@ -502,7 +498,7 @@ onMounted(() => {
                                         :class="{ 'is-invalid': errors.payment }" class="form-control" id="time" />
                                     <span class="invalid-feedback">{{ errors.payment }}</span>
                                     <span>{{ formatMoney(formValue.payment) }}</span><br>
-                                    tt
+                                    
                                 </div>
                             </div>
                         </div>
