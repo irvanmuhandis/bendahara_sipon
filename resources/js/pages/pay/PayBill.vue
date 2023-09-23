@@ -502,12 +502,13 @@ onMounted(() => {
                                         :class="{ 'is-invalid': errors.payment }" class="form-control" id="time" />
                                     <span class="invalid-feedback">{{ errors.payment }}</span>
                                     <span>{{ formatMoney(formValue.payment) }}</span><br>
+                                    tt
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col">
-                                <button type="button" @onclick="createPay()" class="btn btn-primary w-100">Submit</button>
+                                <button type="submit"  class="btn btn-primary w-100">Submit</button>
                             </div>
                         </div>
 
