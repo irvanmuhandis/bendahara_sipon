@@ -70,11 +70,8 @@ class LedgerController extends Controller
                     $req = 'desc';
                 }
             }
-            $data = Ledger::whereHas('ledgerable' , function ($query) use ($searchQuery) {
-                $query->where('fullname', 'like', "%{$searchQuery}%");
-            })
-                ->where('ledgerable_type', '!=', Trans::class)
-                ->with(['ledgerable.wallet', 'ledgerable.operator'])
+            $data = Ledger::where('ledgerable_type', '!=', Trans::class)
+                ->with(['ledgerable.wallet','ledgerable.santri' ,'ledgerable.operator'])
                 ->orderBy($fil, $req)->paginate(25);
             return $data;
         }
