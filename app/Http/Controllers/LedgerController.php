@@ -70,7 +70,7 @@ class LedgerController extends Controller
                 }
             }
             $data = Ledger::whereHas('ledgerable.santri' , function ($query) use ($searchQuery) {
-                $query->where('santris.fullname', 'like', "%{$searchQuery}%");
+                $query->where('fullname', 'like', "%{$searchQuery}%");
             })
                 ->where('ledgerable_type', '!=', Trans::class)
                 ->with(['ledgerable.wallet', 'ledgerable.operator'])
