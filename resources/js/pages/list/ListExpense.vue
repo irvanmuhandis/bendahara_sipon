@@ -348,7 +348,7 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row pb-3">
                 <router-link to="/admin/billing/debt/create" class="col-md-12">
-                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Tambah Hutang</button>
+                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Pengeluaran Piutang</button>
                 </router-link>
             </div>
             <!-- <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
@@ -443,7 +443,7 @@ onMounted(() => {
                             <td v-if="data.ledgerable_type == 'App\\Models\\Trans'">{{ data.ledgerable.desc }}</td>
                             <td v-else>
                                 <span v-if="data.ledgerable.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan</span>
-                                <span v-else>Pembayaran Hutang</span>
+                                <span v-else>Pembayaran Piutang</span>
                             </td>
                             <td v-if="data.ledgerable.operator != null">{{ data.ledgerable.operator.fullname }}</td>
                             <!-- <td>

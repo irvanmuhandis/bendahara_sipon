@@ -415,7 +415,7 @@ onMounted(() => {
                         <li class="breadcrumb-item">
                             <router-link to="/admin/income">Pemasukan</router-link>
                         </li>
-                        <li class="breadcrumb-item active">Hutang</li>
+                        <li class="breadcrumb-item active">Piutang</li>
                     </ol>
                 </div>
             </div>
@@ -656,7 +656,7 @@ onMounted(() => {
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-5">Hutang </div>
+                        <div class="col-5">Piutang </div>
                         <div v-if="editValues.debt != null" class="col"> : {{ editValues.debt.account.account_name + ' / ' +
                             editValues.debt.due_date }}</div>
                     </div>
@@ -692,7 +692,7 @@ onMounted(() => {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Ubah Data Pembayaran Hutang</span>
+                        <span>Ubah Data Pembayaran Piutang</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>

@@ -70,7 +70,7 @@ class LedgerController extends Controller
                 }
             }
             $data = Ledger::where('ledgerable_type', '!=', Trans::class)
-                ->with(['ledgerable.wallet', 'ledgerable.operator'])
+                ->with(['ledgerable.wallet','ledgerable.santri', 'ledgerable.operator'])
                 ->orderBy($fil, $req)->paginate(25);
             return $data;
         }

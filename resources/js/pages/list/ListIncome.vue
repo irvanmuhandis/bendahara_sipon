@@ -356,7 +356,7 @@ onMounted(() => {
                     <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Pembayaran Tagihan</button>
                 </router-link>
                 <router-link to="/admin/income/create-debt" class="col-md-6 pt-2">
-                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Pembayaran Hutang</button>
+                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Pembayaran Piutang</button>
                 </router-link>
             </div>
             <!-- <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
@@ -453,8 +453,8 @@ onMounted(() => {
 
                             <td v-if="data.ledgerable_type == 'App\\Models\\Trans'">{{ data.ledgerable.desc }}</td>
                             <td v-else>
-                                <span v-if="data.ledgerable_type == 'App\\Models\\Pay'">Pembayaran Santri</span>
-                                <span v-else>Penambahan Hutang santri</span>
+                                <span v-if="data.ledgerable_type == 'App\\Models\\Pay'">Pembayaran Santri {{ data.ledgerable.santri.fullname }}</span>
+                                <span v-else>Pembayaran hutang {{ data.ledgerable.santri.fullname }}</span>
                             </td>
                             <td>{{ data.ledgerable.operator.fullname }}</td>
                             <!-- <td>
