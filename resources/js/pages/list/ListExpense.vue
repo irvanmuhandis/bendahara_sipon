@@ -443,12 +443,12 @@ onMounted(() => {
                         <tr v-for="(data) in listData.data" class="text-center" :key="data.id">
 
                             <td>{{ formatDate(data.created_at) }}</td>
-                            <td v-if="data.ledgerable.wallet != null"
-                                v-html="formatDiff(data.ledgerable.wallet.debit, data.ledgerable.wallet.credit)"></td>
-                            <td v-if="data.ledgerable.wallet != null">{{ data.ledgerable.wallet.wallet_name }} </td>
-                            <td v-html="formatClass(data.ledgerable_type)"></td>
-                            <td>{{ data.ledgerable.desc }}</td>
-                            <td v-if="data.ledgerable.operator != null">{{ data.ledgerable.operator.fullname }}</td>
+                            <td v-if="data.wallet != null"
+                                v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
+                            <td v-if="data.wallet != null">{{ data.wallet.wallet_name }} </td>
+                            <td><div class="badge badge-primary">EKSTERNAL</div></td>
+                            <td>{{ data.desc }}</td>
+                            <td v-if="data.operator != null">{{ data.operator.fullname }}</td>
                             <!-- <td>
                                 <a href="#" @click="showDetail(data)">
                                 </a>

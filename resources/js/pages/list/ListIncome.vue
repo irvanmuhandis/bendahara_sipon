@@ -6,7 +6,7 @@ import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
 import { useRouter, RouterLink } from 'vue-router';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
-import { formatDate, formatDiff, formatClass, formatMoney, formatAccount } from '../../helper.js';
+import { formatDate, formatDiff, formatClass, formatMoney, formatMoney_2,formatAccount } from '../../helper.js';
 
 const toastr = useToastr();
 const wallets = ref([]);
@@ -453,11 +453,10 @@ onMounted(() => {
 
                             <td>{{ formatDate(data.created_at) }}</td>
                             <td v-html="formatDiff(data, data)"></td>
-                            <td>{{ data }} </td>
-                            <td v-html="formatClass(data)"></td>
-
-                            <td>{{ data.ledgerable.desc }}</td>
-                            <td>{{ data.ledgerable.operator.fullname }}</td>
+                            <td>{{ data.wallet.wallet_name }} </td>
+                            <td><div class="badge badge-primary">EKSTERNAL</div></td>
+                            <td>{{ data.desc }}</td>
+                            <td>{{ data.operator.fullname }}</td>
                             <!-- <td>
 
                                 <RouterLink :to="`/admin/ledger/${data.id}`">
@@ -545,12 +544,12 @@ onMounted(() => {
                                     @change="toggleSelection(data)" />
                             </td>
                             <td>{{ formatDate(data.created_at) }}</td>
-                            <td v-html="formatDiff(data, data)"></td>
-                            <td>{{ data }} </td>
+                            <td v-html="formatMoney_2(data.payment, 1)"></td>
+                            <td>{{ data.wallet.wallet_name }} </td>
                             <td>{{ data.account.account_name }}</td>
                             <td>
-                                <span v-if="data.payable_type == 'App\\Models\\Pay'">Pembayaran Santri {{ data.ledgerable.santri.fullname }}</span>
-                                <span v-else>Pembayaran hutang {{ data.ledgerable.santri.fullname }}</span>
+                                <span v-if="data.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan {{ data.santri.fullname }}</span>
+                                <span v-else>Pembayaran hutang {{ data.santri.fullname }}</span>
                             </td>
                             <td>{{ data.operator.fullname }}</td>
                             <td>
