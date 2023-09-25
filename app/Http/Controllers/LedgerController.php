@@ -74,14 +74,14 @@ class LedgerController extends Controller
                 $data = Debt::whereHas('santri',function ($query)use($searchQuery){
                     $query->where('fullname', 'like', "%{$searchQuery}%");
                 })
-                    ->with(['wallet','operator'])
+                    ->with(['wallet','santri','operator'])
                     ->orderBy($fil, $req)->paginate(25);
                 return $data;
             } else {
                 $data = Pay::whereHas('santri',function ($query)use($searchQuery){
                     $query->where('fullname', 'like', "%{$searchQuery}%");
                 })
-                    ->with(['wallet','operator'])
+                    ->with(['wallet','santri','operator'])
                     ->orderBy($fil, $req)->paginate(25);
                 return $data;
             }
