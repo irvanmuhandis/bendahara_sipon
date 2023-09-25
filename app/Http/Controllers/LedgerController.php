@@ -77,8 +77,6 @@ class LedgerController extends Controller
         }
     }
 
-
-
     public function circulation()
     {
         // dd('sas');
