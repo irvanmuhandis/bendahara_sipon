@@ -216,7 +216,7 @@ const fetchData = (link = `/api/ledger`) => {
                 value: fil.value,
                 mode: !switchMode.value ? 'App\\Models\\Trans' : 'App\\Models\\Bill',
                 query: searchQuery.value,
-                debit: 1
+                debit: 0
             }
         }).then((response) => {
             listData.value = response.data;

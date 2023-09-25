@@ -272,7 +272,7 @@ const fetchData = (link = `/api/ledger`) => {
                 value: fil.value,
                 mode: !switchMode.value ? 'App\\Models\\Trans' : 'App\\Models\\Bill',
                 query: searchQuery.value,
-                debit: 0
+                debit: 1
             }
         }).then((response) => {
             listData.value = response.data;
@@ -452,16 +452,16 @@ onMounted(() => {
                         <tr v-for="(data) in listData.data" class="text-center" :key="data.id">
 
                             <td>{{ formatDate(data.created_at) }}</td>
-                            <td v-html="formatDiff(data.ledgerable.wallet.debit, data.ledgerable.wallet.credit)"></td>
-                            <td>{{ data.ledgerable.wallet.wallet_name }} </td>
-                            <td v-html="formatClass(data.ledgerable_type)"></td>
+                            <td v-html="formatDiff(data, data)"></td>
+                            <td>{{ data }} </td>
+                            <td v-html="formatClass(data)"></td>
 
-                            <td v-if="data.ledgerable_type == 'App\\Models\\Trans'">{{ data.ledgerable.desc }}</td>
+                            <!-- <td v-if="data.ledgerable_type == 'App\\Models\\Trans'">{{ data.ledgerable.desc }}</td>
                             <td v-else>
                                 <span v-if="data.ledgerable_type == 'App\\Models\\Pay'">Pembayaran Santri {{ data.ledgerable.santri.fullname }}</span>
                                 <span v-else>Pembayaran hutang {{ data.ledgerable.santri.fullname }}</span>
                             </td>
-                            <td>{{ data.ledgerable.operator.fullname }}</td>
+                            <td>{{ data.ledgerable.operator.fullname }}</td> -->
                             <!-- <td>
 
                                 <RouterLink :to="`/admin/ledger/${data.id}`">
