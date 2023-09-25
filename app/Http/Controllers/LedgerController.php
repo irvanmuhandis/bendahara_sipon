@@ -18,7 +18,7 @@ use App\Models\Santri;
 use App\Models\Wallet;
 use Carbon\Carbon;
 use DateTime;
-use Illuminate\Database\Eloquent\Builder;
+
 use Illuminate\Pagination\LengthAwarePaginator;
 
 use function Database\Seeders\wallet;
@@ -70,7 +70,7 @@ class LedgerController extends Controller
                     $req = 'desc';
                 }
             }
-            $data = Ledger::whereHas('ledgerable.santri' , function (Builder $query) use ($searchQuery) {
+            $data = Ledger::whereHas('ledgerable' , function ($query) use ($searchQuery) {
                 $query->where('fullname', 'like', "%{$searchQuery}%");
             })
                 ->where('ledgerable_type', '!=', Trans::class)
