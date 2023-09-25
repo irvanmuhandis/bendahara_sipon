@@ -335,7 +335,9 @@ onMounted(() => {
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item ">    <RouterLink to="/">Beranda</RouterLink></li>
+                        <li class="breadcrumb-item ">
+                            <RouterLink to="/">Beranda</RouterLink>
+                        </li>
                         <li class="breadcrumb-item active">Pengeluaran</li>
                     </ol>
                 </div>
@@ -348,7 +350,8 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row pb-3">
                 <router-link to="/admin/billing/debt/create" class="col-md-12">
-                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Pengeluaran Piutang</button>
+                    <button class="btn btn-primary w-100"><i class="fa fa-plus-circle mr-1"></i> Pengeluaran
+                        Piutang</button>
                 </router-link>
             </div>
             <!-- <button @click="AddPayBill" type="button" class="mb-2 btn btn-primary">
@@ -412,6 +415,11 @@ onMounted(() => {
             </div>
 
             <div class="" v-if="switchMode">
+                <div class="mb-2 col-md">
+                    <div class="input-group w-100 ">
+                        <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
+                    </div>
+                </div>
                 <table class="table table-bordered" style="overflow: auto;width:100%">
                     <thead>
                         <tr>
@@ -624,13 +632,13 @@ onMounted(() => {
                             <div class="col-5">Jumlah Nominal Sebelum</div>
                             <div class="col"> : {{ formatMoney(form.priceBefore) }}</div>
                         </div>
-                        <div  class="row">
+                        <div class="row">
                             <div class="col-5">Jumlah Nominal Sesudah</div>
                             <div class="col"> : {{ formatMoney(form.price) }}</div>
                         </div>
                     </span>
                     <span v-else>
-                        <div  class="row">
+                        <div class="row">
                             <div class="col-5">Jumlah Nominal</div>
                             <div class="col"> : {{ formatMoney(form.price) }}</div>
                         </div>
