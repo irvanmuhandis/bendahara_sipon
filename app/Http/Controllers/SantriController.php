@@ -62,6 +62,9 @@ class SantriController extends Controller
         return response()->json($db);
     }
 
+
+
+    
     public function list()
     {
         // return Santri::select('nis','fullname','nickname')->orderBy('nis', 'desc')
