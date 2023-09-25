@@ -549,8 +549,8 @@ onMounted(() => {
                                     @change="toggleSelection(data)" />
                             </td>
                             <td>{{ formatDate(data.created_at) }}</td>
-                            <td v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
-                            <td>{{ data.wallet.wallet_name }} </td>
+                            <td v-html="formatDiff(data, data)"></td>
+                            <td>{{ data }} </td>
                             <td>{{ data.account.account_name }}</td>
 
                             <td>{{ data.desc }}</td>
