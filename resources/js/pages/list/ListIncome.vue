@@ -456,7 +456,7 @@ onMounted(() => {
                             <td>{{ data.wallet.wallet_name }} </td>
                             <td><div class="badge badge-primary">EKSTERNAL</div></td>
                             <td>{{ data.desc }}</td>
-                            <td>{{ data.operator.fullname }}</td>
+                            <!-- <td>{{ data.operator.fullname }}</td> -->
                             <!-- <td>
 
                                 <RouterLink :to="`/admin/ledger/${data.id}`">
