@@ -17,7 +17,7 @@ const listData = ref({
 const accounts = ref([]);
 const wallets = ref([]);
 
-const switchMode = ref();
+const switchMode = ref(false);
 const searchQuery = ref('');
 const selected = ref([]);
 const selectAll = ref(false);

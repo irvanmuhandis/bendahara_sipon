@@ -34,7 +34,7 @@ const errors = ref({
     'desc': null
 });
 
-const switchMode = ref();
+const switchMode = ref(false);
 
 const errorsEdit = ref({
     'price': null,
