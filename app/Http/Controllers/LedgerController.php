@@ -70,10 +70,22 @@ class LedgerController extends Controller
                     $req = 'desc';
                 }
             }
-            $data = Ledger::where('ledgerable_type', '!=', Trans::class)
-                ->with(['ledgerable.wallet','ledgerable.santri' ,'ledgerable.operator'])
-                ->orderBy($fil, $req)->paginate(25);
-            return $data;
+            if ($debit == 1) {
+                $data = Debt::whereHas('santri',function ($query)use($searchQuery){
+                    $query->where('desc', 'like', "%{$searchQuery}%");
+                })
+                    ->with(['wallet','operator'])
+                    ->orderBy($fil, $req)->paginate(25);
+                return $data;
+            } else {
+                $data = Pay::whereHas('santri',function ($query)use($searchQuery){
+                    $query->where('desc', 'like', "%{$searchQuery}%");
+                })
+                    ->with(['wallet','operator'])
+                    ->orderBy($fil, $req)->paginate(25);
+                return $data;
+            }
+
         }
     }
 

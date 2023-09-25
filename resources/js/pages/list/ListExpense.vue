@@ -415,11 +415,11 @@ onMounted(() => {
             </div>
 
             <div class="" v-if="switchMode">
-                <!-- <div class="mb-2 col-md">
+                <div class="mb-2 col-md">
                     <div class="input-group w-100 ">
                         <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
                     </div>
-                </div> -->
+                </div>
                 <table class="table table-bordered" style="overflow: auto;width:100%">
                     <thead>
                         <tr>
