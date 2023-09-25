@@ -431,7 +431,7 @@ onMounted(() => {
                                         class="fas fa-long-arrow-alt-down"></i>
                                 </span>
                             </th>
-                            <th>Pendapatan/Pengeluaran</th>
+                            <th>Pengeluaran</th>
                             <th>Dompet</th>
                             <th>Sumber</th>
                             <th>Deskripsi</th>
@@ -447,12 +447,7 @@ onMounted(() => {
                                 v-html="formatDiff(data.ledgerable.wallet.debit, data.ledgerable.wallet.credit)"></td>
                             <td v-if="data.ledgerable.wallet != null">{{ data.ledgerable.wallet.wallet_name }} </td>
                             <td v-html="formatClass(data.ledgerable_type)"></td>
-
-                            <td v-if="data.ledgerable_type == 'App\\Models\\Trans'">{{ data.ledgerable.desc }}</td>
-                            <td v-else>
-                                <span v-if="data.ledgerable.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan</span>
-                                <span v-else>Pembayaran Piutang</span>
-                            </td>
+                            <td>{{ data.ledgerable.desc }}</td>
                             <td v-if="data.ledgerable.operator != null">{{ data.ledgerable.operator.fullname }}</td>
                             <!-- <td>
                                 <a href="#" @click="showDetail(data)">
@@ -548,7 +543,9 @@ onMounted(() => {
                             <td v-if="data.account != null">{{ data.account.account_name }}</td>
 
                             <td>{{ data.desc }}</td>
-
+                            <td >
+                                <span>Piutang {{ data.santri.fullname }}</span>
+                            </td>
                             <td v-if="data.operator != null">{{ data.operator.fullname }}</td>
                             <td>
                                 <a href="#" @click="editData(data)">

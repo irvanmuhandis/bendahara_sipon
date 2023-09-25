@@ -437,7 +437,7 @@ onMounted(() => {
                                         class="fas fa-long-arrow-alt-down"></i>
                                 </span>
                             </th>
-                            <th>Pendapatan/Pengeluaran
+                            <th>Pendapatan
                             </th>
                             <th>Dompet
                             </th>
@@ -456,12 +456,8 @@ onMounted(() => {
                             <td>{{ data }} </td>
                             <td v-html="formatClass(data)"></td>
 
-                            <!-- <td v-if="data.ledgerable_type == 'App\\Models\\Trans'">{{ data.ledgerable.desc }}</td>
-                            <td v-else>
-                                <span v-if="data.ledgerable_type == 'App\\Models\\Pay'">Pembayaran Santri {{ data.ledgerable.santri.fullname }}</span>
-                                <span v-else>Pembayaran hutang {{ data.ledgerable.santri.fullname }}</span>
-                            </td>
-                            <td>{{ data.ledgerable.operator.fullname }}</td> -->
+                            <td>{{ data.ledgerable.desc }}</td>
+                            <td>{{ data.ledgerable.operator.fullname }}</td>
                             <!-- <td>
 
                                 <RouterLink :to="`/admin/ledger/${data.id}`">
@@ -552,9 +548,10 @@ onMounted(() => {
                             <td v-html="formatDiff(data, data)"></td>
                             <td>{{ data }} </td>
                             <td>{{ data.account.account_name }}</td>
-
-                            <td>{{ data.desc }}</td>
-
+                            <td>
+                                <span v-if="data.payable_type == 'App\\Models\\Pay'">Pembayaran Santri {{ data.ledgerable.santri.fullname }}</span>
+                                <span v-else>Pembayaran hutang {{ data.ledgerable.santri.fullname }}</span>
+                            </td>
                             <td>{{ data.operator.fullname }}</td>
                             <td>
                                 <a href="#" @click="editData(data)">
