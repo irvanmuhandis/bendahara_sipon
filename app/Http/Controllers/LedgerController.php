@@ -72,7 +72,7 @@ class LedgerController extends Controller
             $data = Ledger::where('ledgerable_type', '!=', Trans::class)
                 ->with(['ledgerable.wallet','ledgerable.operator'])
                 ->with(['ledgerable.santri' => function ($query) use ($searchQuery) {
-                    $query->where('fullname', 'like', "%{$searchQuery}%");
+                    $query->where('santris.fullname', 'like', "%{$searchQuery}%");
                 }])
                 ->orderBy($fil, $req)->paginate(25);
             return $data;
