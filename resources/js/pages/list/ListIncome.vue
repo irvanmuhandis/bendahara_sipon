@@ -270,7 +270,7 @@ const fetchData = (link = `/api/ledger`) => {
             params: {
                 filter: fil.key,
                 value: fil.value,
-                mode: !switchMode.value ? 'App\\Models\\Trans' : 'App\\Models\\Bill',
+                mode: switchMode.value ? 'App\\Models\\Trans' : 'App\\Models\\Bill',
                 query: searchQuery.value,
                 debit: 1
             }
