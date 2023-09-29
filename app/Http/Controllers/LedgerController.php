@@ -70,7 +70,7 @@ class LedgerController extends Controller
                     $req = 'desc';
                 }
             }
-            if ($debit == 1) {
+            if ($debit == 0) {
                 $data = Debt::whereHas('santri',function ($query)use($searchQuery){
                     $query->where('fullname', 'like', "%{$searchQuery}%");
                 })
