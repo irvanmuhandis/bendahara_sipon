@@ -6,7 +6,7 @@ import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
 import { useRouter, RouterLink } from 'vue-router';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
-import { formatDate, formatDiff, formatClass, formatMoney, formatMoney_2,formatAccount } from '../../helper.js';
+import { formatDate, formatDiff, formatClass, formatMoney, formatMoney_2, formatAccount } from '../../helper.js';
 
 const toastr = useToastr();
 const wallets = ref([]);
@@ -421,10 +421,10 @@ onMounted(() => {
 
             <div v-if="switchMode">
                 <div class="mb-2 col-md">
-                        <div class="input-group w-100 ">
-                            <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
-                        </div>
+                    <div class="input-group w-100 ">
+                        <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
                     </div>
+                </div>
                 <table class="table table-bordered" style="overflow: auto;width:100%">
                     <thead>
                         <tr>
@@ -451,8 +451,8 @@ onMounted(() => {
                             <td>{{ formatDate(data.created_at) }}</td>
                             <td v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
                             <td>{{ data.wallet.wallet_name }} </td>
-                            <td>{{ data.payable}}</td>
-
+                            <td v-if="data.payable != null">{{ data.payable.account.account_name }}</td>
+                            <td>Hamba Allah</td>
                             <td>
                                 <span v-if="data.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan {{
                                     data.santri.fullname }}</span>
