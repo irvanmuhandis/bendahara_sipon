@@ -451,7 +451,7 @@ onMounted(() => {
                             <td>{{ formatDate(data.created_at) }}</td>
                             <td v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
                             <td>{{ data.wallet.wallet_name }} </td>
-                            <td>{{ data.payable.account.account_name }}</td>
+                            <td>{{ data.payable}}</td>
 
                             <td>
                                 <span v-if="data.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan {{
