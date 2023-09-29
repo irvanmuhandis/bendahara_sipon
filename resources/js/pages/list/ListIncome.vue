@@ -456,7 +456,7 @@ onMounted(() => {
                             <td>{{ data.wallet.wallet_name }} </td>
                             <td><div class="badge badge-primary">EKSTERNAL</div></td>
                             <td>{{ data.desc }}</td>
-                            <!-- <td>{{ data.operator.fullname }}</td> -->
+                            <td>{{ data.operator.fullname }}</td>
                             <!-- <td>
 
                                 <RouterLink :to="`/admin/ledger/${data.id}`">
@@ -549,7 +549,7 @@ onMounted(() => {
                             <td>{{ data.account.account_name }}</td>
                             <td>
                                 <span v-if="data.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan {{ data.santri.fullname }}</span>
-                                <span v-else>Pembayaran hutang {{ data.santri.fullname }}</span>
+                                <span v-if="data.payable_type == 'App\\Models\\Debt'">Pembayaran hutang {{ data.santri.fullname }}</span>
                             </td>
                             <td>{{ data.operator.fullname }}</td>
                             <td>
