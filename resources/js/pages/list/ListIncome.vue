@@ -270,7 +270,7 @@ const fetchData = (link = `/api/ledger`) => {
             params: {
                 filter: fil.key,
                 value: fil.value,
-                mode: switchMode.value ? 'App\\Models\\Trans' : 'App\\Models\\Bill',
+                mode: !switchMode.value ? 'App\\Models\\Trans' : 'App\\Models\\Bill',
                 query: searchQuery.value,
                 debit: 1
             }
@@ -437,12 +437,9 @@ onMounted(() => {
                                         class="fas fa-long-arrow-alt-down"></i>
                                 </span>
                             </th>
-                            <th>Pendapatan
-                            </th>
-                            <th>Dompet
-                            </th>
-                            <th>Sumber
-                            </th>
+                            <th>Pendapatan</th>
+                            <th>Dompet</th>
+                            <th>Sumber</th>
                             <th>Deskripsi</th>
                             <th>Operator</th>
                             <!-- <th>Aksi</th> -->
@@ -452,10 +449,15 @@ onMounted(() => {
                         <tr v-for="(data) in listData.data" class="text-center" :key="data.id">
 
                             <td>{{ formatDate(data.created_at) }}</td>
-                            <td v-html="formatDiff(data, data)"></td>
+                            <td v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
                             <td>{{ data.wallet.wallet_name }} </td>
-                            <td><div class="badge badge-primary">EKSTERNAL</div></td>
-                            <td>{{ data.desc }}</td>
+                            <td>{{ data.payable.account.account_name }}</td>
+
+                            <td>
+                                <span v-if="data.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan {{
+                                    data.santri.fullname }}</span>
+                                <span v-else>Pembayaran Hutang {{ data.santri.fullname }}</span>
+                            </td>
                             <td>{{ data.operator.fullname }}</td>
                             <!-- <td>
 
@@ -544,13 +546,10 @@ onMounted(() => {
                                     @change="toggleSelection(data)" />
                             </td>
                             <td>{{ formatDate(data.created_at) }}</td>
-                            <td v-html="formatMoney_2(data.payment, 1)"></td>
+                            <td v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
                             <td>{{ data.wallet.wallet_name }} </td>
                             <td>{{ data.account.account_name }}</td>
-                            <td>
-                                <span v-if="data.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan {{ data.santri.fullname }}</span>
-                                <span v-if="data.payable_type == 'App\\Models\\Debt'">Pembayaran hutang {{ data.santri.fullname }}</span>
-                            </td>
+                            <td>{{ data.desc }}</td>
                             <td>{{ data.operator.fullname }}</td>
                             <td>
                                 <a href="#" @click="editData(data)">

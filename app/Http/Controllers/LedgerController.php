@@ -70,18 +70,18 @@ class LedgerController extends Controller
                     $req = 'desc';
                 }
             }
-            if ($debit == 0) {
-                $data = Debt::whereHas('santri',function ($query)use($searchQuery){
+            if ($debit == 1) {
+                $data = Pay::whereHas('santri', function ($query) use ($searchQuery) {
                     $query->where('fullname', 'like', "%{$searchQuery}%");
                 })
-                    ->with(['wallet','santri','operator'])
+                    ->with(['wallet','payable.account', 'santri', 'operator'])
                     ->orderBy($fil, $req)->paginate(25);
                 return $data;
             } else {
-                $data = Pay::whereHas('santri',function ($query)use($searchQuery){
+                $data = Debt::whereHas('santri', function ($query) use ($searchQuery) {
                     $query->where('fullname', 'like', "%{$searchQuery}%");
                 })
-                    ->with(['wallet','santri','operator'])
+                    ->with(['wallet', 'santri', 'operator'])
                     ->orderBy($fil, $req)->paginate(25);
                 return $data;
             }
