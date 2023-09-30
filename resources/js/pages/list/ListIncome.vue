@@ -452,11 +452,10 @@ onMounted(() => {
                             <td v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
                             <td>{{ data.wallet.wallet_name }} </td>
                             <td v-if="data.payable != null">{{ data.payable.account.account_name }}</td>
-                            <td>Hamba Allah</td>
-                            <td>
-                                <span v-if="data.payable_type == 'App\\Models\\Bill'">Pembayaran Tagihan {{
-                                    data.santri.fullname }}</span>
-                                <span v-else>Pembayaran Hutang {{ data.santri.fullname }}</span>
+                            <td v-else>Hamba Allah</td>
+                            <td> <span v-if="data.payable_type == 'App\\Models\\Bill'">Bayar Tagihan {{
+                                data.santri.fullname }}</span>
+                                <span v-else>Bayar Hutang {{ data.santri.fullname }}</span>
                             </td>
                             <td>{{ data.operator.fullname }}</td>
                             <!-- <td>

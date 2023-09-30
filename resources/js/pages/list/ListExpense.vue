@@ -443,12 +443,13 @@ onMounted(() => {
                         <tr v-for="(data) in listData.data" class="text-center" :key="data.id">
 
                             <td>{{ formatDate(data.created_at) }}</td>
-                            <td v-if="data.wallet != null"
-                                v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
-                            <td v-if="data.wallet != null">{{ data.wallet.wallet_name }} </td>
-                            <td><div class="badge badge-primary">EKSTERNAL</div></td>
-                            <td>{{ data.desc }}</td>
-                            <td v-if="data.operator != null">{{ data.operator.fullname }}</td>
+                            <td v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
+                            <td>{{ data.wallet.wallet_name }} </td>
+                            <td >{{ data.account.account_name }}</td>
+                            <td>
+                                <span >Hutang {{ data.santri.fullname }}</span>
+                            </td>
+                            <td>{{ data.operator.fullname }}</td>
                             <!-- <td>
                                 <a href="#" @click="showDetail(data)">
                                 </a>
@@ -538,15 +539,11 @@ onMounted(() => {
                                     @change="toggleSelection(data)" />
                             </td>
                             <td>{{ formatDate(data.created_at) }}</td>
-                            <td v-if="data.wallet != null" v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
-                            <td v-if="data.wallet != null">{{ data.wallet.wallet_name }} </td>
-                            <td v-if="data.account != null">{{ data.account.account_name }}</td>
-
+                            <td v-html="formatDiff(data.wallet.debit, data.wallet.credit)"></td>
+                            <td>{{ data.wallet.wallet_name }} </td>
+                            <td>{{ data.account.account_name }}</td>
                             <td>{{ data.desc }}</td>
-                            <td >
-                                <span>Piutang {{ data.santri.fullname }}</span>
-                            </td>
-                            <td v-if="data.operator != null">{{ data.operator.fullname }}</td>
+                            <td>{{ data.operator.fullname }}</td>
                             <td>
                                 <a href="#" @click="editData(data)">
                                     <i class="fa fa-edit mr-2"></i>
