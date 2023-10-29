@@ -194,11 +194,11 @@ class LedgerController extends Controller
         // ->sum('remainder');
         $sum = Bill
             ::select(DB::raw('SUM(remainder) as aggregate'))
-            ->whereBetween('month', ['1985-04', '2023-10'])
+            ->whereBetween('month', [request('start'), request('end')])
             ->where('payment_status', '<', 3)
-            ->whereIn('account_id', [29, 28, 27, 26])
+            ->whereIn('account_id', $account)
             ->groupBy('month')
-            ->havingRaw('COUNT(DISTINCT month) >= 1')
+            ->havingRaw('COUNT(DISTINCT month) >= ?',[request('length')])
             ->get();
 
 
