@@ -184,25 +184,25 @@ class LedgerController extends Controller
             ->havingRaw('bill_count >= ?', [request('length')])
             ->get();
 
-            // $sum = Bill::whereBetween('month', [request('start'), request('end')])
-            // ->with(['santri' => function ($query) use ($searchQuery) {
-            //     $query->where('fullname', 'like', "%{$searchQuery}%");
-            // }])
-            // ->where('payment_status', '<', 3)
-            // ->whereIn('account_id', $account)
-            // ->whereRaw('count(distinct(month))>=?',[request('length')])
-            // ->sum('remainder');
-$sum = Bill
-::select(DB::raw('SUM(remainder) as aggregate'))
-->whereBetween('month', ['1985-04', '2023-10'])
-->where('payment_status', '<', 3)
-->whereIn('account_id', [29, 28, 27, 26])
-->groupBy('account_id')
-->havingRaw('COUNT(DISTINCT month) >= 1')
-->get();
+        // $sum = Bill::whereBetween('month', [request('start'), request('end')])
+        // ->with(['santri' => function ($query) use ($searchQuery) {
+        //     $query->where('fullname', 'like', "%{$searchQuery}%");
+        // }])
+        // ->where('payment_status', '<', 3)
+        // ->whereIn('account_id', $account)
+        // ->whereRaw('count(distinct(month))>=?',[request('length')])
+        // ->sum('remainder');
+        $sum = Bill
+            ::select(DB::raw('SUM(remainder) as aggregate'))
+            ->whereBetween('month', ['1985-04', '2023-10'])
+            ->where('payment_status', '<', 3)
+            ->whereIn('account_id', [29, 28, 27, 26])
+            ->groupBy('month')
+            ->havingRaw('COUNT(DISTINCT month) >= 1')
+            ->get();
 
 
-            return response()->json([
+        return response()->json([
             'data' => $query,
             'sum' => $sum
         ]);
