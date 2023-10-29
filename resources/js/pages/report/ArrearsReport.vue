@@ -12,7 +12,12 @@ import { formatDate, formatDiff, formatMoney, formatClass, formatStatus } from '
 const toastr = useToastr();
 const searchQuery = ref();
 const accounts = ref([]);
-const billing = ref([]);
+const billing = ref(
+    {
+        'data': [],
+        'sum': null
+    }
+);
 const debts = ref({
     'data': []
 });
@@ -208,17 +213,9 @@ onMounted(() => {
                         <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
                     </div>
                     <table class="display table w-100 table-hover " style="overflow: auto;width:100%">
-                        <!-- <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Nama</th>
-                                <th>Tunggakan</th>
-                                <th>Sisa Tunggakan</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead> -->
-                        <tbody v-if="billing.length != 0">
-                            <template v-for="(data) in billing" :key="data.id">
+                        <span v-if="billing.sum!=null">{{ billing.sum }}</span>
+                        <tbody v-if="billing.data.length != 0">
+                            <template v-for="(data) in billing.data" :key="data.id">
 
                                 <tr data-widget="expandable-table" aria-expanded="false">
                                     <td> <i class="expandable-table-caret fas fa-caret-right fa-fw"></i>

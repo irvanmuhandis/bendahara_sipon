@@ -74,7 +74,7 @@ class LedgerController extends Controller
                 $data = Pay::whereHas('santri', function ($query) use ($searchQuery) {
                     $query->where('fullname', 'like', "%{$searchQuery}%");
                 })
-                    ->with(['wallet','payable.account', 'santri', 'operator'])
+                    ->with(['wallet', 'payable.account', 'santri', 'operator'])
                     ->orderBy($fil, $req)->paginate(25);
                 return $data;
             } else {
@@ -85,7 +85,6 @@ class LedgerController extends Controller
                     ->orderBy($fil, $req)->paginate(25);
                 return $data;
             }
-
         }
     }
 
@@ -185,7 +184,18 @@ class LedgerController extends Controller
             ->havingRaw('bill_count >= ?', [request('length')])
             ->get();
 
-        return $query;
+        $sum = Bill::whereBetween('month', [request('start'), request('end')])
+            ->with(['santri' => function ($query) use ($searchQuery) {
+                $query->where('fullname', 'like', "%{$searchQuery}%");
+            }])
+            ->where('payment_status', '<', 3)
+            ->whereIn('account_id', $account)
+            ->sum('remainder')->get();
+
+        return response()->json([
+            'data' => $query,
+            'sum' => $sum
+        ]);
     }
 
 

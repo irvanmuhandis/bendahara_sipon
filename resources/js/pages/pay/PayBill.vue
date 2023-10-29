@@ -219,28 +219,32 @@ const validateBill = () => {
 }
 
 const createPay = (event) => {
-    console.log('Bayar...');
-    event.preventDefault();
-    formValue.value.remainder = remainder.value;
-    if (validateBill()) {
-        axios.post('/api/pay/bill', formValue.value)
-            .then(() => {
-                toastr.success('Berhasil melakukan pembayaran!');
-                fetchData();
-                clearform();
-                santribill.value = [];
-                isLoading.value = true;
-                total.value = 0;
-                init.value = true;
-                formValue.value.bill = [];
-                formValue.value.payment = null;
-            })
-            .catch((error) => {
-                console.log(error);
-                toastr.error(error);
-            })
+    if (isLoading.value) {
+        return
     }
-    console.log('Selesai');
+    else {
+        event.preventDefault();
+        formValue.value.remainder = remainder.value;
+        isLoading.value = true;
+        if (validateBill()) {
+            axios.post('/api/pay/bill', formValue.value)
+                .then(() => {
+                    toastr.success('Berhasil melakukan pembayaran!');
+                    fetchData();
+                    clearform();
+                    santribill.value = [];
+                    total.value = 0;
+                    isLoading.value = false;
+                    init.value = true;
+                    formValue.value.bill = [];
+                    formValue.value.payment = null;
+                })
+                .catch((error) => {
+                    console.log(error);
+                    toastr.error(error);
+                })
+        }
+    }
 };
 
 
@@ -498,13 +502,13 @@ onMounted(() => {
                                         :class="{ 'is-invalid': errors.payment }" class="form-control" id="time" />
                                     <span class="invalid-feedback">{{ errors.payment }}</span>
                                     <span>{{ formatMoney(formValue.payment) }}</span><br>
-                                    
+
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col">
-                                <button type="submit"  class="btn btn-primary w-100">Submit</button>
+                                <button type="submit" class="btn btn-primary w-100">Submit</button>
                             </div>
                         </div>
 
