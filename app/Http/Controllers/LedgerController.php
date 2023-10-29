@@ -193,10 +193,10 @@ class LedgerController extends Controller
             ->distinct('month')
             ->count('month');
 
-            $sum = Bill::havingRaw("{$distinct}<=?", [request('length')])
+        $sum = Bill::havingRaw("{$distinct}<=?", [request('length')])
             ->sum('remainder');
 
-// dd($distinct);
+        // dd($distinct);
 
         return response()->json([
             'data' => $query,
