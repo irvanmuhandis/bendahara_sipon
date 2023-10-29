@@ -196,7 +196,7 @@ class LedgerController extends Controller
             $sum = Bill::havingRaw("{$distinct}<=?", [request('length')])
             ->sum('remainder');
 
-dd($distinct);
+// dd($distinct);
 
         return response()->json([
             'data' => $query,
