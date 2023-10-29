@@ -89,18 +89,21 @@ const editAccount = (account) => {
         id: account.id,
         name: account.account_name,
         type: account.account_type,
+        delete :account.deletable==1?true:false
     };
 };
 
 const updateAccount = (values, { setErrors }) => {
+    values['delete'] = formValues.value.delete;
+    values['id'] = formValues.value.id;
     axios.put('/api/account/' + formValues.value.id, values)
         .then((response) => {
             const index = accounts.value.data.findIndex(account => account.id === response.data.id);
             accounts.value.data[index] = response.data;
             $('#accountFormModal').modal('hide');
             toastr.success('Akun berhasil diperbaharui !');
+            resetForm();
         }).catch((error) => {
-            setErrors(error.response.data.errors);
             console.log(error);
         });
 }
@@ -293,16 +296,15 @@ onMounted(() => {
                             <span class="invalid-feedback">{{ errors.type }}</span>
                         </div>
 
-                        <!-- <div class="form-group form-check">
-                            <Field name="deletable" :class="{ 'is-invalid': errors.deletable }" type="checkbox"
-                                class="form-check-input" id="exampleCheck1" />
+                        <div class="form-group form-check">
+                            <input name="delete" type="checkbox" v-model="formValues.delete"
+                                @change="console.log(formValues.delete)" class="form-check-input" id="exampleCheck1" />
                             <label class="form-check-label" for="exampleCheck1">Dapat dihapus</label>
-                            <span class="invalid-feedback">{{ errors.deletable }}</span>
                             <p class="text-danger"><small>Hati hati dalam mengelola akun yang dapat menghapus
                                     akun karena akun yang dihapus akan memengaruhi semua transaksi pada akun tersebut.
-                                    </small>
+                                </small>
                             </p>
-                        </div> -->
+                        </div>
 
                     </div>
                     <div class="modal-footer">

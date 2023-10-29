@@ -65,6 +65,15 @@ class AccountController extends Controller
             'deletable' => 1
         ]);
     }
+    public function update(Account $account)
+    {
+         $account->update([
+            'account_name' => request('name'),
+            'account_type' => request('type'),
+            'deletable' => request('delete')==true?1:0
+        ]);
+        return $account;
+    }
 
     public function changeType(Account $account)
     {
