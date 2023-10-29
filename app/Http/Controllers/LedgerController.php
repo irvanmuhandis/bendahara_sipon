@@ -192,7 +192,7 @@ class LedgerController extends Controller
             ->where('payment_status', '<', 3)
             ->whereIn('account_id', $account)
             ->havingRaw('bill_count >= ?', [request('length')])
-            ->sum('remainder');
+            ->sum('remainder')->get();
 
         return response()->json([
             'data' => $query,
