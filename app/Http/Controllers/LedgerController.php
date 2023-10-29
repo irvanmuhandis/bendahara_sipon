@@ -197,7 +197,7 @@ class LedgerController extends Controller
             ->whereIn('account_id', $account)
             ->havingRaw("{$distinct}>=?", [request('length')])
             ->sum('remainder');
-
+dd($distinct);
         return response()->json([
             'data' => $query,
             'sum' => $sum
