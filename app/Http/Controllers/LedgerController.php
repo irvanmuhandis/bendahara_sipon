@@ -193,7 +193,7 @@ class LedgerController extends Controller
             ->whereIn('account_id', $account)
             ->groupBy('month')
             ->havingRaw('count(distinct(month))>=?', [request('length')])
-            ->sum('remainder')
+            ->sum('rm')
             ;
 
         return response()->json([
