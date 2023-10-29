@@ -184,17 +184,9 @@ class LedgerController extends Controller
             ->havingRaw('bill_count >= ?', [request('length')])
             ->get();
 
-        $sum = DB::table(DB::raw('(
-            SELECT `account_id`, `remainder`
-            FROM `acc_bills`
-            WHERE `month` BETWEEN ? AND ?
-            AND `payment_status` < ?
-            AND `account_id` IN (?)
-            GROUP BY `account_id`, `remainder`
-            HAVING COUNT(DISTINCT `month`) >= 1
-        ) AS temp_table', [request('start'), request('end'), 3, $account]))
-        ->selectRaw('SUM(`remainder`) as aggregate')
-        ->get();;
+        $sum = DB::table(DB::raw('(SELECT `account_id`, `remainder` FROM `acc_bills`WHERE `month` BETWEEN ? AND ?AND `payment_status` < ? AND `account_id` IN (?) GROUP BY `account_id`, `remainder` HAVING COUNT(DISTINCT `month`) >= 1) AS temp_table', [request('start'), request('end'), 3, $account]))
+            ->selectRaw('SUM(`remainder`) as aggregate')
+            ->get();;
 
         return response()->json([
             'data' => $query,
