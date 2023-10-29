@@ -189,7 +189,7 @@ class LedgerController extends Controller
             }])
             ->where('payment_status', '<', 3)
             ->whereIn('account_id', $account)
-            ->whereRaw('distinct(month)>=?',[request('length')])
+            ->whereRaw('coun(distinct(month))>=?',[request('length')])
             ->sum('remainder');
         return response()->json([
             'data' => $query,
