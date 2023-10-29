@@ -219,8 +219,9 @@ onMounted(() => {
 
                                 <tr data-widget="expandable-table" aria-expanded="false">
                                     <td> <i class="expandable-table-caret fas fa-caret-right fa-fw"></i>
-                                        {{ data.fullname + ' [ ' +
-                                            data.bill_count + ' Bulan ] :' + formatMoney(data.sum_remain) }}
+                                        <!-- {{ data.fullname + ' [ ' +
+                                            data.bill_count + ' Bulan ] :' + formatMoney(data.sum_remain) }} -->
+                                            {{ data.sum_remain }}
                                     </td>
 
                                 </tr>
