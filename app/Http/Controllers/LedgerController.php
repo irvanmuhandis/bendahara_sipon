@@ -188,11 +188,12 @@ class LedgerController extends Controller
             ->with(['santri' => function ($query) use ($searchQuery) {
                 $query->where('fullname', 'like', "%{$searchQuery}%");
             }])
+            ->select('month',DB::raw('sum(remainder) as rm'))
             ->where('payment_status', '<', 3)
             ->whereIn('account_id', $account)
             ->groupBy('month')
             ->havingRaw('count(distinct(month))>=?', [request('length')])
-            ->sum('remainder');
+            ;
 
         return response()->json([
             'data' => $query,
