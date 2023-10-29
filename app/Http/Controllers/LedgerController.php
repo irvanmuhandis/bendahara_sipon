@@ -191,9 +191,10 @@ class LedgerController extends Controller
             ->select('month',DB::raw('sum(remainder) as rm'))
             ->where('payment_status', '<', 3)
             ->whereIn('account_id', $account)
-            ->groupBy('account_id','month')
-            ->havingRaw('count(distinct(month))>=?', [request('length')])
-            ->sum('rm')
+            ->groupBy('month')
+            ->count('month')
+            ->having('month_count','>=',request('length'))
+            ->sum('remainder')
             ;
 
         return response()->json([
