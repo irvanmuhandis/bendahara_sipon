@@ -237,6 +237,7 @@ class LedgerController extends Controller
         //     ->groupBy('billid');
 
         $bill = Account::where('account_type', 2)
+        ->whereHas('bill')
             ->withSum(['bill' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('month', [$strt->format('Y-m'), $ends->format('Y-m')]);
             }], 'remainder')
@@ -247,6 +248,7 @@ class LedgerController extends Controller
             ->get();
 
         $debt = Account::where('account_type', 1)
+        ->whereHas('debt')
             ->withSum(['debt' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'remainder')
@@ -257,6 +259,7 @@ class LedgerController extends Controller
             ->get();
 
         $other = Account::where('account_type', '=', 3)
+        ->whereHas('trans')
             ->withSum(['trans' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'debit')

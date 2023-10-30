@@ -518,10 +518,11 @@ onMounted(() => {
                                             <span class="info-box-icon"><i class="fas fa-hand-holding-usd"></i></span>
                                             <div class="info-box-content">
                                                 <div v-for="data in other" class="progress-group">
-                                                    {{ data.account_name }}
-                                                    <span class="info-box-text"><b>{{ formatMoney(data.trans_sum_debit)
-                                                    }}</b></span>
-
+                                                    <span v-if="data.trans_sum_debit != '0'">
+                                                        {{ data.account_name }}
+                                                        <span class="info-box-text"><b>{{ formatMoney(data.trans_sum_debit)
+                                                        }}</b></span>
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -612,10 +613,11 @@ onMounted(() => {
                                             <span class="info-box-icon"><i class="fas fa-hand-holding-usd"></i></span>
                                             <div class="info-box-content">
                                                 <div v-for="data in other" class="progress-group">
-                                                    {{ data.account_name }}
-                                                    <span class="info-box-text"><b>{{ formatMoney(data.trans_sum_credit)
-                                                    }}</b></span>
-
+                                                    <span v-if="data.trans_sum_credit != '0'">
+                                                        {{ data.account_name }}
+                                                        <span class="info-box-text"><b>{{ formatMoney(data.trans_sum_credit)
+                                                        }}</b></span>
+                                                    </span>
                                                 </div>
                                             </div>
 
