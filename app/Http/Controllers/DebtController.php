@@ -4,25 +4,39 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use App\Models\Debt;
+use App\Models\Trans;
 use App\Models\Ledger;
+use App\Models\Santri;
 use App\Models\Wallet;
 use App\Enums\PayStatus;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\Trans;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cookie;
 
 class DebtController extends Controller
 {
 
-    public function index()
+    public function santri()
     {
 
-        $debt = Debt::with(['santri', 'operator'])
-            ->orderBy('id', 'desc')->paginate(20);
+        $searchQuery = request('search');
+        $debt = Santri::where('fullname', 'like', "%{$searchQuery}%")
+            ->whereHas('debt', function ($query) {
+                $query->where('payment_status', '<', 3);
+            })
+            ->with(['debt' => function ($query) {
+                $query->where('payment_status', '<', 3);
+            }])
+            ->withSum('debt as sum_amount', 'remainder')
+            ->orderBy('nis', 'desc')->get();
 
-        return $debt;
+        $sum = $debt->sum('sum_amount');
+
+        return response()->json([
+            'data' => $debt,
+            'sum' => $sum
+        ]);
     }
 
     public function store()
@@ -164,7 +178,17 @@ class DebtController extends Controller
             'title' => request('title'),
             'account_id' => request('account')['id'],
         ]);
+        if (request('price') == request('remain')) {
+            $debt->update([
+                'payment_status' => 1
+            ]);
+        }
 
+        if (request('price') != request('remain')) {
+            $debt->update([
+                'payment_status' => 2
+            ]);
+        }
         $wallet->update([
             'debit' => 0,
             'credit' => request('price'),

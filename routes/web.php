@@ -81,13 +81,14 @@ Route::middleware('sipon')->group(function () {
     Route::put('/api/group/link', [GroupController::class, 'link']);
 
     Route::get('/api/debt/search', [DebtController::class, 'search']);
+    Route::get('/api/debt/santri', [DebtController::class, 'santri']);
     Route::delete('/api/debt', [DebtController::class, 'bulkDelete']);
 
     Route::get('/api/santrilist', [SantriController::class, 'list']);
     Route::get('/api/santri/group/{id}', [SantriController::class, 'group']);
     Route::get('/api/santri/bill/{id}', [SantriController::class, 'bill']);
     Route::get('/api/santri/debt/{id}', [SantriController::class, 'debt']);
-    
+
 
     Route::get('/api/dispens/search', [DispenController::class, 'search']);
     Route::delete('/api/dispens', [DispenController::class, 'bulkDelete']);

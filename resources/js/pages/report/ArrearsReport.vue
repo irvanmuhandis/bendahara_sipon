@@ -5,21 +5,21 @@ import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { Form, Field, useResetForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
-import { debounce } from 'lodash';
+import { debounce, forEach, now } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 import { formatDate, formatDiff, formatMoney, formatClass, formatStatus } from '../../helper.js';
 
 const toastr = useToastr();
 const searchQuery = ref();
+const searchQuery_debt = ref();
 const accounts = ref([]);
-const billing = ref(
-    {
-        'data': [],
-        'sum': null
-    }
-);
+const billing = ref({
+    'data': [],
+    'sum': null
+});
 const debts = ref({
-    'data': []
+    'data': [],
+    'sum': null
 });
 
 const form = ref({
@@ -34,7 +34,9 @@ const errors = ref({
     'length': null,
     'account': null
 });
-
+const option = { year: 'numeric', month: 'long', day: 'numeric' }
+const today = new Date();
+const textFill = ref();
 const clearform = () => {
     for (const key in errors.value) {
         errors.value[key] = null;
@@ -118,17 +120,30 @@ const getAccount = () => {
 }
 
 
-const getDebt = (page = 1) => {
-    axios.get(`/api/debt?page=${page}`)
+const getDebt = () => {
+    axios.get(`/api/debt/santri`, {
+        params: {
+            search: searchQuery_debt.value
+        }
+    })
         .then((response) => {
             debts.value = response.data;
         })
 
 }
 
+
 watch(searchQuery, debounce(() => {
     search_bill();
 }, 300));
+
+watch(searchQuery_debt, debounce(() => {
+    getDebt();
+}, 300));
+watch(billing, debounce(() => {
+    formFill();
+}, 300));
+
 
 
 onMounted(() => {
@@ -160,7 +175,7 @@ onMounted(() => {
 
     <div class="content">
         <div class="container-fluid">
-            <div class="row">
+            <div class="row border-top">
                 <div class="col-md-6 border-right">
                     <h4 class="mt-3">Tagihan</h4>
                     <form @submit="billing_form">
@@ -185,7 +200,7 @@ onMounted(() => {
                         <div class="row">
                             <div class="col-md-6 ">
                                 <div class="form-group">
-                                    <label>Menunggak berapa bulan</label>
+                                    <label>Minimal Menunggak</label>
                                     <select :class="{ 'is-invalid': errors.length }" v-model="form.length"
                                         class="form-control">
                                         <option value="10" disabled>Pilih berapa bulan menunggak</option>
@@ -206,22 +221,25 @@ onMounted(() => {
                         </div>
                         <button type="submit" class="btn btn-primary mr-md-1 w-100">
                             <i class="fa fa-plus-circle mr-1"></i>
-                            Buat Laporan
+                            Buat Rekapan
                         </button>
                     </form>
-                    <div class="mt-2 mb-2 w-25">
+                    <div class="mt-2 mb-2 w-100">
                         <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
+                        <div class="mb-2 mt-2 text-bold">
+                            Total Tagihan : {{ formatMoney(billing.sum) }}
+                        </div>
+
                     </div>
                     <table class="display table w-100 table-hover " style="overflow: auto;width:100%">
-                        <span v-if="billing.sum!=null">{{ billing.sum }}</span>
-                        <tbody v-if="billing.data.length != 0">
+
+                        <tbody v-if="billing.length != 0">
                             <template v-for="(data) in billing.data" :key="data.id">
 
                                 <tr data-widget="expandable-table" aria-expanded="false">
                                     <td> <i class="expandable-table-caret fas fa-caret-right fa-fw"></i>
-                                        <!-- {{ data.fullname + ' [ ' +
-                                            data.bill_count + ' Bulan ] :' + formatMoney(data.sum_remain) }} -->
-                                            {{ data.sum_remain }}
+                                        {{ data.fullname + ' [ ' +
+                                            data.bill_count + ' Bulan ] :' + formatMoney(data.sum_remain) }}
                                     </td>
 
                                 </tr>
@@ -260,23 +278,43 @@ onMounted(() => {
 
                     <h4 class="mt-3">Piutang</h4>
                     <p>Debitur : Yang berhutang</p>
-                    <table class="text-navy table-sm table-bordered table-hover w-100">
-                        <thead>
-                            <tr>
-                                <th>Debitur</th>
-                                <th>Jumlah Piutang</th>
-                                <th>Sisa Piutang</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody v-if="debts.data.length > 0">
-                            <tr v-for="(data) in debts.data" class="text-center" :key="data.id">
+                    <div class="mt-2 mb-2 w-100">
+                        <input type="text" v-model="searchQuery_debt" class="form-control" placeholder="Search..." />
+                    </div>
+                    <span class="mt-2 mb-2 text-bold">Total Piutang : {{ formatMoney(debts.sum) }}</span>
+                    <table class="text-navy table table-hover w-100">
 
-                                <td>{{ data.santri.fullname }}</td>
-                                <td>{{ formatMoney(data.amount) }}</td>
-                                <td>{{ formatMoney(data.remainder) }}</td>
-                                <td>-</td>
-                            </tr>
+                        <tbody v-if="debts.data.length > 0">
+
+                            <template v-for="(data) in debts.data" :key="data.id">
+
+                                <tr data-widget="expandable-table" aria-expanded="false">
+                                    <td> <i class="expandable-table-caret fas fa-caret-right fa-fw"></i>
+                                        {{ data.fullname + ' [ ' +
+                                            data.debt.length + ' Hutang ] :' + formatMoney(data.sum_amount) }}
+                                    </td>
+
+                                </tr>
+                                <tr class="expandable-body d-none">
+                                    <td>
+                                        <div class="p-0" style="display: none;">
+                                            <table class="w-100">
+                                                <tr>
+                                                    <th>Tanggal</th>
+                                                    <th>Jumlah</th>
+                                                    <th>Sisa</th>
+                                                </tr>
+                                                <tr v-for="debt in data.debt">
+                                                    <td>{{ formatDate(debt.created_at) }}</td>
+                                                    <td>{{ formatMoney(debt.amount) }}</td>
+                                                    <td>{{ formatMoney(debt.remainder) }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </td>
+
+                                </tr>
+                            </template>
                         </tbody>
                         <tbody v-else>
                             <tr>
@@ -284,33 +322,10 @@ onMounted(() => {
                             </tr>
                         </tbody>
                     </table>
-                    <Bootstrap4Pagination :data="debts" @pagination-change-page="getDebt" />
-                </div>
+                   </div>
 
             </div>
         </div>
     </div>
 </template>
 
-<script>
-export default {
-    // computed property to retrieve current page number
-    computed: {
-        currentPage() {
-            return this.listpays.current_page;
-        }
-    },
-
-    // methods to handle pagination events
-    methods: {
-        changePage(page) {
-            this.search(page);
-        },
-
-
-    },
-}
-
-
-
-</script>

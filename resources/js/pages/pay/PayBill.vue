@@ -25,6 +25,8 @@ const selected = ref([]);
 const selectAll = ref(false);
 const selectedWall = ref([]);
 
+const createLoad = ref(false);
+
 const isLoading = ref(true);
 const init = ref(true);
 const errors = ref({
@@ -42,22 +44,6 @@ const formValue = ref({
 const filter = ref({
     'created_at': null,
     'nis': null,
-    'payment': null
-});
-
-const editValues = ref({
-    'id': '',
-    'date': '',
-    'wallet': null,
-    'paymentBef': '',
-    'paymentAft': '',
-    'remain': '',
-    'bill': null,
-    'santri': null
-});
-const errorsEdit = ref({
-    'date': null,
-    'wallet': null,
     'payment': null
 });
 
@@ -219,32 +205,36 @@ const validateBill = () => {
 }
 
 const createPay = (event) => {
-    if (isLoading.value) {
+    console.log('Bayar...');
+    event.preventDefault();
+    if (createLoad.value) {
         return
+    } else {
+        createLoad.value = true;
     }
-    else {
-        event.preventDefault();
-        formValue.value.remainder = remainder.value;
-        isLoading.value = true;
-        if (validateBill()) {
-            axios.post('/api/pay/bill', formValue.value)
-                .then(() => {
-                    toastr.success('Berhasil melakukan pembayaran!');
-                    fetchData();
-                    clearform();
-                    santribill.value = [];
-                    total.value = 0;
-                    isLoading.value = false;
-                    init.value = true;
-                    formValue.value.bill = [];
-                    formValue.value.payment = null;
-                })
-                .catch((error) => {
-                    console.log(error);
-                    toastr.error(error);
-                })
-        }
+
+    formValue.value.remainder = remainder.value;
+    if (validateBill()) {
+        axios.post('/api/pay/bill', formValue.value)
+            .then(() => {
+                toastr.success('Berhasil melakukan pembayaran!');
+                fetchData();
+                clearform();
+                santribill.value = [];
+                isLoading.value = true;
+                total.value = 0;
+                init.value = true;
+                formValue.value.bill = [];
+                formValue.value.payment = null;
+            })
+            .catch((error) => {
+                console.log(error);
+                toastr.error(error);
+            }) .finally(()=>{
+                createLoad.value = false;
+            })
     }
+    console.log('Selesai');
 };
 
 
@@ -266,7 +256,7 @@ const bulkDelete = () => {
         }
     })
         .then(response => {
-            toastr.success(response.data.message);
+            toastr.success("Berhasil menghapus data !");
             fetchData();
             selected.value = [];
             selectedWall.value = [];
@@ -306,86 +296,6 @@ const selectedAllData = () => {
     console.log(selected.value);
     console.log(selectedWall.value);
 }
-
-const editData = (data) => {
-
-    console.log(data);
-    editValues.value.id = data.id;
-    editValues.value.wallet = data.wallet;
-    editValues.value.date = convertDate(data.created_at);
-    editValues.value.paymentBef = data.payment;
-    editValues.value.paymentAft = data.payment;
-    editValues.value.bill = data.payable;
-    editValues.value.santri = data.payable.santri;
-    editValues.value.remain = (editValues.value.bill.remainder + editValues.value.paymentBef);
-    console.log(editValues.value);
-    $('#editDataModal').modal('show');
-}
-const confirmUpdate = () => {
-
-
-    if (validate()) {
-        $('#editDataModal').modal('hide');
-        $('#conEditDataModal').modal('show');
-    }
-}
-
-const changeRemain = () => {
-    if (editValues.value.paymentAft != '') {
-        editValues.value.remain = (editValues.value.bill.remainder + editValues.value.paymentBef) - editValues.value.paymentAft;
-    }
-    else {
-        editValues.value.remain = (editValues.value.bill.remainder + editValues.value.paymentBef) - 0;
-
-    }
-}
-
-const validate = () => {
-    var err = 0;
-
-    for (const key in errorsEdit.value) {
-        errorsEdit.value[key] = null;
-    }
-    if (editValues.value.wallet == null) {
-        errorsEdit.value.wallet = 'Pilih Dompet '
-        err += 1;
-    }
-    if (editValues.value.payment == '') {
-        errorsEdit.value.payment = 'Isi Jumlah Pembayaran '
-        err += 1;
-    }
-    if (editValues.value.date == '') {
-        errorsEdit.value.date = 'Pilih Tanggal Pembayaran '
-        err += 1;
-    }
-    if (editValues.value.paymentAft > (editValues.value.bill.remainder + editValues.value.paymentBef)) {
-        errorsEdit.value.payment = 'Pembayaran tidak boleh lebih dari sisa tagihan'
-        err += 1;
-    }
-    if (err == 0) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
-
-const update = () => {
-    editValues.value.type = 'App\\Models\\Bill';
-    console.log(editValues.value);
-    console.log(errors.value);
-
-    axios.put(`/api/pay/${editValues.value.id}`, editValues.value)
-        .then((response) => {
-            toastr.success('Berhasil merubah data!');
-            $('#conEditDataModal').modal('hide');
-            search();
-        })
-        .catch((error) => {
-            console.log(error);
-        })
-
-};
 
 watch(searchQuery, debounce(() => {
     fetchData();
@@ -487,7 +397,7 @@ onMounted(() => {
                                         :close-on-select="true" placeholder="Pilih Satu" label="wallet_name" track-by="id"
                                         :show-labels="false">
                                         <template v-slot:option="{ option }">
-                                            <div>{{ option.wallet_name }} - {{ formatMoney(option.sum.saldo) }} </div>
+                                            <div>{{ option.wallet_name }} </div>
                                         </template>
                                     </VueMultiselect>
 
@@ -555,6 +465,8 @@ onMounted(() => {
                                             class="fas fa-long-arrow-alt-down"></i>
                                     </span>
                                 </th>
+                                <th>Bulan
+                                </th>
                                 <th>Bayar
                                     <span class="float-right" @click="sort('payment')">
                                         <i :class="{ 'text-primary': filter.payment == false }"
@@ -567,7 +479,6 @@ onMounted(() => {
                                 <th>Dompet</th>
                                 <th>Akun</th>
                                 <th>Operator</th>
-                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -577,16 +488,13 @@ onMounted(() => {
                                 </td>
                                 <td>{{ formatDate(pay.created_at) }}</td>
                                 <td>{{ pay.payable.santri.fullname }} - {{ pay.payable.santri.nis }} </td>
+                                <td>{{ pay.payable.month }}</td>
                                 <td>{{ formatMoney(pay.payment) }}</td>
                                 <td>{{ formatMoney(pay.payable.remainder) }}</td>
                                 <td>{{ pay.wallet.wallet_name }}</td>
                                 <td>{{ pay.payable.account.account_name }}</td>
                                 <td>{{ pay.operator.fullname }}</td>
-                                <td>
-                                    <a href="#" @click="editData(pay)">
-                                        <i class="fa fa-edit mr-2"></i>
-                                    </a>
-                                </td>
+
                             </tr>
                             <tr v-if="listpays.data.length == 0">
                                 <td colspan="9" class="text-center">Tidak Ada Data</td>
@@ -629,110 +537,6 @@ onMounted(() => {
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
                     <button @click.prevent="bulkDelete" type="button" class="btn btn-primary">Ya, saya yakin</button>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="conEditDataModal" data-backdrop="static" tabindex="-1" role="dialog"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Konfirmasi Perubahan</span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <h5>Apakah anda yakin ingin merubah data menjadi : </h5>
-                    <div class="row">
-                        <div class="col-5">Santri </div>
-                        <div v-if="editValues.santri != null" class="col"> : {{ editValues.santri.fullname }} - {{
-                            editValues.santri.nis }}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-5">Tagihan </div>
-                        <div v-if="editValues.bill != null" class="col"> : {{ editValues.bill.account.account_name + ' / ' +
-                            editValues.bill.month }}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-5">Dompet </div>
-                        <div v-if="editValues.wallet != null" class="col"> : {{ editValues.wallet.wallet_name }}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-5">Tanggal </div>
-                        <div class="col"> : {{ formatDate(editValues.date) }}</div>
-                    </div>
-                    <div class="row">
-                        <div v-if="editValues.paymentAft != editValues.paymentBef" class="col-5">Pembayaran Sebelum</div>
-                        <div v-else class="col-5">Pembayaran</div>
-                        <div class="col"> : {{ formatMoney(editValues.paymentBef) }}</div>
-                    </div>
-                    <div v-if="editValues.paymentAft != editValues.paymentBef" class="row">
-                        <div class="col-5">Pembayaran Sesudah</div>
-                        <div class="col"> : {{ formatMoney(editValues.paymentAft) }}</div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                    <button @click.prevent="update" type="button" class="btn btn-primary">Ya, saya yakin</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="editDataModal" data-backdrop="static" tabindex="-1" role="dialog"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Ubah Data Pembayaran Tagihan</span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <form>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md">
-                                <div class="form-group">
-                                    <label>Tanggal</label>
-                                    <input @change="console.log(editValues.date)" class="form-custom"
-                                        :class="{ 'is-invalid': errorsEdit.date }" v-model="editValues.date"
-                                        type="datetime-local" />
-                                    <span class="invalid-feedback">{{ errorsEdit.date }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col">
-                                <div class="form-group">
-                                    <label>Jumlah Pembayaran</label><br>
-                                    <span v-if="editValues.bill != null">Sisa tagihan : {{
-                                        formatMoney(editValues.remain) }}</span>
-                                    <input class="form-custom" @keyup="changeRemain"
-                                        :class="{ 'is-invalid': errorsEdit.payment }" v-model="editValues.paymentAft"
-                                        type="number" />
-                                    <span>{{ formatMoney(editValues.paymentAft) }}</span>
-                                    <span class="invalid-feedback">{{ errorsEdit.payment }}</span>
-                                </div>
-
-                            </div>
-                        </div>
-
-
-
-                    </div>
-                    <div class="modal-footer ">
-                        <!-- <button type="button" class="col-md-3 btn btn-secondary" data-dismiss="modal">Tutup</button> -->
-                        <button type="button" @click="confirmUpdate" class=" w-100 btn btn-primary">Update</button>
-                    </div>
-                </form>
             </div>
         </div>
     </div>

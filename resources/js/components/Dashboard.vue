@@ -3,7 +3,7 @@ import { formatMoney, formatDate, formatDay } from '../helper';
 import axios from 'axios';
 import { ref, onMounted, reactive, computed, watch } from 'vue';
 import moment from 'moment';
-import { debounce } from 'lodash';
+import { debounce, sum } from 'lodash';
 import Chart from "chart.js/auto";
 import { now, round } from 'lodash';
 
@@ -14,6 +14,11 @@ const date = ref({
     'number': null,
     'year': null
 });
+const sums = ref({
+    'income':null,
+    'expense':null,
+    'income_potential':null
+})
 const inoutData = ref();
 const bills = ref();
 const debt = ref();
@@ -71,6 +76,9 @@ function getStatus() {
                 bills.value = datas.bill;
                 debt.value = datas.debt;
                 other.value = datas.other;
+                sums.value.income = datas.income;
+                sums.value.expense = datas.expense;
+                sums.value.income_potential = datas.income_potential
             }
         })
         .catch(error => {
@@ -109,8 +117,8 @@ const getDate = () => {
     } else {
         var start = form.value.start.split('-');
         var end = form.value.end.split('-');
-        start = new Date(start[0]-1,start[1]-1);
-        end = new Date(end[0]-1,end[1]-1);
+        start = new Date(start[0],start[1]-1);
+        end = new Date(end[0],end[1]-1);
         date.value.month = (start.toLocaleDateString('IN', options)) + " ~ " + end.toLocaleDateString('IN', options);
     }
     date.value.year = moment().format('YYYY');
@@ -473,7 +481,15 @@ onMounted(() => {
 
                                     <div class="col-md-4">
                                         <p class="text-center">
-                                            <strong>Pemasukan</strong>
+
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <strong>Pemasukan</strong></div>
+                                                <div class="card-body">
+                                                  <span class="mr-1 badge badge-primary">{{  Math.round(sums.income*100/sums.income_potential)}} %</span>  {{ formatMoney(sums.income) }} /  {{ formatMoney(sums.income_potential) }}
+                                                </div>
+                                            </div>
+
                                         </p>
                                         <div v-for="data in bills" class="progress-group">
                                             {{ data.account_name }}
@@ -484,7 +500,7 @@ onMounted(() => {
                                             <span class="float-right" v-else>
                                                 {{ formatMoney(data.bill_sum_amount) }}
                                             </span>
-                                            <div class="progress progress-sm">
+                                            <div class="progress progress-sm w-100">
                                                 <div v-if="data.bill_sum_amount != null" class="progress-bar bg-primary"
                                                     :style="{ width: (data.bill_sum_amount-data.bill_sum_remainder) / data.bill_sum_amount * 100 + '%' }">
                                                     {{ Math.round( (data.bill_sum_amount-data.bill_sum_remainder) / data.bill_sum_amount * 100) +
@@ -506,7 +522,7 @@ onMounted(() => {
                                             <span class="float-right" v-else>
                                                 {{ formatMoney(data.debt_sum_amount) }}
                                             </span>
-                                            <div class="progress progress-sm">
+                                            <div class="progress progress-sm w-100">
                                                 <div v-if="data.debt_sum_amount != null" class="progress-bar bg-primary"
                                                     :style="{ width:  ((data.debt_sum_amount - data.debt_sum_remainder) / data.debt_sum_amount) * 100 + '%' }">
                                                     {{ Math.round( ((data.debt_sum_amount - data.debt_sum_remainder) /
@@ -524,7 +540,7 @@ onMounted(() => {
                                             {{ data.account_name }}
                                             <span class="float-right"><b>{{ formatMoney(data.trans_sum_debit) }}</b>
                                             </span>
-                                            <div class="progress progress-sm " style="height: 3px;">
+                                            <div class="progress progress-sm w-100 " style="height: 3px;">
                                                 <div class="progress-bar bg-primary" :style="{ width: 1 * 100 + '%' }">
                                                 </div>
                                             </div>
@@ -584,12 +600,12 @@ onMounted(() => {
 
                                     <div class="col-md-4">
                                         <p class="text-center">
-                                            <strong>Pengeluaran</strong>
+                                            <strong>Pengeluaran : {{ formatMoney(sums.expense) }}</strong>
                                         </p>
                                         <div v-for="data in debt" class="progress-group">
                                             {{ data.account_name }}
-                                            <span class="float-right"><b>{{ formatMoney(data.debt_sum_amount) }}</b></span>
-                                            <div class="progress progress-sm " style="height: 3px;">
+                                            <span class="float-right"><b>{{ formatMoney(data.debt_sum_amount-data.debt_sum_remainder) }}</b></span>
+                                            <div class="progress progress-sm w-100 " style="height: 3px;">
                                                 <div class="progress-bar bg-danger" :style="{ width: 1 * 100 + '%' }"></div>
                                             </div>
                                         </div>
@@ -597,7 +613,7 @@ onMounted(() => {
                                             {{ data.account_name }}
                                             <span class="float-right"><b>{{ formatMoney(data.trans_sum_credit) }}</b>
                                             </span>
-                                            <div class="progress progress-sm " style="height: 3px;">
+                                            <div class="progress progress-sm w-100 " style="height: 3px;">
                                                 <div class="progress-bar bg-danger" :style="{ width: 1 * 100 + '%' }"></div>
                                             </div>
                                         </div>

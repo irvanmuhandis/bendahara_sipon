@@ -75,6 +75,7 @@ class LedgerController extends Controller
                     $query->where('fullname', 'like', "%{$searchQuery}%");
                 })
                     ->with(['wallet', 'payable.account', 'santri', 'operator'])
+                    ->whereHas('payable')
                     ->orderBy($fil, $req)->paginate(25);
                 return $data;
             } else {
@@ -184,18 +185,7 @@ class LedgerController extends Controller
             ->havingRaw('bill_count >= ?', [request('length')])
             ->get();
 
-        $sum = Bill::whereBetween('month', [request('start'), request('end')])
-            ->with(['santri' => function ($query) use ($searchQuery) {
-                $query->where('fullname', 'like', "%{$searchQuery}%");
-            }])
-            ->select('month',DB::raw('sum(remainder) as rm'))
-            ->where('payment_status', '<', 3)
-            ->whereIn('account_id', $account)
-            ->groupBy('month')
-            ->count('month')
-            ->having('month_count','>=',request('length'))
-            ->sum('remainder')
-            ;
+        $sum = $query->sum('sum_remain');
 
         return response()->json([
             'data' => $query,
@@ -274,11 +264,20 @@ class LedgerController extends Controller
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'credit')
             ->get();
-        return response()->json([
-            'bill' => $bill,
-            'debt' => $debt,
-            'other' => $other
-        ]);
+            $sum_bill_remain = $bill->sum('bill_sum_remainder');
+            $sum_debt_remain = $debt->sum('debt_sum_remainder');
+            $sum_bill_amount = $bill->sum('bill_sum_amount');
+            $sum_debt_amount = $debt->sum('debt_sum_amount');
+            $sum_other_cre = $other->sum('trans_sum_credit');
+            $sum_other_deb = $other->sum('trans_sum_debit');
+            return response()->json([
+                'bill' => $bill,
+                'debt' => $debt,
+                'other' => $other,
+                'income' => ($sum_bill_amount - $sum_bill_remain) + ($sum_debt_amount - $sum_debt_remain) + $sum_other_deb,
+                'expense' => ($sum_debt_remain) + $sum_other_cre,
+                'income_potential' => $sum_bill_amount + $sum_debt_amount + $sum_other_deb
+            ]);
     }
 
     public function walletSum()
@@ -306,10 +305,10 @@ class LedgerController extends Controller
 
     public function statistic()
     {
-        $debt = Debt::where('payment_status', '<', '3')->count();
-        $bill = Bill::where('payment_status', '<', '3')->count();
-        $santri = Santri::count();
-        $dispen = Dispen::where('status', '=', '1')->count();
+        $debt = Debt::where('payment_status', '<', 3)->count();
+        $bill = Bill::where('payment_status', '<', 3)->count();
+        $santri = Santri::where('status', 1)->where('option',1)->count();
+        $dispen = Dispen::where('status', 1)->count();
         return response()->json([
             'debt' => $debt,
             'bill' => $bill,
