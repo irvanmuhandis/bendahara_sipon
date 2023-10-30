@@ -275,7 +275,7 @@ class LedgerController extends Controller
                 'debt' => $debt,
                 'other' => $other,
                 'income' => ($sum_bill_amount - $sum_bill_remain) + ($sum_debt_amount - $sum_debt_remain) + $sum_other_deb,
-                'expense' => ($sum_debt_remain) + $sum_other_cre,
+                'expense' => ($sum_debt_amount) + $sum_other_cre,
                 'income_potential' => $sum_bill_amount + $sum_debt_amount + $sum_other_deb
             ]);
     }

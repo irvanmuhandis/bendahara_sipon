@@ -1,5 +1,5 @@
 <script setup >
-import { formatMoney, formatDate, formatDay } from '../helper';
+import { formatMoney, formatDate, formatDay, formatBg } from '../helper';
 import axios from 'axios';
 import { ref, onMounted, reactive, computed, watch } from 'vue';
 import moment from 'moment';
@@ -15,9 +15,9 @@ const date = ref({
     'year': null
 });
 const sums = ref({
-    'income':null,
-    'expense':null,
-    'income_potential':null
+    'income': null,
+    'expense': null,
+    'income_potential': null
 })
 const inoutData = ref();
 const bills = ref();
@@ -117,8 +117,8 @@ const getDate = () => {
     } else {
         var start = form.value.start.split('-');
         var end = form.value.end.split('-');
-        start = new Date(start[0],start[1]-1);
-        end = new Date(end[0],end[1]-1);
+        start = new Date(start[0], start[1] - 1);
+        end = new Date(end[0], end[1] - 1);
         date.value.month = (start.toLocaleDateString('IN', options)) + " ~ " + end.toLocaleDateString('IN', options);
     }
     date.value.year = moment().format('YYYY');
@@ -173,9 +173,25 @@ const graph = () => {
             backgroundColor: '#011f4b',
             borderColor: 'rgb(75, 192, 192)',
             label: 'Pembayaran Tagihan'
+        },
+        {
+            data: dataspd,
+            fill: true,
+            backgroundColor: '#03396c',
+            borderColor: 'rgb(75, 192, 192)',
+            label: 'Pembayaran Hutang'
+        },
+        {
+            data: datast_deb,
+            fill: true,
+            backgroundColor: '#3FB1C1',
+            borderColor: 'rgb(75, 192, 192)',
+            label: 'Transaksi'
         }],
         labels: labelpb,
         options: {
+            responsive: true,
+            resizeDelay: 200,
             parsing: {
                 xAxisKey: 'id',
                 yAxisKey: 'id'
@@ -191,32 +207,6 @@ const graph = () => {
         data: data
     });
 
-    const ctx22 = document.getElementById('myChart22');
-    const data22 = {
-        datasets: [{
-            data: dataspd,
-            fill: true,
-            backgroundColor: '#03396c',
-            borderColor: 'rgb(75, 192, 192)',
-            label: 'Pembayaran Hutang'
-        }],
-        labels: labelpd,
-        options: {
-            parsing: {
-                xAxisKey: 'id',
-                yAxisKey: 'id'
-            }
-        }
-    };
-    let chartStatus22 = Chart.getChart("myChart22"); // <canvas> id
-    if (chartStatus22 != undefined) {
-        chartStatus22.destroy();
-    }
-    new Chart(ctx22, {
-        type: 'bar',
-        data: data22
-    });
-
     const ctx2 = document.getElementById('myChart2');
     const data2 = {
         datasets: [{
@@ -225,6 +215,13 @@ const graph = () => {
             backgroundColor: '#FF4433',
             borderColor: 'rgb(75, 192, 192)',
             label: 'Hutang'
+        },
+        {
+            data: datast_cred,
+            fill: true,
+            backgroundColor: '#A52A2A',
+            borderColor: 'rgb(75, 192, 192)',
+            label: 'Transaksi'
         }],
         labels: labeld,
         options: {
@@ -241,61 +238,6 @@ const graph = () => {
     new Chart(ctx2, {
         type: 'bar',
         data: data2
-    });
-
-    const ctx3 = document.getElementById('myChart3');
-    const data3 = {
-        datasets: [{
-            data: datast_deb,
-            fill: true,
-            backgroundColor: '#3FB1C1',
-            borderColor: 'rgb(75, 192, 192)',
-            label: 'Transaksi'
-        }],
-        labels: labelt,
-        options: {
-            parsing: {
-                xAxisKey: 'id',
-                yAxisKey: 'id'
-            }
-        }
-    };
-
-
-    chartStatus = Chart.getChart("myChart3"); // <canvas> id
-    if (chartStatus != undefined) {
-        chartStatus.destroy();
-    }
-    new Chart(ctx3, {
-        type: 'bar',
-        data: data3
-    });
-
-    const ctx4 = document.getElementById('myChart4');
-    const data4 = {
-        datasets: [{
-            data: datast_cred,
-            fill: true,
-            backgroundColor: '#A52A2A',
-            borderColor: 'rgb(75, 192, 192)',
-            label: 'Transaksi'
-        }],
-        labels: labelt,
-        options: {
-            parsing: {
-                xAxisKey: 'id',
-                yAxisKey: 'id'
-            }
-        }
-    };
-
-    chartStatus = Chart.getChart("myChart4"); // <canvas> id
-    if (chartStatus != undefined) {
-        chartStatus.destroy();
-    }
-    new Chart(ctx4, {
-        type: 'bar',
-        data: data4
     });
 }
 
@@ -450,7 +392,7 @@ onMounted(() => {
 
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col">
                                         <p class="text-center">
                                             <strong>{{ date.month }}</strong>
                                         </p>
@@ -466,94 +408,126 @@ onMounted(() => {
                                             </div>
 
                                             <canvas id="myChart" height="225"
-                                                style="height: 180px; display: block; width: 560px;" width="700"
+                                                style="height: 180px; display: block; width: 700px;" width="700"
                                                 class="chartjs-render-monitor"></canvas>
 
-                                                <canvas id="myChart22" height="225"
-                                                style="height: 180px; display: block; width: 560px;" width="700"
-                                                class="chartjs-render-monitor"></canvas>
-                                            <canvas id="myChart3" height="225"
-                                                style="height: 180px; display: block; width: 560px;" width="700"
-                                                class="chartjs-render-monitor"></canvas>
+
                                         </div>
 
                                     </div>
 
-                                    <div class="col-md-4">
-                                        <p class="text-center">
-
-                                            <div class="card">
-                                                <div class="card-header">
-                                                    <strong>Pemasukan</strong></div>
-                                                <div class="card-body">
-                                                  <span class="mr-1 badge badge-primary">{{  Math.round(sums.income*100/sums.income_potential)}} %</span>  {{ formatMoney(sums.income) }} /  {{ formatMoney(sums.income_potential) }}
-                                                </div>
-                                            </div>
-
-                                        </p>
-                                        <div v-for="data in bills" class="progress-group">
-                                            {{ data.account_name }}
-                                            <span class="float-right" v-if="data.bill_sum_amount != null">
-                                                <b>{{ formatMoney(data.bill_sum_amount-data.bill_sum_remainder) }}</b>/
-                                                {{ formatMoney(data.bill_sum_amount) }}
-                                            </span>
-                                            <span class="float-right" v-else>
-                                                {{ formatMoney(data.bill_sum_amount) }}
-                                            </span>
-                                            <div class="progress progress-sm w-100">
-                                                <div v-if="data.bill_sum_amount != null" class="progress-bar bg-primary"
-                                                    :style="{ width: (data.bill_sum_amount-data.bill_sum_remainder) / data.bill_sum_amount * 100 + '%' }">
-                                                    {{ Math.round( (data.bill_sum_amount-data.bill_sum_remainder) / data.bill_sum_amount * 100) +
-                                                        '%'
-                                                    }}</div>
-                                                <div v-else class="progress-bar bg-primary"
-                                                    :style="{ width: data.bill_sum_amount * 100 + '%' }">
-                                                    {{ Math.round(data.bill_sum_amount * 100) +
-                                                        '%'
-                                                    }}</div>
-                                            </div>
-                                        </div>
-                                        <div v-for="data in debt" class="progress-group">
-                                            {{ data.account_name }}
-                                            <span class="float-right" v-if="data.debt_sum_amount != null">
-                                                <b>{{ formatMoney(data.debt_sum_amount-data.debt_sum_remainder) }}</b>/
-                                                {{ formatMoney(data.debt_sum_amount) }}
-                                            </span>
-                                            <span class="float-right" v-else>
-                                                {{ formatMoney(data.debt_sum_amount) }}
-                                            </span>
-                                            <div class="progress progress-sm w-100">
-                                                <div v-if="data.debt_sum_amount != null" class="progress-bar bg-primary"
-                                                    :style="{ width:  ((data.debt_sum_amount - data.debt_sum_remainder) / data.debt_sum_amount) * 100 + '%' }">
-                                                    {{ Math.round( ((data.debt_sum_amount - data.debt_sum_remainder) /
-                                                        data.debt_sum_amount) * 100) +
-                                                        '%'
-                                                    }}</div>
-                                                <div v-else class="progress-bar bg-primary"
-                                                    :style="{ width: data.debt_sum_amount * 100 + '%' }">
-                                                    {{ Math.round(data.debt_sum_amount * 100) +
-                                                        '%'
-                                                    }}</div>
-                                            </div>
-                                        </div>
-                                        <div v-for="data in other" class="progress-group">
-                                            {{ data.account_name }}
-                                            <span class="float-right"><b>{{ formatMoney(data.trans_sum_debit) }}</b>
-                                            </span>
-                                            <div class="progress progress-sm w-100 " style="height: 3px;">
-                                                <div class="progress-bar bg-primary" :style="{ width: 1 * 100 + '%' }">
-                                                </div>
-                                            </div>
-                                        </div>
-
-
-                                    </div>
 
                                 </div>
 
                             </div>
+                            <div class="card-footer">
+                                <div class="row">
+                                    <div class="col">
+                                        <p class="text-center">
+
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <strong>Pemasukan</strong>
+                                            </div>
+                                            <div class="card-body">
+                                                <span class="mr-1 badge badge-primary">{{
+                                                    Math.round(sums.income * 100 / sums.income_potential) }} %</span>
+                                                {{ formatMoney(sums.income) }} / {{ formatMoney(sums.income_potential) }}
+                                            </div>
+                                        </div>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col">
 
 
+                                        <div class="info-box mb-3" :class="[formatBg(2)]">
+                                            <span class="info-box-icon"><i class="fas fa-user-tag"></i></span>
+                                            <div class="info-box-content">
+                                                <div v-for="data in bills" class="progress-group">
+                                                    {{ data.account_name }}
+                                                    <span class="info-box-text" v-if="data.bill_sum_amount != null">
+                                                        <b>{{ formatMoney(data.bill_sum_amount - data.bill_sum_remainder)
+                                                        }}</b>/
+                                                        {{ formatMoney(data.bill_sum_amount) }}
+                                                    </span>
+                                                    <span class="info-box-text" v-else>
+                                                        {{ formatMoney(data.bill_sum_amount) }}
+                                                    </span>
+
+                                                    <div class="progress progress-sm" style="height:10px!important">
+                                                        <div v-if="data.bill_sum_amount != null"
+                                                            class=" progress-bar bg-light"
+                                                            :style="{ width: (data.bill_sum_amount - data.bill_sum_remainder) / data.bill_sum_amount * 100 + '%' }">
+                                                            {{ Math.round((data.bill_sum_amount - data.bill_sum_remainder) /
+                                                                data.bill_sum_amount * 100) +
+                                                                '%'
+                                                            }}</div>
+                                                        <div v-else class="progress-bar bg-light"
+                                                            :style="{ width: data.bill_sum_amount * 100 + '%' }">
+                                                            {{ Math.round(data.bill_sum_amount * 100) +
+                                                                '%'
+                                                            }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+
+                                    </div>
+                                    <div class="col">
+                                        <div class="info-box mb-3" :class="[formatBg(3)]">
+                                            <span class="info-box-icon">
+                                                <i class="fas fa-receipt"></i></span>
+                                            <div class="info-box-content">
+                                                <div v-for="data in debt" class="progress-group">
+                                                    {{ data.account_name }}
+                                                    <span class="info-box-text"
+                                                        v-if="data.debt_sum_amount == data.debt_sum_amount">
+                                                        <b>{{ formatMoney(data.debt_sum_amount - data.debt_sum_remainder)
+                                                        }}</b>/
+                                                        {{ formatMoney(data.debt_sum_amount) }}
+                                                    </span>
+                                                    <span class="info-box-text" v-else>
+                                                        {{ formatMoney(data.debt_sum_amount) }}
+                                                    </span>
+
+                                                    <div class="progress progress-sm" style="height:10px!important">
+                                                        <div v-if="data.debt_sum_amount != null"
+                                                            class=" progress-bar bg-light"
+                                                            :style="{ width: (data.debt_sum_amount - data.debt_sum_remainder) / data.debt_sum_amount * 100 + '%' }">
+                                                            {{ Math.round((data.debt_sum_amount - data.debt_sum_remainder) /
+                                                                data.debt_sum_amount * 100) +
+                                                                '%'
+                                                            }}</div>
+                                                        <div v-else class="progress-bar bg-light"
+                                                            :style="{ width: data.debt_sum_amount * 100 + '%' }">
+                                                            {{ Math.round(data.debt_sum_amount * 100) +
+                                                                '%'
+                                                            }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="info-box mb-3" :class="[formatBg(4)]">
+                                            <span class="info-box-icon"><i class="fas fa-hand-holding-usd"></i></span>
+                                            <div class="info-box-content">
+                                                <div v-for="data in other" class="progress-group">
+                                                    {{ data.account_name }}
+                                                    <span class="info-box-text"><b>{{ formatMoney(data.trans_sum_debit)
+                                                    }}</b></span>
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                         </div>
                         <div class="card">
@@ -572,7 +546,7 @@ onMounted(() => {
 
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col">
                                         <p class="text-center">
                                             <strong>{{ date.month }}</strong>
                                         </p>
@@ -588,79 +562,72 @@ onMounted(() => {
                                             </div>
 
                                             <canvas id="myChart2" height="225"
-                                                style="height: 180px; display: block; width: 560px;" width="700"
+                                                style="height: 180px; display: block; width: 700px;" width="700"
                                                 class="chartjs-render-monitor"></canvas>
 
-                                            <canvas id="myChart4" height="225"
-                                                style="height: 180px; display: block; width: 560px;" width="700"
-                                                class="chartjs-render-monitor"></canvas>
+
                                         </div>
 
                                     </div>
-
-                                    <div class="col-md-4">
-                                        <p class="text-center">
-                                            <strong>Pengeluaran : {{ formatMoney(sums.expense) }}</strong>
-                                        </p>
-                                        <div v-for="data in debt" class="progress-group">
-                                            {{ data.account_name }}
-                                            <span class="float-right"><b>{{ formatMoney(data.debt_sum_amount-data.debt_sum_remainder) }}</b></span>
-                                            <div class="progress progress-sm w-100 " style="height: 3px;">
-                                                <div class="progress-bar bg-danger" :style="{ width: 1 * 100 + '%' }"></div>
-                                            </div>
-                                        </div>
-                                        <div v-for="data in other" class="progress-group">
-                                            {{ data.account_name }}
-                                            <span class="float-right"><b>{{ formatMoney(data.trans_sum_credit) }}</b>
-                                            </span>
-                                            <div class="progress progress-sm w-100 " style="height: 3px;">
-                                                <div class="progress-bar bg-danger" :style="{ width: 1 * 100 + '%' }"></div>
-                                            </div>
-                                        </div>
-
-
-
-                                    </div>
-
                                 </div>
 
                             </div>
 
-                            <!-- <div class="card-footer">
+                            <div class="card-footer">
+                                <div class="row">
+                                    <div class="col">
+                                        <p class="text-center">
+
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <strong>Pengeluaran</strong>
+                                            </div>
+                                            <div class="card-body text-bold">
+                                                {{ formatMoney(sums.expense) }}
+                                            </div>
+                                        </div>
+                                        </p>
+                                    </div>
+                                </div>
                                 <div class="row">
                                     <div class="col-sm col">
-                                        <div class="description-block border-right">
-                                            <span class="description-percentage text-success"><i
-                                                    class="fas fa-caret-up"></i> 17%</span>
-                                            <h5 class="description-header">$35,210.43</h5>
-                                            <span class="description-text">TOTAL DEBIT</span>
-                                        </div>
 
+                                        <div class="info-box mb-3" :class="[formatBg(0)]">
+                                            <span class="info-box-icon"><i class="fas fa-user-clock"></i></span>
+                                            <div class="info-box-content">
+                                                <div v-for="data in debt" class="progress-group">
+                                                    {{ data.account_name }}
+                                                    <span class="info-box-text"><b>{{ formatMoney(data.debt_sum_amount)
+                                                    }}</b></span>
+
+                                                </div>
+                                            </div>
+
+
+                                        </div>
                                     </div>
 
                                     <div class="col-sm col">
-                                        <div class="description-block border-right">
-                                            <span class="description-percentage text-warning"><i
-                                                    class="fas fa-caret-left"></i> 0%</span>
-                                            <h5 class="description-header">$10,390.90</h5>
-                                            <span class="description-text">TOTAL KREDIT</span>
-                                        </div>
+                                        <div class="info-box mb-3" :class="[formatBg(1)]">
+                                            <span class="info-box-icon"><i class="fas fa-hand-holding-usd"></i></span>
+                                            <div class="info-box-content">
+                                                <div v-for="data in other" class="progress-group">
+                                                    {{ data.account_name }}
+                                                    <span class="info-box-text"><b>{{ formatMoney(data.trans_sum_credit)
+                                                    }}</b></span>
 
+                                                </div>
+                                            </div>
+
+
+                                        </div>
                                     </div>
 
-                                    <div class="col-sm col-auto">
-                                        <div class="description-block ">
-                                            <span class="description-percentage text-success"><i
-                                                    class="fas fa-caret-up"></i> 20%</span>
-                                            <h5 class="description-header">$24,813.53</h5>
-                                            <span class="description-text">TOTAL SALDO</span>
-                                        </div>
 
-                                    </div>
 
                                 </div>
 
-                            </div> -->
+                            </div>
 
                         </div>
                     </div>
