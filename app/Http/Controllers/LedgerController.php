@@ -18,7 +18,6 @@ use App\Models\Santri;
 use App\Models\Wallet;
 use Carbon\Carbon;
 use DateTime;
-
 use Illuminate\Pagination\LengthAwarePaginator;
 
 use function Database\Seeders\wallet;
@@ -74,8 +73,8 @@ class LedgerController extends Controller
                 $data = Pay::whereHas('santri', function ($query) use ($searchQuery) {
                     $query->where('fullname', 'like', "%{$searchQuery}%");
                 })
-                    ->with(['wallet', 'payable.account', 'santri', 'operator'])
                     ->whereHas('payable')
+                    ->with(['wallet', 'payable.account', 'santri', 'operator'])
                     ->orderBy($fil, $req)->paginate(25);
                 return $data;
             } else {
@@ -91,7 +90,6 @@ class LedgerController extends Controller
 
     public function circulation()
     {
-        // dd('sas');
         $start = '';
         $end = '';
         $fil = request('filter');
@@ -108,20 +106,19 @@ class LedgerController extends Controller
             }
         }
 
-        if (request('start') == '' || request('start') == '') {
+        if (request('start') == '' || request('end') == '') {
             $start = Carbon::now()->subDays(30);
             $end = Carbon::now();
         } else {
             $start = Carbon::parse(request('start'));
+            $start->setTimezone('UTC');
+            $start->format('Y-m-d H:i:s');
             $start->setTime(0, 0, 0);
-            $start->format('Y-m-d 00:00:00');
             $end = Carbon::parse(request('end'));
-            $end->setTime(23, 59, 59);
-            $end->format('Y-m-d 23:59:59');
+            $end->setTimezone('UTC');
+            $end->format('Y-m-d H:i:s');
+            $end->setTime(0, 0, 0);
         }
-        // dd(Ledger::first()->created_at);
-        // dd($start, $end);
-        // dd(request('start'));
         return Ledger::with(['ledgerable', 'ledgerable.santri'])
             ->with(['ledgerable.wallet' => function ($query) {
                 $query
@@ -185,8 +182,8 @@ class LedgerController extends Controller
             ->havingRaw('bill_count >= ?', [request('length')])
             ->get();
 
-        $sum = $query->sum('sum_remain');
 
+        $sum = $query->sum('sum_remain');
         return response()->json([
             'data' => $query,
             'sum' => $sum
@@ -197,12 +194,7 @@ class LedgerController extends Controller
     public function accountSum(Request $request)
     {
         DB::enableQueryLog();
-        // query
-        // DB::getQueryLog();
         $queryParams = $request->query();
-        // or $queryParams = $request->all();
-
-        // Access and use the query parameters
         $start = $queryParams['start'];
         $end = $queryParams['end'];
 
@@ -216,28 +208,12 @@ class LedgerController extends Controller
         $dateStart = explode('-', $start);
         $dateEnd = explode('-', $end);
 
-        // dd($dateStart);
         $strt = Carbon::createFromDate($dateStart[0], $dateStart[1], 1);
         $ends = Carbon::createFromDate($dateEnd[0], $dateEnd[1], 1)->endOfMonth();
 
-        // dd($strt);
-
-        // $latestPosts = Account::where('account_type', 2)
-        //     ->select('acc_bills.id as billid','account_name')
-        //     ->join('acc_bills', 'acc_bills.account_id', '=', 'acc_accounts.id');
-
-        // $bill_remain = DB::table('acc_pays')
-        // ->selectRaw('sum(payment)')
-        //     ->where('payable_type', Bill::class)
-        //     ->joinSub($latestPosts, 'latest_posts', function ($join) {
-        //         $join->on('acc_pays.payable_id', '=', 'latest_posts.billid');
-        //     })
-        //     ->whereBetween('created_at', [$strt, $ends])
-        //     ->groupBy('account_name')
-        //     ->groupBy('billid');
 
         $bill = Account::where('account_type', 2)
-        ->whereHas('bill')
+            ->whereHas('bill')
             ->withSum(['bill' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('month', [$strt->format('Y-m'), $ends->format('Y-m')]);
             }], 'remainder')
@@ -248,7 +224,7 @@ class LedgerController extends Controller
             ->get();
 
         $debt = Account::where('account_type', 1)
-        ->whereHas('debt')
+            ->whereHas('debt')
             ->withSum(['debt' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'remainder')
@@ -259,7 +235,7 @@ class LedgerController extends Controller
             ->get();
 
         $other = Account::where('account_type', '=', 3)
-        ->whereHas('trans')
+            ->whereHas('trans')
             ->withSum(['trans' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'debit')
@@ -267,20 +243,24 @@ class LedgerController extends Controller
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'credit')
             ->get();
-            $sum_bill_remain = $bill->sum('bill_sum_remainder');
-            $sum_debt_remain = $debt->sum('debt_sum_remainder');
-            $sum_bill_amount = $bill->sum('bill_sum_amount');
-            $sum_debt_amount = $debt->sum('debt_sum_amount');
-            $sum_other_cre = $other->sum('trans_sum_credit');
-            $sum_other_deb = $other->sum('trans_sum_debit');
-            return response()->json([
-                'bill' => $bill,
-                'debt' => $debt,
-                'other' => $other,
-                'income' => ($sum_bill_amount - $sum_bill_remain) + ($sum_debt_amount - $sum_debt_remain) + $sum_other_deb,
-                'expense' => ($sum_debt_amount) + $sum_other_cre,
-                'income_potential' => $sum_bill_amount + $sum_debt_amount + $sum_other_deb
-            ]);
+        $sum_bill_remain = $bill->sum('bill_sum_remainder');
+        $sum_debt_remain = $debt->sum('debt_sum_remainder');
+        $sum_bill_amount = $bill->sum('bill_sum_amount');
+        $sum_debt_amount = $debt->sum('debt_sum_amount');
+        $sum_other_cre = $other->sum('trans_sum_credit');
+        $sum_other_deb = $other->sum('trans_sum_debit');
+        return response()->json([
+            'bill' => $bill,
+            'debt' => $debt,
+            'other' => $other,
+            'income_bill' => ($sum_bill_amount - $sum_bill_remain),
+            'expense_debt' => ($sum_debt_amount) ,
+            'bill_potential' => $sum_bill_amount ,
+            'debt_potential' => $sum_debt_amount ,
+            'income_other'=> $sum_other_deb,
+            'income_debt'=>($sum_debt_amount - $sum_debt_remain),
+            'expense_other'=>$sum_other_cre
+        ]);
     }
 
     public function walletSum()
@@ -308,10 +288,10 @@ class LedgerController extends Controller
 
     public function statistic()
     {
-        $debt = Debt::where('payment_status', '<', 3)->count();
-        $bill = Bill::where('payment_status', '<', 3)->count();
-        $santri = Santri::where('status', 1)->where('option',1)->count();
-        $dispen = Dispen::where('status', 1)->count();
+        $debt = Debt::where('payment_status', '<', '3')->count();
+        $bill = Bill::where('payment_status', '<', '3')->count();
+        $santri = Santri::where('status', '1')->count();
+        $dispen = Dispen::where('status', '=', '1')->count();
         return response()->json([
             'debt' => $debt,
             'bill' => $bill,
@@ -324,12 +304,7 @@ class LedgerController extends Controller
     public function inout(Request $request)
     {
         DB::enableQueryLog();
-        // query
-        // DB::getQueryLog();
         $queryParams = $request->query();
-        // or $queryParams = $request->all();
-
-        // Access and use the query parameters
         $start = $queryParams['start'];
         $end = $queryParams['end'];
 
@@ -343,11 +318,9 @@ class LedgerController extends Controller
         $dateStart = explode('-', $start);
         $dateEnd = explode('-', $end);
 
-        // dd($dateStart);
         $strt = Carbon::createFromDate($dateStart[0], $dateStart[1], 1);
         $ends = Carbon::createFromDate($dateEnd[0], $dateEnd[1], 1)->endOfMonth();
 
-        // dd($strt->format('Y-m'), $ends->format('Y-m'));
         $paybill =  Pay::query()
             ->where('payable_type', Bill::class)
             ->join('acc_bills', 'acc_bills.id', '=', 'acc_pays.payable_id')
@@ -362,17 +335,16 @@ class LedgerController extends Controller
 
         $paydebt =  Pay::query()
             ->where('payable_type', Debt::class)
-            ->with(['payable' => function ($query) use ($strt, $ends) {
-                $query->whereBetween('created_at', [$strt, $ends]);
-            }])
             ->select(
                 DB::raw('sum(payment) as `sum`'),
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as date")
             )
+            ->whereHas('payable',function ($query) use ($start,$strt,$ends, $end) {
+                $query->whereBetween(DB::raw('created_at'), [$strt, $ends]);
+            })
             ->groupByRaw('date')
             ->orderBy('date')
             ->get();
-        // dd(DB::getQueryLog());
 
         $trans =  Ledger::query()
             ->where('ledgerable_type', '=', Trans::class)
@@ -389,6 +361,7 @@ class LedgerController extends Controller
 
         $debt =  Ledger::query()
             ->where('ledgerable_type', '=', Debt::class)
+            ->with('ledgerable.account')
             ->join('acc_debts', 'acc_debts.id', '=', 'acc_ledgers.ledgerable_id')
             ->whereBetween('acc_debts.created_at', [$strt, $ends])
             ->select(
