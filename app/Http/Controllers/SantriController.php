@@ -39,9 +39,11 @@ class SantriController extends Controller
 
     public function bill($id)
     {
-        $db = Bill::
-            where('acc_bills.nis', '=', $id)
+        $db = Bill::where('acc_bills.nis', '=', $id)
             ->where('acc_bills.payment_status', '<', 3)
+            ->whereHas('santri', function ($query) {
+                $query->where('option', 1);
+            })
             ->with(['santri', 'account'])
             ->orderBy('acc_bills.month', 'desc')
             ->latest()->paginate(9);
@@ -52,9 +54,11 @@ class SantriController extends Controller
 
     public function debt($id)
     {
-        $db = Debt::
-          where('acc_debts.nis', '=', $id)
+        $db = Debt::where('acc_debts.nis', '=', $id)
             ->where('acc_debts.payment_status', '<', 3)
+            ->whereHas('santri', function ($query) {
+                $query->where('option', 1);
+            })
             ->with(['santri', 'account'])
             ->orderBy('acc_debts.created_at', 'desc')
             ->latest()->paginate(7);
@@ -64,7 +68,7 @@ class SantriController extends Controller
 
 
 
-    
+
     public function list()
     {
         // return Santri::select('nis','fullname','nickname')->orderBy('nis', 'desc')

@@ -290,7 +290,7 @@ class LedgerController extends Controller
     {
         $debt = Debt::where('payment_status', '<', '3')->count();
         $bill = Bill::where('payment_status', '<', '3')->count();
-        $santri = Santri::where('status', '1')->count();
+        $santri = Santri::where('status', '1')->where('option',1)->count();
         $dispen = Dispen::where('status', '=', '1')->count();
         return response()->json([
             'debt' => $debt,
