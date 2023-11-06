@@ -563,7 +563,7 @@ onMounted(() => {
                                                     <td colspan="2" class="text-bold text-center">Total</td>
                                                     <td class="text-bold text-right">{{ formatMoney(sums.income_bill) }}
                                                     </td>
-                                                    <td class="text-bold text-right">{{ formatMoney(sums.income_potential)
+                                                    <td class="text-bold text-right">{{ formatMoney(sums.bill_potential)
                                                     }} </td>
                                                 </tr>
                                             </tbody>

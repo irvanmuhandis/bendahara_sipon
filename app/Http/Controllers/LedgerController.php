@@ -71,7 +71,8 @@ class LedgerController extends Controller
             }
             if ($debit == 1) {
                 $data = Pay::whereHas('santri', function ($query) use ($searchQuery) {
-                    $query->where('fullname', 'like', "%{$searchQuery}%");
+                    $query->where('fullname', 'like', "%{$searchQuery}%")
+                    ->where('option',1);
                 })
                     ->whereHas('payable')
                     ->with(['wallet', 'payable.account', 'santri', 'operator'])
@@ -79,7 +80,8 @@ class LedgerController extends Controller
                 return $data;
             } else {
                 $data = Debt::whereHas('santri', function ($query) use ($searchQuery) {
-                    $query->where('fullname', 'like', "%{$searchQuery}%");
+                    $query->where('fullname', 'like', "%{$searchQuery}%")
+                    ->where('option',1);
                 })
                     ->with(['wallet', 'santri', 'operator'])
                     ->orderBy($fil, $req)->paginate(25);
@@ -150,6 +152,7 @@ class LedgerController extends Controller
 
 
         $query = Santri::where('fullname', 'like', "%{$searchQuery}%")
+        ->where('option',1)
             ->with('bill.account')
             ->withCount(['bill as bill_count' => function ($bill) use ($account) {
                 $bill

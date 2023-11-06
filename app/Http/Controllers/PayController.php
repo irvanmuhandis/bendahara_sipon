@@ -49,7 +49,8 @@ class PayController extends Controller
         }
         $data = Pay::where('acc_pays.payable_type', '=', Debt::class)
             ->whereHas('santridebt', function ($query) use ($searchQuery) {
-                $query->where('fullname', 'like', "%{$searchQuery}%");
+                $query->where('fullname', 'like', "%{$searchQuery}%")
+                ->where('option',1);
             })
             ->with(['payable.account', 'payable.santri', 'wallet', 'operator'])
             ->orderBy($fil, $req)
@@ -76,7 +77,8 @@ class PayController extends Controller
         }
         $data = Pay::where('acc_pays.payable_type', '=', Bill::class)
             ->whereHas('santribill', function ($query) use ($searchQuery) {
-                $query->where('fullname', 'like', "%{$searchQuery}%");
+                $query->where('fullname', 'like', "%{$searchQuery}%")
+                ->where('option',1);
             })
             ->with(['payable.account', 'payable.santri', 'wallet', 'operator'])
             ->orderBy($fil, $req)

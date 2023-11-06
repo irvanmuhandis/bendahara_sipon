@@ -37,7 +37,8 @@ class BillController extends Controller
             }
         }
         $bill = Bill::whereHas('santri', function ($query) use ($searchQuery) {
-            $query->where('fullname', 'like', "%{$searchQuery}%");
+            $query->where('fullname', 'like', "%{$searchQuery}%")
+                ->where('option', 1);
         })
             ->with(['santri', 'operator', 'account'])
             ->orderBy($fil, $req)
@@ -207,13 +208,13 @@ class BillController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-         $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
-                'Accept' => 'aplication/json',
-                'Authorization' => 'Bearer ' . $token,
-            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
-        $operator=$response->json()['data'];
+            'Accept' => 'aplication/json',
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
+        $operator = $response->json()['data'];
         $log = [];
         if (request('account')) {
             foreach (request('santri') as $user) {
@@ -261,10 +262,10 @@ class BillController extends Controller
         $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
-                'Accept' => 'aplication/json',
-                'Authorization' => 'Bearer ' . $token,
-            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
-        $operator=$response->json()['data'];
+            'Accept' => 'aplication/json',
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
+        $operator = $response->json()['data'];
         $period_start = request('period_start');
         $period_end = request('period_end');
         $log = [];
@@ -315,13 +316,13 @@ class BillController extends Controller
         //         'password' => 'sometimes|min:8',
         //     ]);
 
-         $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
-                'Accept' => 'aplication/json',
-                'Authorization' => 'Bearer ' . $token,
-            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
-        $user=$response->json()['data'];
+            'Accept' => 'aplication/json',
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
+        $user = $response->json()['data'];
         $bill = Bill::where('id', '=', request('id'))->first();
         // dd(request());
         $bill->update([

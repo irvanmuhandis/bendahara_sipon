@@ -23,7 +23,8 @@ class DebtController extends Controller
         $searchQuery = request('search');
         $debt = Santri::where('fullname', 'like', "%{$searchQuery}%")
             ->whereHas('debt', function ($query) {
-                $query->where('payment_status', '<', 3);
+                $query->where('payment_status', '<', 3)
+                ->where('option',1);
             })
             ->with(['debt' => function ($query) {
                 $query->where('payment_status', '<', 3);
@@ -113,7 +114,8 @@ class DebtController extends Controller
             ->with(['santri', 'operator', 'account'])
             ->when($debtorName, function ($query) use ($debtorName) {
                 return $query->whereHas('santri', function ($q) use ($debtorName) {
-                    $q->where('fullname', 'LIKE', "%$debtorName%");
+                    $q->where('fullname', 'LIKE', "%$debtorName%")
+                    ->where('option',1);
                 });
             })
             ->when($status, function ($query) use ($status) {
