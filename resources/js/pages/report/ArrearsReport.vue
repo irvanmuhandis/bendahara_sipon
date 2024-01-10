@@ -775,7 +775,7 @@ onMounted(() => {
                                                     }) }}</strong>. Kami mohon sekiranya
                                                     Bapak / Ibu dapat segera melunasi tunggakan tersebut. Informasi
                                                     lebih
-                                                    lanjut dapat menghubungi 0823-3392-2366 a.n. Saniyatin Nibroniyah.
+                                                    lanjut dapat menghubungi 0857-0151-4915 a.n. Muhammad Irvan Muhandis.
                                                 </span>
                                                 <br>
                                                 <span>
@@ -795,12 +795,12 @@ onMounted(() => {
                                         <!-- TTD -->
                                         <div class="row m-2">
                                             <div class="col text-center">
-                                                <div class="pb-5 mb-5">Lurah Pondok Putri</div>
-                                                <div class=""><u><strong>Lulu Laeli Ramdany</strong></u></div>
+                                                <div class="pb-5 mb-5">Lurah Pondok Putra</div>
+                                                <div class=""><u><strong>Isman Nasik, M.Si., AH</strong></u></div>
                                             </div>
                                             <div class="col text-center">
-                                                <div class="pb-5 mb-5">Bendahara Pondok Putri</div>
-                                                <div class=""><u><strong>Saniyatin Nibroniyah, S.Kep, AH</strong></u>
+                                                <div class="pb-5 mb-5">Bendahara Pondok Putra</div>
+                                                <div class=""><u><strong>M.Irvan Muhandis, S.Kom</strong></u>
                                                 </div>
                                             </div>
                                         </div>
