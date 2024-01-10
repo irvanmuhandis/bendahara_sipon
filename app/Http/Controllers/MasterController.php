@@ -213,7 +213,7 @@ class MasterController extends Controller
 
         $query = Santri::where('fullname', 'like', "%{$searchQuery}%")
             ->select('fullname', 'nis')
-            ->where('option', '2')
+            ->where('option', '1')
             ->with('bill.account')
             ->withCount(['bill as bill_count' => function ($bill) use ($account){
                 $bill
@@ -269,7 +269,7 @@ class MasterController extends Controller
 
         $query = Santri::where('nis',$nis)
             ->select('fullname', 'nis')
-            ->where('option', '2')
+            ->where('option', '1')
             ->with(['bill' => function ($query){
                 $query->selectRaw('month,nis,sum(amount) as sum_amount,sum(remainder) as sum_remain,count(id) as count')
                     ->whereBetween('month', [request('start'), request('end')])
