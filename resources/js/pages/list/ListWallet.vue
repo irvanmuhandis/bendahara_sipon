@@ -234,7 +234,7 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0 text-primary"><strong> Wallet | Dompet</strong></h1>
+                    <h1 class="m-0 text-primary"><strong>Dompet</strong></h1>
                     <p><small>List sumber keuangan pondok pesantren</small></p>
                 </div>
                 <div class="col-sm-6">

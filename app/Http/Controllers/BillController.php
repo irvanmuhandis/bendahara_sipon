@@ -6,18 +6,46 @@ use DateTime;
 use Carbon\Carbon;
 use App\Models\Bill;
 use App\Models\User;
+use App\Models\Santri;
 use App\Models\Account;
 use App\Enums\PayStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 
-use Illuminate\Support\Facades\Cookie;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cookie;
 
 
 class BillController extends Controller
 {
+
+    public function santri()
+    {
+        $searchQuery = request('search');
+
+        $bill = Santri::where('fullname', 'like', "%{$searchQuery}%")
+            ->where('option', 1)
+            ->whereHas('bill', function ($query) {
+                $query->where('payment_status', '<', 3)
+                    ->where('month', null);
+            })
+            ->with(['bill' => function ($query) {
+                $query->where('payment_status', '<', 3)
+                    ->where('month', null)
+                    ->orderBy('title', 'asc');
+            }])
+            ->withSum('bill as sum_amount', 'remainder')
+            ->orderBy('nis', 'asc')
+            ->get();
+
+        $sum = $bill->sum('sum_amount');
+
+        return response()->json([
+            'data' => $bill,
+            'sum' => $sum
+        ]);
+    }
 
 
     public function index()
@@ -25,6 +53,7 @@ class BillController extends Controller
         $fil = request('filter');
         $req = request('value');
         $searchQuery = request('query');
+        $mode = request('mode');
 
         if ($fil == '') {
             $fil = 'id';
@@ -40,165 +69,19 @@ class BillController extends Controller
             $query->where('fullname', 'like', "%{$searchQuery}%")
                 ->where('option', 1);
         })
+            ->when($mode == 'period', function ($query) {
+                $query->where('title', null)
+                    ->orWhere('title', "");
+            })
+            ->when($mode == 'nonperiod', function ($query) {
+                $query->where('month', null)
+                    ->orWhere('month', null);
+            })
             ->with(['santri', 'operator', 'account'])
             ->orderBy($fil, $req)
             ->paginate(25);
 
         return $bill;
-    }
-
-    public function store_group()
-    {
-        // request()->validate([
-        //     'name' => 'required',
-        //     'email' => 'required|unique:dispens,email',
-        //     'password' => 'required|min:8',
-        // ]);
-
-        $users = User::where('group_id', '=', request('group'))->get();
-
-        foreach ($users as $user) {
-            $bill = Bill::create([
-                'account_id' => request('account'),
-                'user_id' => $user->id,
-                'amount' => request('price'),
-                'remainder' => request('price'),
-                'payment_status' =>  1,
-                'month' => request('period'),
-            ]);
-        }
-
-
-        return request();
-    }
-
-    public function store_groupRange()
-    {
-        // request()->validate([
-        //     'name' => 'required',
-        //     'email' => 'required|unique:dispens,email',
-        //     'password' => 'required|min:8',
-        // ]);
-        $users = User::where('group_id', '=', request('group'))->get();
-        $period_start = request('period_start');
-        $period_end = request('period_end');
-
-        foreach ($users as $user) {
-            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
-                $bill = Bill::create([
-                    'account_id' =>  request('account'),
-                    'user_id' => $user->id,
-                    'amount' => request('price'),
-                    'remainder' => request('price'),
-                    'payment_status' =>  1,
-                    'month' => $month->format('Y-m'),
-                ]);
-            }
-        }
-
-        return request();
-    }
-
-
-    public function store_groupMult()
-    {
-        // request()->validate([
-        //     'name' => 'required',
-        //     'email' => 'required|unique:dispens,email',
-        //     'password' => 'required|min:8',
-        // ]);
-
-        $users = User::where('group_id', '=', request('group'))->get();
-
-        foreach ($users as $user) {
-            Bill::create([
-                'account_id' => Account::where('account_name', '=', 'Syahriah')->first()->id,
-                'user_id' => $user->id,
-                'amount' => request('syah'),
-                'remainder' => request('syah'),
-                'payment_status' =>  1,
-                'month' => request('period'),
-            ]);
-        }
-
-        foreach ($users as $user) {
-            Bill::create([
-                'account_id' => Account::where('account_name', '=', 'Wifi')->first()->id,
-                'user_id' => $user->id,
-                'amount' => request('wifi'),
-                'remainder' => request('wifi'),
-                'payment_status' =>  1,
-                'month' => request('period'),
-            ]);
-        }
-
-        foreach ($users as $user) {
-            Bill::create([
-                'account_id' => Account::where('account_name', '=', 'Madin')->first()->id,
-                'user_id' => $user->id,
-                'amount' => request('madin'),
-                'remainder' => request('madin'),
-                'payment_status' =>  1,
-                'month' => request('period'),
-            ]);
-        }
-
-        return request();
-    }
-
-    public function store_groupRangeMult()
-    {
-        // request()->validate([
-        //     'name' => 'required',
-        //     'email' => 'required|unique:dispens,email',
-        //     'password' => 'required|min:8',
-        // ]);
-        $users = User::where('group_id', '=', request('group'))->get();
-        $period_start = request('period_start');
-        $period_end = request('period_end');
-
-
-        foreach ($users as $user) {
-            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
-                $bill = Bill::create([
-                    'account_id' => Account::where('account_name', '=', 'Madin')->first()->id,
-                    'user_id' => $user->id,
-                    'amount' => request('madin'),
-                    'remainder' => request('madin'),
-                    'payment_status' =>  1,
-                    'month' => $month->format('Y-m'),
-                ]);
-            }
-        }
-
-        foreach ($users as $user) {
-            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
-
-                $bill = Bill::create([
-                    'account_id' =>  Account::where('account_name', '=', 'Syahriah')->first()->id,
-                    'user_id' => $user->id,
-                    'amount' => request('syah'),
-                    'remainder' => request('syah'),
-                    'payment_status' =>  1,
-                    'month' => $month->format('Y-m'),
-                ]);
-            }
-        }
-
-        foreach ($users as $user) {
-            for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
-                $bill = Bill::create([
-                    'account_id' =>  Account::where('account_name', '=', 'Wifi')->first()->id,
-                    'user_id' => $user->id,
-                    'amount' => request('wifi'),
-                    'remainder' => request('wifi'),
-                    'payment_status' =>  1,
-                    'month' => $month->format('Y-m'),
-                ]);
-            }
-        }
-
-        return request();
     }
 
     public function store_single()
@@ -303,6 +186,39 @@ class BillController extends Controller
                     }
                 }
             }
+        }
+
+        return $log;
+    }
+
+    public function store_nonperiod()
+    {
+        // request()->validate([
+        //     'name' => 'required',
+        //     'email' => 'required|unique:dispens,email',
+        //     'password' => 'required|min:8',
+        // ]);
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $token = json_decode(Cookie::get('sipon_session'))->token;
+        $response = Http::withHeaders([
+            'Accept' => 'aplication/json',
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
+        $operator = $response->json()['data'];
+        $log = [];
+        foreach (request('santri') as $user) {
+            $bill = Bill::create([
+                'account_id' => request('account')['id'],
+                'nis' => $user['nis'],
+
+                'operator_id' => $operator['id'],
+                'amount' => request('price'),
+                'remainder' => request('price'),
+                'payment_status' =>  1,
+                'month' => null,
+                'title' => request('title')
+            ]);
+            array_push($log, $bill);
         }
 
         return $log;

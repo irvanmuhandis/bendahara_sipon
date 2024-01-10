@@ -230,7 +230,7 @@ const createPay = (event) => {
             .catch((error) => {
                 console.log(error);
                 toastr.error(error);
-            }) .finally(()=>{
+            }).finally(() => {
                 createLoad.value = false;
             })
     }
@@ -301,12 +301,11 @@ watch(searchQuery, debounce(() => {
     fetchData();
 }, 300));
 
-watch(total, debounce(() => {
-    formValue.value.payment = total;
-}, 200));
 
 onMounted(() => {
     fetchData();
+    getWallet();
+    getSantri();
 })
 </script>
 <template>
@@ -355,7 +354,7 @@ onMounted(() => {
                                             <input type="checkbox" @change="totalize($event, bill.id)"
                                                 v-model="formValue.bill" :value="bill.id" />
                                             <label class="ml-2">
-                                                {{ bill.account.account_name }} | {{ bill.month }} |
+                                                {{ bill.account.account_name }} | {{ bill.month==null?bill.title:bill.month }} |
                                                 <span class="text-right text-monospace">
                                                     {{
                                                         formatMoney(
@@ -382,24 +381,33 @@ onMounted(() => {
 
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
+                                <div v-if="santris.length != 0" class="form-group">
                                     <label>Santri</label>
-                                    <VueMultiselect @click="getSantri" v-model="formValue.santri" :option-height="9"
-                                        :multiple="false" @select="santrichange" :options="santris"
-                                        :class="{ 'is-invalid': errors.santri }" :close-on-select="true"
-                                        placeholder="Pilih Satu" label="fullname" track-by="nis" :show-labels="false">
+                                    <VueMultiselect v-model="formValue.santri" :option-height="9" :multiple="false"
+                                        @select="santrichange" :options="santris" :class="{ 'is-invalid': errors.santri }"
+                                        :close-on-select="true" placeholder="Pilih Satu" label="fullname" track-by="nis"
+                                        :show-labels="false">
                                         <template v-slot:option="{ option }">
                                             <div>{{ option.fullname }} - {{ option.nis }} </div>
                                         </template>
                                     </VueMultiselect>
                                     <span class="invalid-feedback">{{ errors.santri }}</span>
                                 </div>
-                                <div class="form-group">
+                                <div v-else class="form-group">
+                                    <label>Santri</label>
+                                    <div class="text-center m-2">
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                    </div>
+                                </div>
+                                <div v-if="wallets.length != 0" class="form-group">
                                     <label>Dompet</label>
-                                    <VueMultiselect @click="getWallet" v-model="formValue.wallet" :option-height="9"
-                                        :options="wallets" :multiple="false" :class="{ 'is-invalid': errors.wallet }"
-                                        :close-on-select="true" placeholder="Pilih Satu" label="wallet_name" track-by="id"
-                                        :show-labels="false">
+                                    <VueMultiselect @click="getWallet" v-model="formValue.wallet" :option-height="9" :options="wallets"
+                                        :multiple="false" :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
+                                        placeholder="Pilih Satu" label="wallet_name" track-by="id" :show-labels="false">
                                         <template v-slot:option="{ option }">
                                             <div>{{ option.wallet_name }} </div>
                                         </template>
@@ -407,7 +415,16 @@ onMounted(() => {
 
                                     <span class="invalid-feedback">{{ errors.wallet }}</span>
                                 </div>
-
+                                <div v-else class="form-group">
+                                    <label>Dompet</label>
+                                    <div class="text-center m-2">
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                    </div>
+                                </div>
                                 <div class="form-group">
                                     <label>Jumlah Pembayaran</label><br>
                                     <span>Total Tagihan : {{ formatMoney(total, "Rp", 0) }}</span>
@@ -469,7 +486,7 @@ onMounted(() => {
                                             class="fas fa-long-arrow-alt-down"></i>
                                     </span>
                                 </th>
-                                <th>Bulan
+                                <th>Keterangan
                                 </th>
                                 <th>Bayar
                                     <span class="float-right" @click="sort('payment')">
@@ -492,7 +509,8 @@ onMounted(() => {
                                 </td>
                                 <td>{{ formatDate(pay.created_at) }}</td>
                                 <td>{{ pay.payable.santri.fullname }} - {{ pay.payable.santri.nis }} </td>
-                                <td>{{ pay.payable.month }}</td>
+                                <td v-if="pay.payable.title==null">Bulan {{ pay.payable.month }}</td>
+                                <td v-else>{{ pay.payable.title }}</td>
                                 <td>{{ formatMoney(pay.payment) }}</td>
                                 <td>{{ formatMoney(pay.payable.remainder) }}</td>
                                 <td>{{ pay.wallet.wallet_name }}</td>

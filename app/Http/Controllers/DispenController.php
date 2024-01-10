@@ -97,11 +97,4 @@ class DispenController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function search()
-    {
-        $searchQuery = request('query');
-        $dispens = DB::table('acc_dispens')->join('users', 'users.id', '=', 'dispens.user_id')->where('users.name', 'like', "%{$searchQuery}%")->paginate(5);
-
-        return $dispens;
-    }
 }

@@ -173,7 +173,7 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1 class="m-0 text-primary"><strong> Accounts | Santri</strong></h1>
+                    <h1 class="m-0 text-primary"><strong> Akun</strong></h1>
                     <p><small>List santri</small></p>
                 </div>
                 <div class="col-sm-6">
@@ -290,7 +290,8 @@ onMounted(() => {
                             <Field name="type" as="select" class="form-control " :class="{ 'is-invalid': errors.type }"
                                 id="type" aria-describedby="nameHelp">
                                 <option value="1">Hutang</option>
-                                <option value="2">Tagihan</option>
+                                <option value="2">Tagihan Periodik</option>
+                                <option value="4">Tagihan Non Periodik</option>
                                 <option value="3">Lainnya</option>
                             </Field>
                             <span class="invalid-feedback">{{ errors.type }}</span>

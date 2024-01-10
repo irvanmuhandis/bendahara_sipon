@@ -19,6 +19,8 @@ use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Status\PayStatusController;
 use App\Http\Controllers\Admin\AppointStatusController;
+use App\Http\Controllers\MasterController;
+use App\Http\Controllers\PdfController;
 use App\Http\Controllers\SantriController;
 use App\Models\Ledger;
 use App\Models\Santri;
@@ -38,7 +40,6 @@ use App\Models\Trans;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
-
 
 
 Route::middleware('sipon')->group(function () {
@@ -64,6 +65,9 @@ Route::middleware('sipon')->group(function () {
 
     Route::post('/api/bill-single', [BillController::class, 'store_single']);
     Route::post('/api/bill-singlerange', [BillController::class, 'store_singleRange']);
+    Route::post('/api/bill-nonperiod', [BillController::class, 'store_nonperiod']);
+    Route::get('/api/bill/santri', [BillController::class, 'santri']);
+
     Route::post('/api/bill-group', [BillController::class, 'store_group']);
     Route::post('/api/bill-grouprange', [BillController::class, 'store_groupRange']);
     Route::post('/api/bill-group-mult', [BillController::class, 'store_groupMult']);
@@ -93,13 +97,15 @@ Route::middleware('sipon')->group(function () {
     Route::get('/api/dispens/search', [DispenController::class, 'search']);
     Route::delete('/api/dispens', [DispenController::class, 'bulkDelete']);
 
-    Route::get('/api/ledger', [LedgerController::class, 'index']);
-    Route::get('/api/ledger/circul', [LedgerController::class, 'circulation']);
-    Route::get('/api/ledger/{id}', [LedgerController::class, 'show']);
-    Route::get('/api/ledger/billing/search', [LedgerController::class, 'billing']);
-    Route::get('/api/inout', [LedgerController::class, 'inout']);
-    Route::get('/api/accsum', [LedgerController::class, 'accountSum']);
-    Route::get('/api/stat', [LedgerController::class, 'statistic']);
+    Route::get('/api/ledger', [MasterController::class, 'index']);
+    Route::get('/api/ledger/circul', [MasterController::class, 'circulation']);
+    Route::get('/api/ledger/{id}', [MasterController::class, 'show']);
+    Route::get('/api/ledger/billing/search', [MasterController::class, 'billing']);
+    Route::get('/api/inout', [MasterController::class, 'inout']);
+    Route::get('/api/accsum', [MasterController::class, 'accountSum']);
+    Route::get('/api/stat', [MasterController::class, 'statistic']);
+
+    Route::get('/api/pdf/santri', [MasterController::class, 'billingPdf']);
 
     Route::get('/api/account/only', [AccountController::class, 'only']);
     Route::get('/api/account/list', [AccountController::class, 'list']);
@@ -108,8 +114,6 @@ Route::middleware('sipon')->group(function () {
 
     Route::delete('/api/trans', [TransController::class, 'bulkDelete']);
 
-
-    //cuakkkktes
 
     Route::get('/logout', [ApplicationController::class, 'logout'])->name('logout');
     Route::get('/token', [ApplicationController::class, 'getToken']);
@@ -131,5 +135,6 @@ Route::middleware('sipon')->group(function () {
         ->only(['index', 'store', 'update', 'destroy']);
     Route::resource('/api/pay', PayController::class)
         ->only(['index', 'store', 'show', 'update', 'destroy']);
+
     Route::get('/{view}', ApplicationController::class)->where('view', '(.*)');
 });

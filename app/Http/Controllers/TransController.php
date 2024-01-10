@@ -9,8 +9,8 @@ use App\Models\BigBook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cookie;
 
 class TransController extends Controller
 {
@@ -30,13 +30,13 @@ class TransController extends Controller
         //     'password' => 'required|min:8',
         // ]);
         $data = [];
- $nis = json_decode(Cookie::get('sipon_session'))->nis;
+        $nis = json_decode(Cookie::get('sipon_session'))->nis;
         $token = json_decode(Cookie::get('sipon_session'))->token;
         $response = Http::withHeaders([
-                'Accept' => 'aplication/json',
-                'Authorization' => 'Bearer ' . $token,
-            ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/'.$nis);
-        $operator=$response->json()['data'];
+            'Accept' => 'aplication/json',
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
+        $operator = $response->json()['data'];
 
         if (request()->has('in')) {
             $wallet = Wallet::create([
@@ -65,13 +65,8 @@ class TransController extends Controller
             'debit' => request()->has('in') ? request('in') : 0,
             'credit' => request()->has('out') ? request('out') : 0,
         ]);
-        //insert buku besar
-        $big = Ledger::create([
-            'ledgerable_id' => $trans->id,
-            'ledgerable_type' => Trans::class,
-        ]);
+
         array_push($data, $trans);
-        array_push($data, $big);
         array_push($data, $wallet);
         return $data;
     }
@@ -106,13 +101,8 @@ class TransController extends Controller
         foreach (request('datas') as $data) {
 
             Trans::find($data['id'])->delete();
-            Ledger::where('ledgerable_type', '=', Trans::class)
-                ->where('ledgerable_id', $data['id'])
-                ->first()
-                ->delete();
             Wallet::find($data['wallet_id'])
                 ->delete();
-
         }
         return response()->json(['message' => 'Transaksi eksternal berhasil dihapus!']);
     }

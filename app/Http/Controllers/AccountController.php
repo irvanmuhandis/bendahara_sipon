@@ -62,15 +62,15 @@ class AccountController extends Controller
         return Account::create([
             'account_name' => request('name'),
             'account_type' => request('type'),
-            'deletable' => 1
+            'deletable' => request('delete') == true ? 1 : 0
         ]);
     }
     public function update(Account $account)
     {
-         $account->update([
+        $account->update([
             'account_name' => request('name'),
             'account_type' => request('type'),
-            'deletable' => request('delete')==true?1:0
+            'deletable' => request('delete') == true ? 1 : 0
         ]);
         return $account;
     }

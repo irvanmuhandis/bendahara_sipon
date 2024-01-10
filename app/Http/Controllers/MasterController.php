@@ -2,28 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use DateTime;
+use Carbon\Carbon;
 use App\Models\Pay;
 use App\Models\Bill;
+use App\Models\Debt;
 use App\Models\User;
 use App\Models\Trans;
-use App\Models\Ledger;
-use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-use App\Models\Account;
-use App\Models\Debt;
 use App\Models\Dispen;
+use App\Models\Ledger;
 use App\Models\Santri;
 use App\Models\Wallet;
-use Carbon\Carbon;
-use DateTime;
+use App\Models\Account;
+use Barryvdh\DomPDF\PDF;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
+use App\Http\Controllers\Controller;
+use function Database\Seeders\wallet;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-use function Database\Seeders\wallet;
-
-class LedgerController extends Controller
+class MasterController extends Controller
 {
+
+    var $walletTable = "acc_wallets";
+    var $billTable = "acc_bills";
+    var $payTable = "acc_pays";
+
+
 
     public function index()
     {
@@ -72,7 +80,7 @@ class LedgerController extends Controller
             if ($debit == 1) {
                 $data = Pay::whereHas('santri', function ($query) use ($searchQuery) {
                     $query->where('fullname', 'like', "%{$searchQuery}%")
-                    ->where('option',1);
+                        ->where('option', 1);
                 })
                     ->whereHas('payable')
                     ->with(['wallet', 'payable.account', 'santri', 'operator'])
@@ -81,7 +89,7 @@ class LedgerController extends Controller
             } else {
                 $data = Debt::whereHas('santri', function ($query) use ($searchQuery) {
                     $query->where('fullname', 'like', "%{$searchQuery}%")
-                    ->where('option',1);
+                        ->where('option', 1);
                 })
                     ->with(['wallet', 'santri', 'operator'])
                     ->orderBy($fil, $req)->paginate(25);
@@ -96,6 +104,7 @@ class LedgerController extends Controller
         $end = '';
         $fil = request('filter');
         $req = request('value');
+        $page_num = request('page_number', 10);
 
         if ($fil == '') {
             $fil = 'id';
@@ -121,24 +130,75 @@ class LedgerController extends Controller
             $end->format('Y-m-d H:i:s');
             $end->setTime(0, 0, 0);
         }
-        return Ledger::with(['ledgerable', 'ledgerable.santri'])
-            ->with(['ledgerable.wallet' => function ($query) {
+
+        $pay = Pay::select('created_at')
+            ->addSelect(DB::raw("0 as credit"))
+            ->addSelect(DB::raw("payment as debit"))
+            ->addSelect(DB::raw("'pay' as transaction_type"))
+            ->addSelect(DB::raw("'income' as transaction_flow"))
+            ->whereHas(['wallet', 'santri'])
+            ->with(['payable' => function ($query) {
                 $query
-                    ->select(['created_at', 'id', 'wallet_name', 'wallet_type', 'debit', 'credit'])
-                    ->selectRaw('(SELECT SUM(debit) - SUM(credit) FROM acc_wallets AS w2 WHERE w2.id <= acc_wallets.id AND w2.wallet_type = acc_wallets.wallet_type) AS saldo');
+                    ->when('payable_type', Bill::class, function ($queries) {
+                        $queries->addSelect(DB::raw("month as sub_desc"));
+                    })
+                    ->when('payable_type', Debt::class, function ($queries) {
+                        $queries->addSelect(DB::raw("title as sub_desc"));
+                    });;
             }])
-            ->whereBetween('created_at', [$start, $end])
+            ->with(['santri' => function ($query) {
+                $query->select('nickname as santri');
+            }])
+            ->with(['wallet' => function ($query) use ($start, $end) {
+                $query->select(['created_at', 'id', 'wallet_name', 'wallet_type'])
+                    ->selectRaw("(SELECT SUM(debit) - SUM(credit) FROM {$this->walletTable} AS w2 WHERE w2.id <= {$this->walletTable}.id AND w2.wallet_type = {$this->walletTable}.wallet_type) AS saldo")
+                    ->whereBetween('created_at', [$start, $end]);
+            }])->get();
+
+        $trans = Trans::select(['created_at', 'debit', 'credit', 'desc as sub_desc'])
+            ->addSelect(DB::raw("'trans' as transaction_type"))
+            ->addSelect(DB::raw("CASE WHEN debit = 0 THEN 'expense' ELSE 'income' END as transaction_flow"))
+            ->whereHas(['operator', 'wallet'])
+            ->with(['operator' => function ($query) {
+                $query->select('nickname as santri');
+            }])
+            ->with(['wallet' => function ($query) use ($start, $end) {
+                $query->select(['created_at', 'id', 'wallet_name', 'wallet_type'])
+                    ->selectRaw("(SELECT SUM(debit) - SUM(credit) FROM {$this->walletTable} AS w2 WHERE w2.id <= {$this->walletTable}.id AND w2.wallet_type = {$this->walletTable}.wallet_type) AS saldo")
+                    ->whereBetween('created_at', [$start, $end]);
+            }])->get();
+
+        $debt = Debt::select('created_at')
+            ->addSelect(DB::raw("debt as credit"))
+            ->addSelect(DB::raw("0 as debit"))
+            ->addSelect(DB::raw("'debt' as transaction_type"))
+            ->addSelect(DB::raw("'expense' as transaction_flow"))
+            ->addSelect(DB::raw("title as sub_desc"))
+            ->whereHas(['santri', 'wallet'])
+            ->with(['santri' => function ($query) {
+                $query->select('nickname as santri');
+            }])
+            ->with(['wallet' => function ($query) use ($start, $end) {
+                $query->select(['created_at', 'id', 'wallet_name', 'wallet_type'])
+                    ->selectRaw("(SELECT SUM(debit) - SUM(credit) FROM {$this->walletTable} AS w2 WHERE w2.id <= {$this->walletTable}.id AND w2.wallet_type = {$this->walletTable}.wallet_type) AS saldo")
+                    ->whereBetween('created_at', [$start, $end]);
+            }])->get();
+
+        $combinedResults = $pay->union($trans)->union($debt)
             ->orderBy($fil, $req)
-            ->paginate(10);
+            ->paginate($page_num);
+
+
+        return $combinedResults;
     }
 
     public function show($id)
     {
-        $data = Ledger::find($id)->ledgerable_type;
-        if ($data == "App\\Models\\Pay") {
-            $ledger = Ledger::with(['ledgerable.wallet', 'ledgerable.operator', 'ledgerable.payable.account', 'ledgerable.santri'])->findOrFail($id);
+        $mode = request('mode');
+        if ($mode == Pay::class) {
+            $ledger = Pay::with(['wallet', 'operator', 'payable.account', 'santri'])->findOrFail($id);
         } else {
-            $ledger = Ledger::with(['ledgerable.wallet', 'ledgerable.operator', 'ledgerable.account'])->findOrFail($id);
+            $ledger = Trans::with(['wallet', 'operator', 'account'])->findOrFail($id);
         }
 
         return $ledger;
@@ -152,9 +212,10 @@ class LedgerController extends Controller
 
 
         $query = Santri::where('fullname', 'like', "%{$searchQuery}%")
-        ->where('option',1)
+            ->select('fullname', 'nis')
+            ->where('option', '2')
             ->with('bill.account')
-            ->withCount(['bill as bill_count' => function ($bill) use ($account) {
+            ->withCount(['bill as bill_count' => function ($bill) use ($account){
                 $bill
                     ->select(DB::raw('count(distinct(month))'))
                     ->whereBetween('month', [request('start'), request('end')])
@@ -193,6 +254,40 @@ class LedgerController extends Controller
         ]);
     }
 
+    public function billingPdf()
+    {
+        $nis = request('santri');
+
+
+        $query = Santri::where('nis',$nis)
+            ->select('fullname', 'nis')
+            ->where('option', '2')
+            ->with(['bill' => function ($query){
+                $query->selectRaw('month,nis,sum(amount) as sum_amount,sum(remainder) as sum_remain,count(id) as count')
+                    ->whereBetween('month', [request('start'), request('end')])
+                    ->where('payment_status', '<', 3)
+                    ->groupBy('month')
+                    ->groupBy('nis')
+                    ->orderBy('month');
+            }])
+            ->withSum(['bill as sum_remain' => function ($bill) {
+                $bill
+                    ->whereBetween('month', [request('start'), request('end')])
+                    ->where('payment_status', '<', 3);
+            }], 'remainder')
+            ->withSum(['bill as sum_amount' => function ($bill) {
+                $bill
+                    ->whereBetween('month', [request('start'), request('end')])
+                    ->where('payment_status', '<', 3);
+            }], 'amount')
+            ->get();
+        $sum = $query->sum('sum_remain');
+        return response()->json([
+            'data' => $query,
+            'sum' => $sum
+        ]);
+    }
+
 
     public function accountSum(Request $request)
     {
@@ -216,7 +311,11 @@ class LedgerController extends Controller
 
 
         $bill = Account::where('account_type', 2)
-            ->whereHas('bill')
+            ->whereHas('bill', function ($query) {
+                $query->whereHas('santri', function ($queries) {
+                    $queries->where('option', 1);
+                });
+            })
             ->withSum(['bill' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('month', [$strt->format('Y-m'), $ends->format('Y-m')]);
             }], 'remainder')
@@ -227,7 +326,11 @@ class LedgerController extends Controller
             ->get();
 
         $debt = Account::where('account_type', 1)
-            ->whereHas('debt')
+            ->whereHas('debt', function ($query) {
+                $query->whereHas('santri', function ($queries) {
+                    $queries->where('option', 1);
+                });
+            })
             ->withSum(['debt' => function ($query) use ($strt, $ends) {
                 $query->whereBetween('created_at', [$strt, $ends]);
             }], 'remainder')
@@ -257,28 +360,39 @@ class LedgerController extends Controller
             'debt' => $debt,
             'other' => $other,
             'income_bill' => ($sum_bill_amount - $sum_bill_remain),
-            'expense_debt' => ($sum_debt_amount) ,
-            'bill_potential' => $sum_bill_amount ,
-            'debt_potential' => $sum_debt_amount ,
-            'income_other'=> $sum_other_deb,
-            'income_debt'=>($sum_debt_amount - $sum_debt_remain),
-            'expense_other'=>$sum_other_cre
+            'expense_debt' => ($sum_debt_amount),
+            'bill_potential' => $sum_bill_amount,
+            'debt_potential' => $sum_debt_amount,
+            'income_other' => $sum_other_deb,
+            'income_debt' => ($sum_debt_amount - $sum_debt_remain),
+            'expense_other' => $sum_other_cre
         ]);
     }
 
     public function walletSum()
     {
         $bill = Wallet::where('account_type', '=', 2)
+            ->whereHas('bill', function ($query) {
+                $query->whereHas('santri', function ($queries) {
+                    $queries->where('option', 1);
+                });
+            })
             ->withSum('bill', 'amount')
             ->withSum('bill', 'remainder')
             ->get();
 
         $debt =    Account::where('account_type', '=', 1)
+            ->whereHas('debt', function ($query) {
+                $query->whereHas('santri', function ($queries) {
+                    $queries->where('option', 1);
+                });
+            })
             ->withSum('debt', 'amount')
             ->withSum('debt', 'remainder')
             ->get();
 
         $other = Account::where('account_type', '=', 3)
+            ->whereHas('trans')
             ->withSum('trans', 'debit')
             ->withSum('trans', 'credit')
             ->get();
@@ -291,10 +405,16 @@ class LedgerController extends Controller
 
     public function statistic()
     {
-        $debt = Debt::where('payment_status', '<', '3')->count();
-        $bill = Bill::where('payment_status', '<', '3')->count();
-        $santri = Santri::where('status', '1')->where('option',1)->count();
-        $dispen = Dispen::where('status', '=', '1')->count();
+        $debt = Debt::where('payment_status', '<', 3)->whereHas('santri', function ($query) {
+            $query->where('option', 1);
+        })->count();
+        $bill = Bill::where('payment_status', '<', 3)->whereHas('santri', function ($query) {
+            $query->where('option', 1);
+        })->count();
+        $santri = Santri::where('status', 1)->where('option', 1)->count();
+        $dispen = Dispen::where('status', '=', 1)->whereHas('santri', function ($query) {
+            $query->where('option', 1);
+        })->count();
         return response()->json([
             'debt' => $debt,
             'bill' => $bill,
@@ -325,51 +445,54 @@ class LedgerController extends Controller
         $ends = Carbon::createFromDate($dateEnd[0], $dateEnd[1], 1)->endOfMonth();
 
         $paybill =  Pay::query()
+            ->whereHas('santri', function ($query) {
+                $query->where('option', 1);
+            })
             ->where('payable_type', Bill::class)
-            ->join('acc_bills', 'acc_bills.id', '=', 'acc_pays.payable_id')
-            ->whereBetween('acc_bills.month', [$strt->format('Y-m'), $ends->format('Y-m')])
+            ->join("{$this->billTable}", "{$this->billTable}.id", '=', "{$this->payTable}.payable_id")
+            ->whereBetween("{$this->billTable}.month", [$strt->format('Y-m'), $ends->format('Y-m')])
             ->select(
                 DB::raw('sum(payment) as `sum`'),
-                DB::raw("acc_bills.month as date")
+                DB::raw("{$this->billTable}.month as date")
             )
             ->groupByRaw('date')
             ->orderBy('date')
             ->get();
 
         $paydebt =  Pay::query()
+            ->whereHas('santri', function ($query) {
+                $query->where('option', 1);
+            })
             ->where('payable_type', Debt::class)
             ->select(
                 DB::raw('sum(payment) as `sum`'),
                 DB::raw("DATE_FORMAT(created_at, '%Y-%m') as date")
             )
-            ->whereHas('payable',function ($query) use ($start,$strt,$ends, $end) {
+            ->whereHas('payable', function ($query) use ($start, $strt, $ends, $end) {
                 $query->whereBetween(DB::raw('created_at'), [$strt, $ends]);
             })
             ->groupByRaw('date')
             ->orderBy('date')
             ->get();
 
-        $trans =  Ledger::query()
-            ->where('ledgerable_type', '=', Trans::class)
-            ->join('acc_trans', 'acc_trans.id', '=', 'acc_ledgers.ledgerable_id')
-            ->whereBetween('acc_trans.created_at', [$strt, $ends])
+        $trans =  Trans::whereBetween('created_at', [$strt, $ends])
             ->select(
                 DB::raw('sum(debit) as `sum_debit`'),
                 DB::raw('sum(credit) as `sum_credit`'),
-                DB::raw("DATE_FORMAT(acc_trans.created_at, '%Y-%m') as date")
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as date")
             )
             ->groupByRaw('date')
             ->orderBy('date')
             ->get();
 
-        $debt =  Ledger::query()
-            ->where('ledgerable_type', '=', Debt::class)
-            ->with('ledgerable.account')
-            ->join('acc_debts', 'acc_debts.id', '=', 'acc_ledgers.ledgerable_id')
-            ->whereBetween('acc_debts.created_at', [$strt, $ends])
+        $debt =  Debt::with('account')
+            ->whereHas('santri', function ($query) {
+                $query->where('option', 1);
+            })
+            ->whereBetween('created_at', [$strt, $ends])
             ->select(
                 DB::raw('sum(amount) as `debt`'),
-                DB::raw("DATE_FORMAT(acc_debts.created_at, '%Y-%m') as date")
+                DB::raw("DATE_FORMAT(created_at, '%Y-%m') as date")
             )
             ->groupByRaw('date')
             ->orderBy('date')

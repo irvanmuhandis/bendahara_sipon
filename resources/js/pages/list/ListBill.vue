@@ -15,6 +15,9 @@ const listBill = ref({
 });
 const accounts = ref([]);
 const santris = ref([]);
+const switchMode = ref(false);
+const isLoading = ref(false);
+
 
 const errors = ref({
     'santri': null,
@@ -250,10 +253,18 @@ watch(searchQuery, debounce(() => {
 }, 300));
 
 const fetchData = (link = `/api/bill`) => {
+    isLoading.value = true;
     var fil = {
         'key': null,
         'value': null
     };
+    if (switchMode.value) {
+        fil['mode'] = 'nonperiod';
+    } else {
+        fil['mode'] = 'period';
+    }
+
+
     for (const key in filter.value) {
         if (filter.value[key] != null) {
             fil.value = filter.value[key] ? 1 : 0;
@@ -265,10 +276,13 @@ const fetchData = (link = `/api/bill`) => {
             params: {
                 filter: fil.key,
                 value: fil.value,
-                query: searchQuery.value
+                query: searchQuery.value,
+                mode: fil.mode
             }
         }).then((response) => {
             listBill.value = response.data;
+        }).finally(() => {
+            isLoading.value = false;
         })
     }
 
@@ -375,6 +389,10 @@ const update = () => {
 
 };
 
+watch(switchMode, debounce(() => {
+    fetchData();
+}, 300));
+
 onMounted(() => {
     fetchData();
     getSantri();
@@ -399,7 +417,7 @@ onMounted(() => {
                             <RouterLink to="/">Beranda</RouterLink>
                         </li>
                         <li class="breadcrumb-item active">Tagihan</li>
-                        </ol>
+                    </ol>
                 </div>
             </div>
         </div>
@@ -483,8 +501,15 @@ onMounted(() => {
                 </div>
 
             </div>
-
-
+            <div class="row mb-2">
+                <div class="col">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" v-model="switchMode" class="custom-control-input" id="customSwitch3">
+                        <label class="font-weight-lighter font-italic custom-control-label" for="customSwitch3">Periodik /
+                            Non Periodik</label>
+                    </div>
+                </div>
+            </div>
             <table class="table table-bordered hover ">
                 <thead>
                     <tr>
@@ -527,19 +552,37 @@ onMounted(() => {
                                     class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
-                        <th> <span>Periode </span>
+                        <th v-if="!switchMode"> <span>Periode </span>
                             <span class="float-right" @click="sort('month')">
-                                <i :class="{ 'text-primary': filter.month == false }"
-                                    class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.month == true }"
-                                    class="fas fa-long-arrow-alt-down"></i>
+                                <i :class="{ 'text-primary': filter.month == false }" class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.month == true }" class="fas fa-long-arrow-alt-down"></i>
+                            </span>
+                        </th>
+                        <th v-else> <span>Judul </span>
+                            <span class="float-right" @click="sort('title')">
+                                <i :class="{ 'text-primary': filter.title == false }" class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': filter.title == true }" class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
                         <th class="text-center">Operator</th>
                         <th class="text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody v-if="isLoading">
+                    <tr>
+                        <td class="text-center m-2" colspan="9">
+
+                            <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                            <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                            <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                            <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                            <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                        </td>
+
+
+                    </tr>
+                </tbody>
+                <tbody v-else>
 
                     <tr v-for="(bill) in listBill.data" :key="bill.id">
                         <td class="text-center"><input type="checkbox" :checked="selectAll"
@@ -551,8 +594,8 @@ onMounted(() => {
                         <td>{{ bill.santri.fullname }}</td>
                         <td>{{ formatMoney(bill.amount) }}</td>
                         <td>{{ formatMoney(bill.remainder) }}</td>
-                        <td>{{ bill.month }}</td>
-
+                        <td v-if="!switchMode">{{ bill.month }}</td>
+                        <td v-else>{{ bill.title }}</td>
                         <td>{{ bill.operator.fullname }}</td>
                         <td class="text-center">
                             <a href="#" @click="editData(bill)">

@@ -12,10 +12,13 @@ use Illuminate\Console\View\Components\Warn;
 class WalletController extends Controller
 {
 
+    var  $tableName = "acc_wallets";
+
     public function index()
     {
         $fil = request('filter');
         $req = request('value');
+
         $searchQuery = request('query');
 
         if ($fil == '') {
@@ -30,7 +33,7 @@ class WalletController extends Controller
         }
 
         $wallets = Wallet::where('wallet_name', 'like', "%{$searchQuery}%")
-            ->select('created_at', 'id', 'wallet_name', 'wallet_type', 'debit', 'credit', DB::raw('(SELECT SUM(debit) - SUM(credit) FROM acc_wallets AS w2 WHERE w2.id <= acc_wallets.id AND w2.wallet_type = acc_wallets.wallet_type) AS saldo'))
+            ->select('created_at', 'id', 'wallet_name', 'wallet_type', 'debit', 'credit', DB::raw("(SELECT SUM(debit) - SUM(credit) FROM {$this->tableName} AS w2 WHERE w2.id <= {$this->tableName}.id AND w2.wallet_type = {$this->tableName}.wallet_type) AS saldo"))
             ->orderBy($fil, $req)
             ->paginate(10);
 
@@ -41,7 +44,7 @@ class WalletController extends Controller
     {
         $wallets = Wallet::whereIn('id', function ($query) {
             $query->selectRaw('MAX(id)')
-                ->from('acc_wallets')
+                ->from("{$this->tableName}")
                 ->groupBy('wallet_type');
         })
             ->get();
@@ -71,9 +74,9 @@ class WalletController extends Controller
         //     'email' => 'required|unique:dispens,email',
         //     'password' => 'required|min:8',
         // ]);
-$type = Wallet::orderByDesc('wallet_type')->first();
+        $type = Wallet::orderByDesc('wallet_type')->first();
         $wallet = Wallet::create([
-            'wallet_type' => $type==null?1:$type->wallet_type+1,
+            'wallet_type' => $type == null ? 1 : $type->wallet_type + 1,
             'wallet_name' => request('name'),
             'debit' => request('debit'),
             'credit' => 0,
