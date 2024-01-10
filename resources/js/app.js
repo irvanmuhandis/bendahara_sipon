@@ -21,6 +21,7 @@ import { createApp } from "vue/dist/vue.esm-bundler.js";
 import { createRouter, createWebHistory } from "vue-router";
 import Routes from "./routes.js";
 import axios from "axios";
+import JsonExcel from "vue-json-excel3";
 
 
 
@@ -34,5 +35,6 @@ const router = createRouter({
 
 // app.config.globalProperties.fetchData = fetchData;
 app.use(router);
+app.component("ExcelVue", JsonExcel);
 app.component("VueMultiselect", VueMultiselect);
 app.mount("#app");
