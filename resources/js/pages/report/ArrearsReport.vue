@@ -10,6 +10,7 @@ import { debounce, forEach, now } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 import { formatDate, formatDiff, formatMoney, formatClass, formatStatus } from '../../helper.js';
 import { jsPDF } from "jspdf";
+import JsonExcel from 'vue-json-excel3';
 import html2canvas from 'html2canvas';
 
 const toastr = useToastr();
@@ -414,14 +415,14 @@ onMounted(() => {
                                             Total Tagihan : {{ formatMoney(billing.sum) }}
                                         </div>
                                         <div class="bg-success  p-2 h-100">
-                                            <ExcelVue type="xlsx" :export-fields="json_fields" worksheet="My Worksheet"
-                                                :name="'Tunggakan_Putri_' + form.start + '_' + form.end + '.xlsx'"
+                                            <JsonExcel type="xlsx" :export-fields="json_fields" worksheet="My Worksheet"
+                                                :name="'Tunggakan_Putra_' + form.start + '_' + form.end + '.xlsx'"
                                                 :data="billing.data">
 
                                                 <a href="#" class="text-light m-0 text-decoration-none">
                                                     Download Excel
                                                     &#x1F4C3;</a>
-                                            </ExcelVue>
+                                            </JsonExcel>
                                         </div>
                                     </div>
                                 </div>
