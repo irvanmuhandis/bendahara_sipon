@@ -406,7 +406,7 @@ onMounted(() => {
                                     </button>
                                 </form>
 
-                                <div class="mt-2 mb-2 w-100" v-if="billing.data.length != 0">
+                                <div class="mt-2 mb-2 w-100">
                                     <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
 
                                     <div
