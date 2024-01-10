@@ -36,7 +36,13 @@ class BillController extends Controller
                     ->where('month', null)
                     ->orderBy('title', 'asc');
             }])
-            ->withSum('bill as sum_amount', 'remainder')
+            ->withSum([
+                'bill' => function ($query) {
+                    $query->where('payment_status', '<', 3)
+                        ->where('month', null)
+                        ->orderBy('title', 'asc');
+                }
+            ], 'remainder as sum_amount')
             ->orderBy('nis', 'asc')
             ->get();
 
