@@ -195,7 +195,14 @@ onMounted(() => {
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Santri</label>
-                                    <VueMultiselect v-model="form.santri" :option-height="9" :options="santris"
+                                    <div v-if="santris.length == 0" class="text-center m-2">
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                    </div>
+                                    <VueMultiselect v-else v-model="form.santri" :option-height="9" :options="santris"
                                         :class="{ 'is-invalid': errors.santri }" :multiple="true" :close-on-select="true"
                                         placeholder="Pilih Satu / Lebih" label="fullname" track-by="nis">
                                         <template v-slot:option="{ option }">
@@ -208,7 +215,14 @@ onMounted(() => {
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Dompet</label>
-                                    <VueMultiselect @click="getWallet" v-model="form.wallet" :option-height="9"
+                                    <div v-if="wallets.length == 0" class="text-center m-2">
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                    </div>
+                                    <VueMultiselect v-else @click="getWallet" v-model="form.wallet" :option-height="9"
                                         :options="wallets" :class="{ 'is-invalid': errors.wallet }" :multiple="false"
                                         :close-on-select="true" placeholder="Pilih Satu..." label="wallet_name"
                                         track-by="id" :show-labels="false">
@@ -222,7 +236,14 @@ onMounted(() => {
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Akun</label>
-                                    <VueMultiselect v-model="form.account" :option-height="9" :options="accounts"
+                                    <div v-if="accounts.length == 0" class="text-center m-2">
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                    </div>
+                                    <VueMultiselect v-else v-model="form.account" :option-height="9" :options="accounts"
                                         :class="{ 'is-invalid': errors.account }" :multiple="false" :close-on-select="true"
                                         placeholder="Pilih Satu..." label="account_name" track-by="id" :show-labels="false">
                                         <template v-slot:option="{ option }">

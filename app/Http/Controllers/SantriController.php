@@ -74,7 +74,7 @@ class SantriController extends Controller
         $data = Http::withHeaders([
             'Authorization' => 'Bearer ' . json_decode(Cookie::get('sipon_session'))->token,
             'Accept' => 'application/json'
-        ])->get('https://sipon.kyaigalangsewu.net/api/v1/santri/pi');
+        ])->get('https://sipon.kyaigalangsewu.net/api/v1/santri/pa');
 
         return $data['data'];
     }

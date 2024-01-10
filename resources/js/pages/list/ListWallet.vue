@@ -267,8 +267,14 @@ onMounted(() => {
 
                             <div class="row">
                                 <div class="col-10 ">
-
-                                    <VueMultiselect class="ml-2" v-model="IdBeingDeleted" :option-height="9"
+                                    <div v-if="types.length == 0" class="text-center m-2">
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                    </div>
+                                    <VueMultiselect v-else class="ml-2" v-model="IdBeingDeleted" :option-height="9"
                                         @input="test(IdBeingDeleted)" @select="test(IdBeingDeleted)"
                                         @remove="test(IdBeingDeleted)" :options="types" :multiple="false"
                                         :close-on-select="true" placeholder="Pilih Satu " label="wallet_name" track-by="id"

@@ -473,7 +473,14 @@ onMounted(() => {
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Santri</label>
-                                    <VueMultiselect @click="getSantri" v-model="formValue.santri" :option-height="9"
+                                    <div v-if="santris.length == 0" class="text-center m-2">
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                    </div>
+                                    <VueMultiselect v-else @click="getSantri" v-model="formValue.santri" :option-height="9"
                                         @select="santrichange" :options="santris" :multiple="false"
                                         :class="{ 'is-invalid': errors.santri }" :close-on-select="true"
                                         placeholder="Pilih Satu" label="fullname" track-by="nis" :show-labels="false">
@@ -485,7 +492,14 @@ onMounted(() => {
                                 </div>
                                 <div class="form-group">
                                     <label>Wallet</label>
-                                    <VueMultiselect @click="getWallet" v-model="formValue.wallet" :option-height="9"
+                                    <div v-if="wallets.length == 0" class="text-center m-2">
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                        <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                    </div>
+                                    <VueMultiselect v-else @click="getWallet" v-model="formValue.wallet" :option-height="9"
                                         :options="wallets" :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
                                         :multiple="false" placeholder="Pilih Satu" label="wallet_name" track-by="id"
                                         :show-labels="false">
