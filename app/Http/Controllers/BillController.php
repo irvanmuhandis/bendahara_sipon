@@ -24,7 +24,8 @@ class BillController extends Controller
     {
         $searchQuery = request('search');
 
-        $bill = Santri::where('fullname', 'like', "%{$searchQuery}%")
+        $bill = Santri::select('fullname', 'nis')
+            ->where('fullname', 'like', "%{$searchQuery}%")
             ->where('option', 1)
             ->whereHas('bill', function ($query) {
                 $query->where('payment_status', '<', 3)
