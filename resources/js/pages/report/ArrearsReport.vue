@@ -219,7 +219,7 @@ const getSantri = async () => {
 const generateBilling = () => {
     axios.get(`/api/pdf/santri`, {
         params: {
-            santri: formPdf.value.santri==null?null:formPdf.value.santri.nis,
+            santri: formPdf.value.santri == null ? null : formPdf.value.santri.nis,
             start: formPdf.value.start,
             end: formPdf.value.end,
         }
@@ -257,12 +257,24 @@ const generatePdf = () => {
 
 
         doc.addImage(img, 'PNG', 10, 10, pdfWidth, pdfHeight);
-        doc.save("Tunggakan_"+((formPdf.value.santri==null||formPdf.value.santri=="")?"Kosong":formPdf.value.santri.fullname)+"_"+formPdf.value.start+"_"+formPdf.value.end+".pdf");
+        doc.save("Tunggakan_" + ((formPdf.value.santri == null || formPdf.value.santri == "") ? "Kosong" : formPdf.value.santri.fullname) + "_" + formPdf.value.start + "_" + formPdf.value.end + ".pdf");
+    });
+}
+const generateImg = () => {
+
+    html2canvas(document.querySelector('#pdf-content')).then((canvas) => {
+        let img = canvas.toDataURL('image/jpeg');
+
+        const a = document.createElement("a");
+        a.href = img;
+        a.download = "Tunggakan_" + ((formPdf.value.santri == null || formPdf.value.santri == "") ? "Kosong" : formPdf.value.santri.fullname) + "_" + formPdf.value.start + "_" + formPdf.value.end + ".jpeg";
+        a.click();
     });
 
 
 
 }
+
 
 
 watch(searchQuery, debounce(() => {
@@ -664,7 +676,12 @@ onMounted(() => {
                                         </div>
                                     </div>
                                 </div>
-                                <button class="w-100  btn btn-primary" type="button" @click="generatePdf">Buat PDF</button>
+                                <div class="w-100">
+                                    <button class="w-75  btn btn-primary" type="button" @click="generatePdf">Buat
+                                        PDF</button>
+                                    <button class="w-25  btn btn-primary" type="button" @click="generateImg">Download
+                                        Gambar</button>
+                                </div>
 
                                 <div class="d-flex justify-content-center">
 
@@ -682,12 +699,13 @@ onMounted(() => {
 
                                         </div>
                                         <div class="row ml-2 mr-2" style="opacity: 0.5;">
-                                                <div class="col w-100">
-                                                    <div style="margin-bottom: 2px;" class="border-bottom border-dark"></div>
-                                                    <div style="border-width:5px !important;" class="border-bottom border-dark"></div>
-                                                    <div style="margin-top: 2px;" class="border-bottom border-dark mb-1"></div>
+                                            <div class="col w-100">
+                                                <div style="margin-bottom: 2px;" class="border-bottom border-dark"></div>
+                                                <div style="border-width:5px !important;" class="border-bottom border-dark">
                                                 </div>
+                                                <div style="margin-top: 2px;" class="border-bottom border-dark mb-1"></div>
                                             </div>
+                                        </div>
                                         <div class="row m-2">
                                             <div class="col">
                                                 <div class="">
@@ -823,6 +841,7 @@ onMounted(() => {
 
                 </div>
             </div>
+        </div>
     </div>
-</div></template>
+</template>
 

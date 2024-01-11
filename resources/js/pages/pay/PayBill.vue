@@ -509,7 +509,7 @@ onMounted(() => {
                                 </td>
                                 <td>{{ formatDate(pay.created_at) }}</td>
                                 <td>{{ pay.payable.santri.fullname }} - {{ pay.payable.santri.nis }} </td>
-                                <td v-if="pay.payable.title==null">Bulan {{ pay.payable.month }}</td>
+                                <td v-if="pay.payable.title==null">Tagihan {{ pay.payable.month }}</td>
                                 <td v-else>{{ pay.payable.title }}</td>
                                 <td>{{ formatMoney(pay.payment) }}</td>
                                 <td>{{ formatMoney(pay.payable.remainder) }}</td>
