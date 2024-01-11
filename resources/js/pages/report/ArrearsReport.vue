@@ -677,7 +677,7 @@ onMounted(() => {
                                     </div>
                                 </div>
                                 <div class="w-100 d-flex">
-                                    <button class=" flex-grow btn btn-primary" type="button" @click="generatePdf">Buat
+                                    <button class=" flex-grow-1 btn btn-primary" type="button" @click="generatePdf">Buat
                                         PDF</button>
                                     <button class="  btn btn-warning ml-2 text-light" type="button" @click="generateImg">Download
                                         Gambar</button>
