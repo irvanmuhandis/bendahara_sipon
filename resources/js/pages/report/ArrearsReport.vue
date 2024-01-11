@@ -679,7 +679,7 @@ onMounted(() => {
                                 <div class="w-100">
                                     <button class="w-75  btn btn-primary" type="button" @click="generatePdf">Buat
                                         PDF</button>
-                                    <button class="w-25  btn btn-primary" type="button" @click="generateImg">Download
+                                    <button class="w-25  btn btn-warning ml-2" type="button" @click="generateImg">Download
                                         Gambar</button>
                                 </div>
 
@@ -753,14 +753,13 @@ onMounted(() => {
                                         <!-- isi -->
                                         <div class="row m-2">
                                             <div class="col text-justify">
-                                                <span>
+                                                <div>
                                                     Bersama surat ini kami memberitahukan bahwa menurut catatan
                                                     administrasi, santri yang bersangkutan
                                                     memiliki tunggakan administrasi syahriyah pondok sebagai
                                                     berikut:
-                                                </span>
-                                                <br><br>
-                                                <span>
+                                                </div>
+                                                <div class="mt-3 mb-3">
                                                     <table class="table-sm table-borderless p-0">
                                                         <tbody>
                                                             <tr class="p-0">
@@ -780,9 +779,8 @@ onMounted(() => {
                                                             </tr>
                                                         </tbody>
                                                     </table>
-                                                </span>
-                                                <br>
-                                                <span>
+                                                </div>
+                                                <div class="">
                                                     Rekapan tunggakan terhitung dari Bulan
                                                     <strong>{{ new Date(formPdf.start).toLocaleDateString('IN', {
                                                         year:
@@ -795,14 +793,12 @@ onMounted(() => {
                                                     Bapak / Ibu dapat segera melunasi tunggakan tersebut. Informasi
                                                     lebih
                                                     lanjut dapat menghubungi 0857-0151-4915 a.n. Muhammad Irvan Muhandis.
-                                                </span>
-                                                <br>
-                                                <span>
+                                                </div>
+                                                <div class="mb-3 mt-3">
                                                     Demikian pemberitahuan ini kami sampaikan, atas perhatian Bapak
                                                     / Ibu
                                                     kami ucapkan terima kasih.
-                                                </span>
-                                                <br><br>
+                                                </div>
                                                 <strong><i>Wassalamu’alaikum Warahmatullahi Wabarokatuh
                                                     </i></strong>
                                                 <br>
