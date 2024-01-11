@@ -808,11 +808,15 @@ onMounted(() => {
                                         <!-- TTD -->
                                         <div class="row m-2">
                                             <div class="col text-center">
-                                                <div class="pb-5 mb-5">Lurah Pondok Putra</div>
+                                                <div class="">Lurah Pondok Putra</div>
+                                                <img src="/images/ttd_lurah.png" style="height: 100px;  object-fit: fill;"
+                                                        class="img-fluid ">
                                                 <div class=""><u><strong>Isman Nasik, M.Si., AH</strong></u></div>
                                             </div>
                                             <div class="col text-center">
-                                                <div class="pb-5 mb-5">Bendahara Pondok Putra</div>
+                                                <div class="">Bendahara Pondok Putra</div>
+                                                <img src="/images/ttd_me.png" style=" height: 100px; object-fit: fill;"
+                                                        class="img-fluid ">
                                                 <div class=""><u><strong>M.Irvan Muhandis, S.Kom</strong></u>
                                                 </div>
                                             </div>
