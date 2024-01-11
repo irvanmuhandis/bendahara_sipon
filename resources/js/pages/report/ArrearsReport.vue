@@ -676,16 +676,14 @@ onMounted(() => {
                                         </div>
                                     </div>
                                 </div>
-                                <div class="w-100">
-                                    <button class="w-75  btn btn-primary" type="button" @click="generatePdf">Buat
+                                <div class="w-100 d-flex">
+                                    <button class=" flex-grow btn btn-primary" type="button" @click="generatePdf">Buat
                                         PDF</button>
-                                    <button class="w-25  btn btn-warning ml-2" type="button" @click="generateImg">Download
+                                    <button class="  btn btn-warning ml-2 text-light" type="button" @click="generateImg">Download
                                         Gambar</button>
                                 </div>
 
-                                <div class="d-flex justify-content-center">
-
-
+                                <div class="d-flex justify-content-center mt-3">
                                     <div id="pdf-content" style="height:1000px;width:780px ;"
                                         class="overflow-auto card m-2 shadow p-5 text-times">
                                         <!-- header -->
