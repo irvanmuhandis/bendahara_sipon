@@ -652,7 +652,7 @@ onMounted(() => {
                                             <label>Nomor Surat</label>
                                             <input type="text" v-model="formPdf.num"
                                                 :class="{ 'is-invalid': errorsFormPdf.num }" class="form-control"
-                                                placeholder="57/SPb/KGS-PI/XII/2023" />
+                                                placeholder="071/SPb/PP.KGS/I/2024" />
                                         </div>
                                     </div>
                                 </div>
@@ -679,7 +679,8 @@ onMounted(() => {
                                 <div class="w-100 d-flex">
                                     <button class=" flex-grow-1 btn btn-primary" type="button" @click="generatePdf">Buat
                                         PDF</button>
-                                    <button class="  btn btn-warning ml-2 text-light" type="button" @click="generateImg">Download
+                                    <button class="  btn btn-warning ml-2 text-light" type="button"
+                                        @click="generateImg">Download
                                         Gambar</button>
                                 </div>
 
@@ -713,7 +714,7 @@ onMounted(() => {
                                                                 <td class="p-0" scope="row">No</td>
                                                                 <td class="p-0 pl-1">:</td>
                                                                 <td class="p-0 pl-1">{{
-                                                                    formPdf.num == null ? "57/SPb/KGS-PI/XII/2023" :
+                                                                    formPdf.num == null ? "071/SPb/PP.KGS/I/2024" :
                                                                     formPdf.num
                                                                 }}</td>
                                                             </tr>
@@ -809,14 +810,25 @@ onMounted(() => {
                                         <div class="row m-2">
                                             <div class="col text-center">
                                                 <div class="">Lurah Pondok Putra</div>
-                                                <img src="/images/ttd_lurah.png" style="height: 100px;  object-fit: fill;"
-                                                        class="img-fluid ">
+                                                <div class="img position-relative">
+                                                    <img src="/images/ttd_lurah.png"
+                                                        style="height: 100px;  object-fit: fill;" class="img-fluid ">
+                                                </div>
+
+                                                <img src="/images/stempel.png" style="height: 100px;
+                                                                                    object-fit: fill;
+                                                                                    top: 10px;
+                                                                                    left: 40px;
+                                                                                    scale: 2;
+                                                                                    opacity: 0.4;
+                                                                                    rotate: -20deg;"
+                                                    class="img-fluid position-absolute top">
                                                 <div class=""><u><strong>Isman Nasik, M.Si., AH</strong></u></div>
                                             </div>
                                             <div class="col text-center">
                                                 <div class="">Bendahara Pondok Putra</div>
                                                 <img src="/images/ttd_me.png" style=" height: 100px; object-fit: fill;"
-                                                        class="img-fluid ">
+                                                    class="img-fluid ">
                                                 <div class=""><u><strong>M.Irvan Muhandis, S.Kom</strong></u>
                                                 </div>
                                             </div>
