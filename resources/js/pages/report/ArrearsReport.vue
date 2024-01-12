@@ -819,7 +819,7 @@ onMounted(() => {
                                                                                     object-fit: fill;
                                                                                     top: 10px;
                                                                                     left: 40px;
-                                                                                    scale: 2;
+                                                                                    scale: 1.8;
                                                                                     opacity: 0.4;
                                                                                     rotate: -20deg;"
                                                     class="img-fluid position-absolute top">
