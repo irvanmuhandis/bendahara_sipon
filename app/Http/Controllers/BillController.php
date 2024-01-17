@@ -106,8 +106,55 @@ class BillController extends Controller
         ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
         $operator = $response->json()['data'];
         $log = [];
+
         if (request('account')) {
             foreach (request('santri') as $user) {
+                $validate = Bill::where('nis', $user['nis'])->where('account_id', request('account')['id'])
+                    ->where('month', request('period'))->first();
+
+                if (request('price') == "0" || request('price') == 0) {
+                    continue;
+                }
+
+                $akun =  request('account')['account_name'];
+
+
+                $monthFormatted = Carbon::parse(request('period'))->format('F Y');
+
+
+                if ($validate != null) {
+                    return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
+                }
+            }
+        } else {
+            foreach (request('periodic') as $account) {
+                if ($account['value'] != '') {
+                    foreach (request('santri') as $user) {
+                        if ($account['value'] == "0" || $account['value'] == 0) {
+                            continue;
+                        }
+
+                        $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
+                            ->where('month', request('period'))->first();
+
+                        $akun =   $account['name'];
+
+
+                        $monthFormatted = Carbon::parse(request('period'))->format('F Y');
+
+
+                        if ($validate != null) {
+                            return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (request('account')) {
+            foreach (request('santri') as $user) {
+
+
                 $bill = Bill::create([
                     'account_id' => request('account')['id'],
                     'nis' => $user['nis'],
@@ -124,6 +171,9 @@ class BillController extends Controller
             foreach (request('periodic') as $account) {
                 if ($account['value'] != '') {
                     foreach (request('santri') as $user) {
+
+
+
                         $bill = Bill::create([
                             'account_id' => $account['id'],
                             'nis' => $user['nis'],
@@ -159,9 +209,60 @@ class BillController extends Controller
         $period_start = request('period_start');
         $period_end = request('period_end');
         $log = [];
+
         if (request('account')) {
             foreach (request('santri') as $user) {
                 for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
+
+
+                    if (request('price') == "0" || request('price') == 0) {
+                        continue;
+                    }
+
+                    $validate = Bill::where('nis', $user['nis'])->where('account_id', request('account')['id'])
+                        ->where('month', $month->format('Y-m'))->first();
+
+                    $monthFormatted = $month->format('F Y');
+
+                    $akun =   request('account')['account_name'];
+                    if ($validate != null) {
+                        return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
+                    }
+                }
+            }
+        } else {
+            foreach (request('periodic') as $account) {
+                if ($account['value'] != '') {
+                    foreach (request('santri') as $user) {
+                        for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
+                            if ($account['value'] == "0" || $account['value'] == 0) {
+                                continue;
+                            }
+
+                            $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
+                                ->where('month', $month->format('Y-m'))->first();
+
+
+                            $monthFormatted = $month->format('F Y');
+
+                            $akun =   $account['name'];
+                            if ($validate != null) {
+                                return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+        if (request('account')) {
+            foreach (request('santri') as $user) {
+                for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
+
+
+
                     $bill = Bill::create([
                         'account_id' => request('account')['id'],
                         'nis' => $user['nis'],
@@ -179,6 +280,7 @@ class BillController extends Controller
                 if ($account['value'] != '') {
                     foreach (request('santri') as $user) {
                         for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
+
                             $bill = Bill::create([
                                 'account_id' => $account['id'],
                                 'nis' => $user['nis'],
@@ -248,8 +350,18 @@ class BillController extends Controller
         $user = $response->json()['data'];
         $bill = Bill::where('id', '=', request('id'))->first();
         // dd(request());
+        $status = $bill->payment_status;
+        if($status==3){
+            if(request('remain')>0){
+                $status = 2;
+            }
+            if(request('remain')==request('price')){
+                $status = 1;
+            }
+        }
         $bill->update([
             'operator_id' => $user['id'],
+            'payment_status'=>$status,
             'account_id' => request('account')['id'],
             'amount' => request('price'),
             'remainder' => request('remain'),

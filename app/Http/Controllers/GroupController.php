@@ -11,6 +11,7 @@ use Exception;
 
 class GroupController extends Controller
 {
+    var $table = "acc_groups";
     public function index()
     {
         return Group::latest()
@@ -30,7 +31,9 @@ class GroupController extends Controller
 
     public function santri()
     {
-        $apps = Group::with('santri')->paginate(5);
+        $apps = Group::whereHas('santri')->with(['santri' => function ($query) {
+            $query->selectRaw('santris.nis, santris.fullname');
+        }])->paginate(5);
 
         return $apps;
     }
@@ -42,7 +45,7 @@ class GroupController extends Controller
             $nis = json_decode($nis, true);
 
             if ($nis) {
-                $santris = Santri::whereIn('nis', $nis)->with('group')->get();
+                $santris = Santri::select('nis', 'fullname')->whereIn('nis', $nis)->with('group')->get();
                 return $santris;
             }
         } catch (Exception $e) {
@@ -63,8 +66,9 @@ class GroupController extends Controller
         $array = [];
         $santris = request('santri');
         foreach ($santris as $santri) {
-            $data = Santri::where('nis','=',$santri)->first();
-            $data->group_id = request('group');
+            $data = Santri::where('nis', '=', $santri)->first();
+
+            $data->group()->attach(request('group'));
             $data->save();
             array_push($array, $data);
         }
@@ -107,24 +111,43 @@ class GroupController extends Controller
 
     public function bulkDelete()
     {
-        Group::whereIn('id', request('ids'))->delete();
+        $datas = request('datas');
 
-        return response()->json(['message' => 'Groups deleted successfully!']);
+        $log = [];
+        foreach ($datas as $data) {
+            // dd($data);
+            $grup = Group::find($data['pivot']['group_id'])->santri()->detach($data['pivot']['nis']);
+            array_push($log, $grup);
+        }
+        // Group::whereIn('id', request('datas'))->delete();
+
+        return response()->json([
+            'message' => 'Groups deleted successfully!',
+            'data' => $log
+        ]);
     }
 
-    public function destroy($id)
+    public function destroy()
     {
-        $RES = Group::where('id', '=', $id)->first()->delete();
+        foreach (request('ids') as $id) {
+            Group::where('id', $id)->first()->santri()->detach();
+        }
+        $RES = Group::whereIn('id', request('ids'))->delete();
 
-        return $RES;
+        return response()->json([
+            'message' => 'Groups deleted successfully!',
+            'data' => $RES
+        ]);
     }
 
-    public function santri_search(Group $dispen)
+    public function santri_search()
     {
         $searchQuery = request('query');
+        $searchGroup = request('group');
 
-
-        $apps = Group::with(['santri' => function ($query) use ($searchQuery) {
+        $apps = Group::when($searchGroup, function ($query) use ($searchGroup) {
+            $query->where('id', $searchGroup);
+        })->whereHas('santri')->with(['santri' => function ($query) use ($searchQuery) {
             $query->where('fullname', 'like', "%{$searchQuery}%")->get();
         }])->paginate(5);
 
@@ -137,5 +160,23 @@ class GroupController extends Controller
 
         $group = Group::where('group_name', 'like', "%{$searchQuery}%")->latest()->paginate(10);
         return response()->json($group);
+    }
+
+    public function santri_search_bill()
+    {
+        $searchQuery = request('query');
+        $searchGroup = request('group');
+
+        $apps = Santri::select('nis', 'fullname')->where('status', 1)->where('option', 1)->whereHas('group', function ($query) use ($searchGroup) {
+            $query->when($searchGroup, function ($query) use ($searchGroup) {
+                $query->whereRaw("$this->table.id=$searchGroup");
+            });
+        })->with(['group' => function ($query) use ($searchGroup) {
+            $query->when($searchGroup, function ($query) use ($searchGroup) {
+                $query->whereRaw("$this->table.id=$searchGroup");
+            });
+        }])->orderBy('nis', 'asc')->get();
+
+        return $apps;
     }
 }

@@ -22,6 +22,6 @@ class Santri extends Model
 
     public function group()
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsToMany(Group::class, 'group_santri','nis', 'group_id');
     }
 }

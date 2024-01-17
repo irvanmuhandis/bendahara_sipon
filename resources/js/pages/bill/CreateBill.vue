@@ -14,6 +14,9 @@ const accounts = ref([]);
 const accountsNon = ref([]);
 const groupsantris = ref([]);
 
+const listgroups = ref([]);
+const listSantriGroup = ref();
+
 const formatted = ref();
 const formatted_s = ref();
 const switchRange = ref();
@@ -21,6 +24,10 @@ const switchAcc_s = ref(false);
 
 const switchRange_g = ref();
 const switchAcc = ref(false);
+
+const selectAll = ref();
+const selectedGroup = ref([]);
+
 
 const errors = ref({
     'santri': null,
@@ -56,6 +63,28 @@ const formNon = ref({
     'account': null
 });
 
+const searchPeriod2 = ref({
+    'group': null
+});
+
+const toggleSelection = (santri) => {
+    const index = form.value.santri.indexOf(santri);
+    if (index === -1) {
+        form.value.santri.push(santri);
+    } else {
+        form.value.santri.splice(index, 1);
+    }
+    console.log(form.value.santri);
+};
+
+const selectAllGroups = () => {
+    if (selectAll.value) {
+        form.value.santri = listSantriGroup.value.map(santri => santri);
+    } else {
+        form.value.santri = [];
+    }
+    console.log(form.value.santri);
+}
 
 const getSantri = async () => {
 
@@ -68,13 +97,6 @@ const getSantri = async () => {
     }
 }
 
-
-const createBillSchema = yup.object({
-    group: yup.number().required(),
-    price: yup.number().required(),
-    period: yup.date().required(),
-    account: yup.number().required(),
-});
 
 const clearform = (err, form) => {
     for (const key in err) {
@@ -106,7 +128,7 @@ const validateBill = () => {
     if (switchAcc_s.value) {
         var atleast_one = 0;
         form.value.periodic.forEach(element => {
-            if (element.value != "") {
+            if (element.value != "" || element.value == null || element.value == 0) {
                 atleast_one += 1;
             }
         });
@@ -116,7 +138,7 @@ const validateBill = () => {
         }
     }
     else {
-        if (form.value.price == '' || form.value.period == null) {
+        if (form.value.price == '' || form.value.price == null || form.value.price == 0) {
             errors.value.price = 'Pilih jumlah tagihan '
             err += 1;
         }
@@ -129,7 +151,7 @@ const validateBill = () => {
 
     if (!switchRange.value) {
         if (form.value.period == '' || form.value.period == null) {
-            errors.value.period = 'Pilih Periode '
+            errors.value.period = 'Pilih Bulan'
             err += 1;
         }
     }
@@ -164,7 +186,7 @@ const validateBillNon = () => {
         err += 1;
     }
 
-    if (formNon.value.price == '' ) {
+    if (formNon.value.price == '') {
         errorsNon.value.price = 'Pilih Jumlah Tagihan '
         err += 1;
     }
@@ -222,6 +244,39 @@ const createBill_s = (event) => {
     }
 };
 
+// buat tagihan periodik v.2
+const createBill_2 = (event) => {
+
+    event.preventDefault();
+    if (validateBill()) {
+        if (!switchRange.value) {
+            axios.post('/api/bill-single', form.value)
+                .then(() => {
+                    formatted_s.value = null;
+                    clearform(errors.value, form.value);
+                    toastr.success('Berhasil membuat tagihan!');
+                    getPeriodic();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        }
+        else {
+            axios.post('/api/bill-singlerange', form.value)
+                .then(() => {
+                    formatted_s.value = null;
+                    clearform(errors.value, form.value);
+                    toastr.success('Berhasil membuat tagihan!');
+                    getPeriodic();
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+
+        }
+    }
+};
+
 // buat tagihan non periodik
 const createBillNonPeriod = (event) => {
     event.preventDefault();
@@ -238,13 +293,6 @@ const createBillNonPeriod = (event) => {
     }
 };
 
-const groupchange = (event) => {
-    groupsantris.value = [];
-    axios.get(`/api/santri/group/${form2.value.group.id}`)
-        .then((response) => {
-            groupsantris.value = response.data;
-        });
-}
 
 const getAccount = () => {
     axios.get('/api/account/only', {
@@ -265,13 +313,6 @@ const getAccount = () => {
     )
         .then((response) => {
             accountsNon.value = response.data;
-        })
-}
-
-const getGroup = () => {
-    axios.get('/api/group/list')
-        .then((response) => {
-            groups.value = response.data;
         })
 }
 
@@ -316,8 +357,29 @@ const changeMonth_S = () => {
     form.value.period_end = '';
 }
 
+const getGroup = () => {
+    axios.get('/api/group/list')
+        .then((response) => {
+            listgroups.value = response.data;
+        })
+}
+
+const getSantriGroup = () => {
+    selectAll.value = false;
+    selectedGroup.value = [];
+
+    axios.get('/api/group/santri/search-bill', {
+        params: {
+            group: searchPeriod2.value.group
+        }
+    })
+        .then((response) => {
+            listSantriGroup.value = response.data;
+        })
+}
 onMounted(() => {
     getSantri();
+    getSantriGroup();
     getGroup();
     getAccount();
     getPeriodic();
@@ -354,138 +416,16 @@ onMounted(() => {
                     <ul class="nav nav-pills">
                         <li class="nav-item"><a class="nav-link  active" href="#period" data-toggle="tab">Periodik</a>
                         </li>
+                        <li class="nav-item"><a class="nav-link" href="#period2" data-toggle="tab">Periodik v.2</a>
+                        </li>
                         <li class="nav-item"><a class="nav-link" href="#single" data-toggle="tab">Non Periodik
                             </a>
                         </li>
+
                     </ul>
                 </div>
                 <div class="card-body">
                     <div class="tab-content">
-                        <!-- <div class="tab-pane" id="group">
-                             :validation-schema="!switchRange_g ? (!switchAcc ? createBillSchema : createBillSchema_mult) : (!switchAcc ? createBillSchema_r : createBillSchema_rMult)"
-                                v-slot:default="{ errors }"
-                            <form @submit.prevent="createBill">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label>Santri</label>
-                                            <VueMultiselect :option-height="9" :options="groups" @select="groupchange"
-                                                :class="{ 'is-invalid': errors2.group }" v-model="form2.group"
-                                                :multiple="false" :close-on-select="true" placeholder="Pilih Satu ..."
-                                                label="group_name" track-by="id" :show-labels="false">
-                                                <template v-slot:option="{ option }">
-                                                    <div>{{ option.group_name }} - {{ option.id }} </div>
-                                                </template>
-                                            </VueMultiselect>
-                                            <span class="invalid-feedback">{{ errors2.group }}</span>
-                                        </div>
-                                        <div v-if="!switchAcc">
-                                            <div class="form-group">
-                                                <label>Akun</label><br>
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox" v-model="switchAcc" @change="AccChange"
-                                                        class="custom-control-input" id="customSwitch1">
-                                                    <label class="font-weight-lighter font-italic custom-control-label"
-                                                        for="customSwitch1">Tunggal / Jamak</label>
-                                                </div>
-
-                                                <VueMultiselect :option-height="9" :options="accounts"
-                                                    :class="{ 'is-invalid': errors2.account }" v-model="form2.account"
-                                                    :multiple="false" :close-on-select="true" placeholder="Pilih Satu ..."
-                                                    label="account_name" track-by="id" :show-labels="false">
-                                                    <template v-slot:option="{ option }">
-                                                        <div>{{ option.account_name }} - {{ option.id }} </div>
-                                                    </template>
-                                                </VueMultiselect>
-                                                <span class="invalid-feedback">{{ errors2.account }}</span>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Jumlah Tagihan</label>
-                                                <input :class="{ 'is-invalid': errors2.price }" class="form-control"
-                                                    v-model="form2.price" type="number" />
-                                                <p>{{ formatMoney(form2.price) }}</p>
-                                                <span class="invalid-feedback">{{ errors2.price }}</span>
-                                            </div>
-                                        </div>
-                                        <div v-else>
-                                            <div class="form-group">
-                                                <label>Akun</label><br>
-                                                <div class="custom-control custom-switch">
-                                                    <input type="checkbox" v-model="switchAcc" class="custom-control-input"
-                                                        id="customSwitch2">
-                                                    <label class="font-weight-lighter font-italic custom-control-label"
-                                                        for="customSwitch2">Tunggal / Jamak</label>
-                                                </div>
-                                            </div>
-                                            <div v-for="(data, index) in form2.periodic" class="form-group">
-                                                <label class="text-right text-primary font-weight-normal">{{
-                                                    data.name }}</label>
-                                                <input v-model="data.value" class="form-control" type="number" />
-                                                <p>{{ formatMoney(data.value) }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Bulan</label>
-                                            <div class="custom-control custom-switch">
-                                                <input type="checkbox" v-model="switchRange_g" @change="RangeChange"
-                                                    class="custom-control-input" id="customSwitch3">
-                                                <label class="font-weight-lighter font-italic custom-control-label"
-                                                    for="customSwitch3">Tunggal / Periode</label>
-                                            </div>
-                                            <div v-if="!switchRange_g">
-                                                <input :class="{ 'is-invalid': errors2.period }" class="form-control"
-                                                    v-model="form2.period" type="month" />
-                                                <span class="invalid-feedback">{{ errors2.period }}</span>
-                                            </div>
-                                            <div v-else class="row">
-                                                <div class="col-md-6">
-                                                    <input :class="{ 'is-invalid': errors2.period_start }"
-                                                        class="form-control" v-model="form2.period_start" type="month" />
-
-                                                    <span class="invalid-feedback">{{ errors2.period_start }}</span>
-                                                </div>
-                                                <div class="col-md-6 mt-md-0 mt-2">
-                                                    <input :class="{ 'is-invalid': errors2.period_end }"
-                                                        class="form-control" v-model="form2.period_end" type="month" />
-
-                                                    <span class="invalid-feedback">{{ errors2.period_end }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group"><label> Grup Santri
-                                            </label>
-                                            <table class="table table-sm text-center table-bordered">
-                                                <thead>
-                                                    <tr>
-
-                                                        <th>ID</th>
-                                                        <th>Name</th>
-                                                        <th>Join At</th>
-
-                                                    </tr>
-                                                </thead>
-                                                <tr v-if="groupsantris.length === 0">
-                                                    <td colspan="3">No Record</td>
-                                                </tr>
-                                                <tr v-for="santri in groupsantris">
-                                                    <td>{{ santri.id }} </td>
-                                                    <td>{{ santri.name }}</td>
-                                                    <td>{{ santri.join_at }}</td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <button type="submit" class="w-100 btn btn-primary">Submit</button>
-                                {{ errors2 }}
-                            </form>
-
-                        </div> -->
 
                         <!-- Period -->
                         <div class="tab-pane active" id="period">
@@ -599,6 +539,184 @@ onMounted(() => {
 
                                         </div>
 
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="w-100 btn btn-primary">Submit</button>
+                            </form>
+                        </div>
+
+                        <!-- Period v2-->
+                        <div class="tab-pane active" id="period2">
+
+                            <form @submit="createBill_2">
+                                <div class="row">
+                                    <div class="col-md">
+                                        <div class="form-group">
+
+
+                                            <div v-if="santris.length == 0" class="text-center m-2">
+                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                            </div>
+                                            <div class="card" :class="{ 'is-invalid': errors.santri }">
+                                                <div class="card-header">
+                                                    <div class="card-title">
+                                                        <label>Grup</label>
+                                                        <select v-model="searchPeriod2.group" @change="getSantriGroup"
+                                                            class="custom-select">
+                                                            <option selected :value="null">Semua</option>
+                                                            <option v-for="row in listgroups" :key="row.id" :value="row.id">
+                                                                {{ row.group_name }}</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body table-responsive p-0" style="height: 300px;">
+                                                    <table class="table table-head-fixed text-nowrap">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class="p-0 text-center">
+                                                                    <div style="top: -12px;position: relative;">
+                                                                        <div class="custom-control custom-checkbox">
+                                                                            <input v-model="selectAll"
+                                                                                @change="selectAllGroups" type="checkbox"
+                                                                                id="checkAll" class="custom-control-input">
+                                                                            <label class="custom-control-label"
+                                                                                for="checkAll"></label>
+                                                                        </div>
+                                                                    </div>
+                                                                </th>
+                                                                <th>NIS</th>
+                                                                <th>Santri</th>
+                                                                <th>Grup</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr v-for="santri in listSantriGroup" :key="santri.nis">
+                                                                <td class="p-0 text-center">
+                                                                    <div class="m-2">
+                                                                        <div class="custom-control custom-checkbox">
+                                                                            <input :checked="selectAll"
+                                                                                @change="toggleSelection(santri)"
+                                                                                type="checkbox" :id="santri.nis"
+                                                                                class="custom-control-input">
+                                                                            <label class="custom-control-label"
+                                                                                :for="santri.nis"></label>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>{{ santri.nis }}</td>
+                                                                <td>{{ santri.fullname }}</td>
+                                                                <td style="max-width:400px ;">
+                                                                    <div class="d-flex flex-wrap">
+                                                                        <div class="badge m-1 badge-primary"
+                                                                            v-for="grup in santri.group" :key="grup.id">{{
+                                                                                grup.group_name }}</div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                            </div>
+
+                                            <span class="invalid-feedback">{{ errors.santri }}</span>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+
+                                        <div class="form-group">
+                                            <label>Akun</label><br>
+
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" @change="AccChange_S" v-model="switchAcc_s"
+                                                    class="custom-control-input" id="customSwitch6">
+                                                <label class="font-weight-lighter font-italic custom-control-label"
+                                                    for="customSwitch6">Tunggal / Jamak</label>
+                                            </div>
+
+                                            <div v-if="!switchAcc_s">
+                                                <div v-if="accounts.length == 0" class="text-center m-2">
+                                                    <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                    <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                    <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                    <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                    <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
+                                                </div>
+                                                <VueMultiselect v-else v-model="form.account" :option-height="9"
+                                                    :options="accounts" :class="{ 'is-invalid': errors.account }"
+                                                    :multiple="false" :close-on-select="true" placeholder="Pilih Satu "
+                                                    label="account_name" track-by="id" :show-labels="false">
+                                                    <template v-slot:option="{ option }">
+                                                        <div>{{ option.account_name }} - {{ option.id }} </div>
+                                                    </template>
+                                                </VueMultiselect>
+                                                <span class="invalid-feedback">{{ errors.account }}</span>
+                                            </div>
+                                            <div v-else>
+                                                <div v-for="(data, index) in form.periodic">
+                                                    <label class="text-right text-primary font-weight-normal">{{
+                                                        data.name }}</label>
+                                                    <input :class="{ 'is-invalid': errors.account }" v-model="data.value"
+                                                        class="form-control" type="number" />
+                                                    <span>{{ formatMoney(data.value) }}</span>
+                                                    <span class="invalid-feedback">{{ errors.account }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Bulan</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" v-model="switchRange" @change="changeMonth_S"
+                                                    class="custom-control-input" id="customSwitch4">
+                                                <label class="font-weight-lighter font-italic custom-control-label"
+                                                    for="customSwitch4">Tunggal / Periode</label>
+                                            </div>
+                                            <div v-if="!switchRange">
+                                                <input @v-if="!switchRange" :class="{ 'is-invalid': errors.period }"
+                                                    class="form-custom" v-model="form.period" type="month" />
+                                                <span class="invalid-feedback">{{ errors.period }}</span>
+                                            </div>
+                                            <div v-else class="row">
+                                                <div class="col-md-6">
+                                                    <input class="form-custom"
+                                                        :class="{ 'is-invalid': errors.period_start }"
+                                                        v-model="form.period_start" type="month" />
+
+                                                    <span class="invalid-feedback">{{ errors.period_start }}</span>
+                                                </div>
+                                                <div class="col-md-6 mt-md-0 mt-2">
+                                                    <input class="form-custom" :class="{ 'is-invalid': errors.period_end }"
+                                                        v-model="form.period_end" type="month" />
+
+                                                    <span class="invalid-feedback">{{ errors.period_end }}</span>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div v-if="!switchAcc_s" class="col">
+                                        <div class="form-group">
+                                            <label>Jumlah Tagihan</label>
+                                            <input @keyup="handleChange_s" class="form-custom"
+                                                :class="{ 'is-invalid': errors.price }" v-model="form.price"
+                                                type="number" />
+                                            <span class="invalid-feedback">{{ errors.price }}</span>
+                                            <p>{{ formatted_s }}</p>
+                                        </div>
                                     </div>
                                 </div>
 

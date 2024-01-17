@@ -161,14 +161,14 @@
                             </a>
                             <ul class="nav nav-treeview"
                                 style="background: rgb(255, 255, 255);border:grey solid 2px;border-radius:8px">
-                                {{-- <li class="nav-item">
+                                <li class="nav-item">
                                     <router-link :class="$route.path.startsWith('/admin/master/group') ? 'active' : ''"
                                         to="/admin/master/group" active-class="active" class="nav-link">
 
                                         <i class="nav-icon fas fa-sitemap"></i>
                                         <p>Grup</p>
                                     </router-link>
-                                </li> --}}
+                                </li>
                                 <li class="nav-item">
                                     <router-link
                                         :class="$route.path.startsWith('/admin/master/account') ? 'active' : ''"

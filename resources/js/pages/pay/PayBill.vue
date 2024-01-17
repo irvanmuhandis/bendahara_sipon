@@ -47,6 +47,7 @@ const filter = ref({
     'payment': null
 });
 
+
 const sort = (a) => {
     for (const key in filter.value) {
         if (a != key) {
@@ -260,6 +261,7 @@ const bulkDelete = () => {
             fetchData();
             selected.value = [];
             selectedWall.value = [];
+            selectAll.value  = false;
             $('#deleteDataModal').modal('hide');
         });
 };
@@ -350,11 +352,14 @@ onMounted(() => {
                                         <div v-if="init" class="h6">Pilih Santri Terlebih Dahulu</div>
                                     </div>
                                     <div v-else>
+
                                         <div v-for="bill in santribill.data" :key="bill.id">
-                                            <input type="checkbox" @change="totalize($event, bill.id)"
+                                            <input type="checkbox"  @change="totalize($event, bill.id)"
                                                 v-model="formValue.bill" :value="bill.id" />
                                             <label class="ml-2">
-                                                {{ bill.account.account_name }} | {{ bill.month==null?bill.title:bill.month }} |
+                                                {{ bill.account.account_name }} | {{ bill.month == null ? bill.title :
+                                                    bill.month
+                                                }} |
                                                 <span class="text-right text-monospace">
                                                     {{
                                                         formatMoney(
@@ -405,9 +410,10 @@ onMounted(() => {
                                 </div>
                                 <div v-if="wallets.length != 0" class="form-group">
                                     <label>Dompet</label>
-                                    <VueMultiselect @click="getWallet" v-model="formValue.wallet" :option-height="9" :options="wallets"
-                                        :multiple="false" :class="{ 'is-invalid': errors.wallet }" :close-on-select="true"
-                                        placeholder="Pilih Satu" label="wallet_name" track-by="id" :show-labels="false">
+                                    <VueMultiselect @click="getWallet" v-model="formValue.wallet" :option-height="9"
+                                        :options="wallets" :multiple="false" :class="{ 'is-invalid': errors.wallet }"
+                                        :close-on-select="true" placeholder="Pilih Satu" label="wallet_name" track-by="id"
+                                        :show-labels="false">
                                         <template v-slot:option="{ option }">
                                             <div>{{ option.wallet_name }} </div>
                                         </template>
@@ -509,7 +515,7 @@ onMounted(() => {
                                 </td>
                                 <td>{{ formatDate(pay.created_at) }}</td>
                                 <td>{{ pay.payable.santri.fullname }} - {{ pay.payable.santri.nis }} </td>
-                                <td v-if="pay.payable.title==null">Tagihan {{ pay.payable.month }}</td>
+                                <td v-if="pay.payable.title == null">Tagihan {{ pay.payable.month }}</td>
                                 <td v-else>{{ pay.payable.title }}</td>
                                 <td>{{ formatMoney(pay.payment) }}</td>
                                 <td>{{ formatMoney(pay.payable.remainder) }}</td>

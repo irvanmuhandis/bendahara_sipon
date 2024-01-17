@@ -18,43 +18,10 @@ const searchQuery = ref(null);
 const selectAll = ref(false);
 const selectedGroup = ref([]);
 
-function getCookieValue(cookieName) {
-  const name = cookieName + '=';
-  const decodedCookie = decodeURIComponent(document.cookie);
-  const cookieArray = decodedCookie.split(';');
-
-  for (let i = 0; i < cookieArray.length; i++) {
-    let cookie = cookieArray[i];
-    while (cookie.charAt(0) === ' ') {
-      cookie = cookie.substring(1);
-    }
-    if (cookie.indexOf(name) === 0) {
-      return cookie.substring(name.length, cookie.length);
-    }
-  }
-
-  return 'tt';
-}
 
 
-const confirmGroupDeletion = (id) => {
-    groupIdBeingDeleted.value = id;
+const confirmGroupDeletion = () => {
     $('#deleteGroupModal').modal('show');
-};
-
-const deleteGroup = () => {
-    console.log(groupIdBeingDeleted.value);
-    axios.delete(`/api/group/${groupIdBeingDeleted.value}`, {
-        data: {
-            id: groupIdBeingDeleted.value
-        }
-    })
-        .then((response) => {
-            $('#deleteGroupModal').modal('hide');
-            toastr.success('Group deleted successfully!');
-            getGroup();
-            //groupDeleted(groupIdBeingDeleted.value)
-        });
 };
 
 const bulkDelete = () => {
@@ -67,6 +34,8 @@ const bulkDelete = () => {
         .then(response => {
             toastr.success(response.data.message);
             getGroup();
+        }).finally(() => {
+            $('#deleteGroupModal').modal('hide');
         });
 };
 
@@ -159,13 +128,9 @@ const getGroup = (page = 1) => {
 
 }
 
-const getCookie = () => {
-    console.log(document.cookie);
-}
 
 onMounted(() => {
     getGroup();
-    getCookie();
 })
 
 
@@ -180,7 +145,9 @@ onMounted(() => {
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item ">  <RouterLink to="/">Beranda</RouterLink></li>
+                        <li class="breadcrumb-item ">
+                            <RouterLink to="/">Beranda</RouterLink>
+                        </li>
                         <li class="breadcrumb-item active">Groups</li>
                     </ol>
                 </div>
@@ -200,11 +167,10 @@ onMounted(() => {
                     </router-link>
 
                     <div v-if="selectedGroup.length > 0">
-                        <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
+                        <button @click="confirmGroupDeletion" type="button" class="ml-2 mb-2 btn btn-danger">
                             <i class="fa fa-trash mr-1"></i>
-                            Delete Selected
+                            Hapus {{ selectedGroup.length }} Grup
                         </button>
-                        <span class="ml-2">Selected {{ selectedGroup.length }} groups</span>
                     </div>
                 </div>
                 <div>
@@ -221,6 +187,7 @@ onMounted(() => {
                                 <th scope="col">Nama Grup</th>
                                 <th scope="col">Deskripsi</th>
                                 <th scope="col">Dibuat</th>
+                                <th scope="col">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -230,15 +197,11 @@ onMounted(() => {
 
                                 <td>{{ group.group_name }} </td>
                                 <td>{{ group.desc }}</td>
-                                <td>{{ formatDate( group.created_at) }}</td>
+                                <td>{{ formatDate(group.created_at) }}</td>
 
                                 <td>
                                     <a href="#" @click="editGroup(group)">
                                         <i class="fa fa-edit mr-2"></i>
-                                    </a>
-
-                                    <a href="#" @click="confirmGroupDeletion(group.id)">
-                                        <i class="fa fa-trash text-danger"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -259,18 +222,19 @@ onMounted(() => {
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Delete Group</span>
+                        <span>Hapus Grup</span>
                     </h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    <h5>Are you sure you want to delete this group ?</h5>
+                    <h5>Apakah anda yakin ingin menghapus grup ?</h5>
+                    <p><strong class="text-red">*Segala relasi yang terhubung dengan grup ini akan terhapus</strong></p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button @click.prevent="deleteGroup" type="button" class="btn btn-primary">Delete Group</button>
+                    <button @click.prevent="bulkDelete" type="button" class="btn btn-primary">Delete Group</button>
                 </div>
             </div>
         </div>

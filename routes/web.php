@@ -77,11 +77,13 @@ Route::middleware('sipon')->group(function () {
     Route::post('/api/wallet/delete', [WalletController::class, 'delType']);
 
     Route::get('/api/group/search', [GroupController::class, 'search']);
-    Route::delete('/api/group', [GroupController::class, 'bulkDelete']);
+    Route::delete('/api/group/santri', [GroupController::class, 'bulkDelete']);
+    Route::delete('/api/group', [GroupController::class, 'destroy']);
     Route::get('/api/group/list', [GroupController::class, 'list']);
     Route::get('/api/group/santri', [GroupController::class, 'santri']);
     Route::get('/api/group/santri/form', [GroupController::class, 'form']);
-    Route::get('/api/group/user/search', [GroupController::class, 'santri_search']);
+    Route::get('/api/group/santri/search', [GroupController::class, 'santri_search']);
+    Route::get('/api/group/santri/search-bill', [GroupController::class, 'santri_search_bill']);
     Route::put('/api/group/link', [GroupController::class, 'link']);
 
     Route::get('/api/debt/search', [DebtController::class, 'search']);
@@ -132,7 +134,7 @@ Route::middleware('sipon')->group(function () {
     Route::resource('/api/debt', DebtController::class)
         ->only(['index', 'store', 'update', 'destroy']);;
     Route::resource('/api/group', GroupController::class)
-        ->only(['index', 'store', 'update', 'destroy']);
+        ->only(['index', 'store', 'update']);
     Route::resource('/api/pay', PayController::class)
         ->only(['index', 'store', 'show', 'update', 'destroy']);
 

@@ -11,14 +11,19 @@ const toastr = useToastr();
 
 const santris = ref([]);
 const listgroups = ref([]);
-const groups = ref([]);
+const groups = ref({
+    'data': []
+});
 const groupsantris = ref([]);
 const selectedUser = ref([]);
-const searchQuery = ref('');
 const selectAll = ref(false);
 const selectedRelation = ref([]);
 const santri_id = ref([]);
 const load = ref(false);
+
+
+const searchGroup = ref(null);
+const searchQuery = ref(null);
 
 const form = ref({
     group: null,
@@ -39,7 +44,8 @@ const createGroupSchema = yup.object({
 const search = (page = 1) => {
     axios.get(`/api/group/santri/search?page=${page}`, {
         params: {
-            query: searchQuery.value
+            query: searchQuery.value,
+            group: searchGroup.value
         }
     })
         .then(response => {
@@ -166,13 +172,6 @@ const getGroup = () => {
 }
 
 
-const getData = () => {
-    axios.get('/api/group/santri')
-        .then((response) => {
-            groups.value = response.data;
-        })
-}
-
 
 const selectAllGroup = () => {
     if (selectAll.value) {
@@ -187,7 +186,7 @@ const selectAllGroup = () => {
 const toggleSelection = (data) => {
     const index = selectedRelation.value.indexOf(data.id);
     if (index === -1) {
-        selectedRelation.value.push(data.id);
+        selectedRelation.value.push(data);
     } else {
         selectedRelation.value.splice(index, 1);
     }
@@ -212,9 +211,7 @@ const deleteRelation = () => {
 const bulkDelete = () => {
     console.log(selectedRelation.value);
     axios.delete('/api/group/santri', {
-        data: {
-            ids: selectedRelation.value
-        }
+        data: { datas: selectedRelation.value }
     })
         .then(response => {
             toastr.success(response.data.message);
@@ -225,10 +222,13 @@ const bulkDelete = () => {
 watch(searchQuery, debounce(() => {
     search();
 }, 300));
+watch(searchGroup, debounce(() => {
+    search();
+}, 300));
 
 onMounted(() => {
     getUser();
-    getData();
+    search();
     getGroup();
 })
 </script>
@@ -293,7 +293,7 @@ onMounted(() => {
 
 
                                 <button type="submit" class="w-100 btn btn-primary">Submit</button>
-                                {{ errors }}
+
                             </Form>
                         </div>
 
@@ -303,7 +303,7 @@ onMounted(() => {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Santri</label>
-                                            <VueMultiselect v-model="form.santri" @select="santrichange"
+                                            <VueMultiselect v-model="form.santri" :loading="santris.length==0?true:false" @select="santrichange"
                                                 @remove="santrichange" @input="santrichange" :option-height="9"
                                                 :options="santris" :class="{ 'is-invalid': errors.santri }" :multiple="true"
                                                 :close-on-select="true" placeholder="Pilih Satu / Lebih" label="fullname"
@@ -316,7 +316,7 @@ onMounted(() => {
                                         </div>
                                         <div class="form-group">
                                             <label>Grup</label>
-                                            <VueMultiselect v-model="form.group" :option-height="9" :options="listgroups"
+                                            <VueMultiselect @click="getGroup" v-model="form.group" :option-height="9" :loading="listgroups.length==0?true:false" :options="listgroups"
                                                 :class="{ 'is-invalid': errors.group }" :multiple="false"
                                                 :close-on-select="true" placeholder="Pilih Satu" label="group_name"
                                                 track-by="id" :show-labels="false">
@@ -346,13 +346,14 @@ onMounted(() => {
                                                 </tr>
                                                 <tr v-if="load">
                                                     <td colspan="3">
-                                                        <div  class="spinner-border row text-primary mx-auto" role="status"></div>
+                                                        <div class="spinner-border row text-primary mx-auto" role="status">
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 <tr v-else v-for="santri in groupsantris">
                                                     <td>{{ santri.nis }} </td>
                                                     <td>{{ santri.fullname }}</td>
-                                                    <td v-if="santri.group != null">{{ santri.group.group_name }}</td>
+                                                    <td v-if="santri.group != null" class="d-flex flex-wrap"><div class="badge m-1 badge-primary" v-for="grup in santri.group">{{ grup.group_name }}</div>  </td>
                                                     <td v-else>-</td>
                                                 </tr>
                                             </table>
@@ -362,7 +363,7 @@ onMounted(() => {
 
 
                                 <button type="submit" class="w-100 btn btn-primary">Submit</button>
-                                {{ errors }}
+
                             </form>
 
                         </div>
@@ -372,83 +373,94 @@ onMounted(() => {
                 </div>
             </div>
 
-            <div class="m-2">
-                <h4 class="mx text-center">List Grup</h4>
-                <div class="d-flex justify-content-between mb-3">
-                    <div class="d-flex">
-                        <div v-if="selectedRelation.length > 0">
-                            <button @click="bulkDelete" type="button" class="ml-2 mb-2 btn btn-danger">
-                                <i class="fa fa-trash mr-1"></i>
-                                Hapus Relasi Dipilih
-                            </button>
-                            <span class="ml-2">Dipilih {{ selectedRelation.length }} relasi</span>
+
+        </div>
+        <div class="m-2">
+            <div class="card collapsed-card">
+                <div class="card-header ui-sortable-handle" style="cursor: move;">
+                    <h3 class="card-title">
+                        <i class="fas fa-link mr-1"></i>
+                        Relasi Santri dengan Grup
+                    </h3>
+
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-primary btn-sm" data-card-widget="collapse" title="Collapse">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
+                </div>
+                <div class="card-body" style="display: none;">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="d-inline-flex">
+                            <div class="form-group mr-1">
+                                <label>Grup</label>
+                                <select v-model="searchGroup" class="custom-select" name="" id="">
+                                    <option :value="null">Semua</option>
+                                    <option v-for="row in listgroups" :key="row.id" :value="row.id">{{ row.group_name }}</option>
+                                </select>
+                                <span class="invalid-feedback">{{ errors.group }}</span>
+                            </div>
+                            <div class="mr-1">
+                                <label>Cari Santri</label>
+                                <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
+                            </div>
+                        </div>
+                        <div class="form-group align-items-end" style="display: grid;">
+                            <div class="" v-if="selectedRelation.length > 0">
+                                <button @click="bulkDelete" type="button" class="ml-2 btn btn-danger">
+                                    <i class="fa fa-trash mr-1"></i>
+                                    Hapus {{ selectedRelation.length }} relasi
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <input type="text" v-model="searchQuery" class="form-control" placeholder="Search..." />
-                    </div>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr class="text-center">
+                                <th scope="col">
+                                    <input type="checkbox" v-model="selectAll" @change="selectAllGroup" />
+                                </th>
+                                <th scope="col">Santri</th>
+                                <th scope="col">Grup</th>
+
+                            </tr>
+
+                        </thead>
+                        <tbody v-if="groups.data.length == 0 || groups.data == null">
+                            <td class="text-center" colspan="3">Data tidak ditemukan ...</td>
+                        </tbody>
+                        <tbody v-else>
+                            <tr v-for="grup in groups.data" class="text-center" :key="grup.id">
+                                <td class="p-0 text-center">
+                                    <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
+                                        :key="santri.id">
+
+                                        <input type="checkbox" :checked="selectAll" @change="toggleSelection(santri)" />
+                                    </div>
+                                </td>
+                                <td class="p-0 text-start">
+                                    <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
+                                        :key="santri.nis">
+                                        {{ santri.fullname }}
+                                    </div>
+                                    <div v-else class="text-center">-</div>
+                                </td>
+                                <td class="text-center"> {{ grup.group_name }}</td>
+                            </tr>
+
+
+
+
+
+                        </tbody>
+                    </table>
+                    <Bootstrap4Pagination :data="groups" @pagination-change-page="search" />
+
                 </div>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th scope="col">Grup</th>
-                            <th scope="col">Santri</th>
-                            <th scope="col">Dibuat</th>
-                            <th scope="col">Diperbarui</th>
-                            <th scope="col"><input type="checkbox" v-model="selectAll" @change="selectAllGroup" />
-                            </th>
-                        </tr>
-
-                    </thead>
-                    <tbody>
-                        <tr v-for="grup in groups.data" :key="grup.id">
-                            <td class="text-center"> {{ grup.group_name }}</td>
-                            <td class="p-0 text-start">
-                                <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
-                                    :key="santri.id">
-                                    {{ santri.name }}
-                                </div>
-                                <div v-else class="text-center">-</div>
-                            </td>
-
-                            <td class="p-0 text-center">
-                                <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
-                                    :key="santri.id">
-
-                                    {{ formatDate(santri.created_at) }}
-
-
-                                </div>
-                                <div v-else>-</div>
-                            </td>
-
-
-                            <td class="p-0 text-center">
-                                <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
-                                    :key="santri.id">
-                                    {{ formatDate(santri.created_at) }}
-                                </div>
-                                <div v-else>-</div>
-                            </td>
-
-                            <td class="p-0 text-center">
-                                <div v-if="grup.santri.length > 0" class="m-2" v-for="santri in grup.santri"
-                                    :key="santri.id">
-
-                                    <input type="checkbox" :checked="selectAll" @change="toggleSelection(santri)" />
-                                </div>
-                                <div v-else>-</div>
-                            </td>
-
-                        </tr>
 
 
 
-
-
-                    </tbody>
-                </table>
-                <Bootstrap4Pagination :data="groups" @pagination-change-page="search" />
             </div>
         </div>
 
