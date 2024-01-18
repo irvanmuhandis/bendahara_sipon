@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Group extends Model
 {
     use HasFactory;
-    protected $table = 'acc_groups';
+    protected $table = 'groups';
     protected $guarded = [];
     // group user nanti ditampilin di setiap rekord pay , adi tau saat pembayaran dia di group apa
 

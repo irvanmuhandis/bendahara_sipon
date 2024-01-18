@@ -23,8 +23,8 @@ class CheckToken
 
             if ($request->data) {
                 Cookie::queue('sipon_session', Crypt::decryptString($request->data), 10080);
-                // return redirect('https://keuangan.kyaigalangsewu.net');
-                return redirect('http://127.0.0.1:8200');
+                return redirect('https://keuangan.kyaigalangsewu.net');
+                // return redirect('http://127.0.0.1:8200');
             }
 
             $token = json_decode(Cookie::get('sipon_session'))->token;
@@ -47,8 +47,8 @@ class CheckToken
             if ($request->data) {
 
                 Cookie::queue('sipon_session', Crypt::decryptString($request->data), 10080);
-                // return redirect('https://keuangan.kyaigalangsewu.net');
-                return redirect('http://127.0.0.1:8200');
+                return redirect('https://keuangan.kyaigalangsewu.net');
+                // return redirect('http://127.0.0.1:8200');
             } else {
                 return redirect('https://sipon.kyaigalangsewu.net');
             }

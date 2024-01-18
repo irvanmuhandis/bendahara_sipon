@@ -11,7 +11,7 @@ use Exception;
 
 class GroupController extends Controller
 {
-    var $table = "acc_groups";
+    var $table = "groups";
     public function index()
     {
         return Group::latest()
