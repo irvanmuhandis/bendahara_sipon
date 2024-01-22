@@ -15,7 +15,7 @@ const accountsNon = ref([]);
 const groupsantris = ref([]);
 
 const listgroups = ref([]);
-const listSantriGroup = ref();
+const listSantriGroup = ref([]);
 
 const formatted = ref();
 const formatted_s = ref();
@@ -547,21 +547,13 @@ onMounted(() => {
                         </div>
 
                         <!-- Period v2-->
-                        <div class="tab-pane active" id="period2">
+                        <div class="tab-pane " id="period2">
 
                             <form @submit="createBill_2">
                                 <div class="row">
                                     <div class="col-md">
                                         <div class="form-group">
 
-
-                                            <div v-if="santris.length == 0" class="text-center m-2">
-                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
-                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
-                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
-                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
-                                                <div class="spinner-grow spinner-grow-sm mr-1 text-primary"></div>
-                                            </div>
                                             <div class="card" :class="{ 'is-invalid': errors.santri }">
                                                 <div class="card-header">
                                                     <div class="card-title">
@@ -574,7 +566,7 @@ onMounted(() => {
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div class="card-body table-responsive p-0" style="height: 300px;">
+                                                <div class="card-body table-responsive p-0" style="max-height: 300px;">
                                                     <table class="table table-head-fixed text-nowrap">
                                                         <thead>
                                                             <tr>
@@ -595,7 +587,12 @@ onMounted(() => {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            <tr v-for="santri in listSantriGroup" :key="santri.nis">
+                                                            <tr v-if="listSantriGroup.length==0">
+                                                                <td colspan="4" class="text-center">
+                                                                    Data Tidak Ditemukan &#x1F64F;
+                                                                </td>
+                                                            </tr>
+                                                            <tr v-else v-for="santri in listSantriGroup" :key="santri.nis">
                                                                 <td class="p-0 text-center">
                                                                     <div class="m-2">
                                                                         <div class="custom-control custom-checkbox">

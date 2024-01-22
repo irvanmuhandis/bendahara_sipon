@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Http;
 
 class PayController extends Controller
 {
-var $payTable = "acc_pays";
+    var $payTable = "acc_pays";
 
     public function index()
     {
@@ -434,10 +434,19 @@ var $payTable = "acc_pays";
             } else {
                 $data = Debt::where('id', '=', $update['payable_id'])->first();
             }
-            $data->update([
-                'remainder' => $data['remainder'] + $update['payment'],
-            ]);
+            if ($data['amount'] == $data['payment']) {
 
+                $data->update([
+                    'remainder' => $data['remainder'] + $update['payment'],
+                    'payment_status' => 1
+                ]);
+            } else {
+
+                $data->update([
+                    'remainder' => $data['remainder'] + $update['payment'],
+                    'payment_status' => 2
+                ]);
+            }
 
             $pay = Pay::where('id', $update['id'])->delete();
             $wallet = Wallet::where('id', request('wall_ids'))
