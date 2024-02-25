@@ -57,7 +57,7 @@ class BillController extends Controller
 
     public function index()
     {
-        $fil = request('filter');
+        $fil = request('ordering');
         $req = request('value');
         $searchQuery = request('query');
         $mode = request('mode');
