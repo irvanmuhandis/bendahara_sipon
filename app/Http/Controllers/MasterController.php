@@ -84,7 +84,7 @@ class MasterController extends Controller
                     })
                     ->orderBy($fil, $req);
                 $sum = $data->sum('debit');
-                $data = $data->paginate(25);
+                $data = $data->paginate(10);
                 return response()->json([
                     'data' => $data,
                     'sum' => $sum
@@ -109,7 +109,7 @@ class MasterController extends Controller
                     ->orderBy($fil, $req);
 
                 $sum = $data->sum('credit');
-                $data = $data->paginate(2);
+                $data = $data->paginate(10);
                 return response([
                     'data' => $data,
                     'sum' => $sum
@@ -137,7 +137,7 @@ class MasterController extends Controller
                     ->orderBy($fil, $req);
 
                 $sum = $data->sum('payment');
-                $data = $data->paginate(25);
+                $data = $data->paginate(10);
                 return response()->json([
                     'data' => $data,
                     'sum' => $sum
@@ -151,7 +151,7 @@ class MasterController extends Controller
                     ->with(['wallet', 'santri', 'operator','account'])
                     ->orderBy($fil, $req);
                 $sum = $data->sum('amount');
-                $data = $data->paginate(25);
+                $data = $data->paginate(10);
                 return response()->json([
                     'data' => $data,
                     'sum' => $sum
