@@ -95,11 +95,15 @@ class BillController extends Controller
                 $query->where('month', null)
                     ->orWhere('month', null);
             })
-            ->orderBy($fil, $req)
-            ->paginate(25);
+            ->orderBy($fil, $req);
 
-        return $bill;
-    }
+            $sum = $bill->sum('amount');
+            $bill = $bill->paginate(10);
+            return response()->json([
+                'data' => $bill,
+                'sum' => $sum
+            ]);
+}
 
     public function store_single()
     {

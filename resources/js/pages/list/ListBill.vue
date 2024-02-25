@@ -14,6 +14,7 @@ const toastr = useToastr();
 const listBill = ref({
     'data': []
 });
+const sumValue = ref();
 const accounts = ref([]);
 const santris = ref([]);
 const switchMode = ref(false);
@@ -254,8 +255,6 @@ const confirmDataDeletion = (id) => {
 // watch(searchQuery, debounce(() => {
 //     search();
 // }, 300));
-
-
 // const pay_count = computed(() => {
 //     return pay_status.value.map(status => status.count).reduce((acc, value) => acc + value, 0);
 // })
@@ -294,7 +293,8 @@ const fetchData = (link = `/api/bill`) => {
                 account: filter.value.account.id
             }
         }).then((response) => {
-            listBill.value = response.data;
+            listBill.value = response.data.data;
+            sumValue.value = response.data.sum;
         }).finally(() => {
             isLoading.value = false;
         })
@@ -669,6 +669,7 @@ onMounted(() => {
                 </tbody>
             </table>
             <nav aria-label="Page navigation example">
+                <div class="float-right text-bold mr-2">Total : {{ formatMoney(sumValue) }}</div>
                 <ul class="pagination">
                     <li v-for="link in listBill.links" :key="link.label"
                         :class="{ 'active': link.active, 'disabled': link.url == null }" class="page-item">
