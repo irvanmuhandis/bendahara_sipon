@@ -35,10 +35,23 @@ class MasterController extends Controller
 
     public function index()
     {
-        $fil = request('filter');
+        $fil = request('ordering');
         $req = request('value');
         $mode = request('mode');
         $debit = request('debit');
+
+        //filter
+
+        $created_at = request('created_at');
+        $start = null;
+        $end = null;
+        if (isset($created_at)) {
+            $created_at = Carbon::make($created_at);
+            $start = $created_at->copy()->startOfMonth();
+            $end = $created_at->copy()->endOfMonth();
+        }
+        $wallet = request('wallet');
+        $account = request('account');
         $searchQuery = request('query');
         if ($mode == Trans::class) {
 
@@ -55,15 +68,52 @@ class MasterController extends Controller
             if ($debit == 1) {
                 $data = Trans::where('desc', 'like', "%{$searchQuery}%")
                     ->where('debit', '>', 0)
-                    ->with(['wallet', 'account', 'operator'])
-                    ->orderBy($fil, $req)->paginate(25);
-                return $data;
+                    ->with(['operator', 'wallet', 'account'])
+                    ->when(isset($wallet), function ($query) use ($wallet) {
+                        $query->whereHas('wallet', function ($queries) use ($wallet) {
+                            return $queries->where('wallet_type', $wallet);
+                        });
+                    })
+                    ->when(isset($created_at), function ($query) use ($start, $end) {
+                        return $query->whereBetween('created_at', [$start, $end]);
+                    })
+                    ->when(isset($account), function ($query) use ($account) {
+                        $query->whereHas('account', function ($queries) use ($account) {
+                            return $queries->where('id', $account);
+                        });
+                    })
+                    ->orderBy($fil, $req);
+                $sum = $data->sum('debit');
+                $data = $data->paginate(25);
+                return response()->json([
+                    'data' => $data,
+                    'sum' => $sum
+                ]);
             } else {
                 $data = Trans::where('desc', 'like', "%{$searchQuery}%")
                     ->where('credit', '>', 0)
                     ->with(['wallet', 'account', 'operator'])
-                    ->orderBy($fil, $req)->paginate(25);
-                return $data;
+                    ->when(isset($wallet), function ($query) use ($wallet) {
+                        $query->whereHas('wallet', function ($queries) use ($wallet) {
+                            return $queries->where('wallet_type', $wallet);
+                        });
+                    })
+                    ->when(isset($created_at), function ($query) use ($start, $end) {
+                        return $query->whereBetween('created_at', [$start, $end]);
+                    })
+                    ->when(isset($account), function ($query) use ($account) {
+                        $query->whereHas('account', function ($queries) use ($account) {
+                            return $queries->where('id', $account);
+                        });
+                    })
+                    ->orderBy($fil, $req);
+
+                $sum = $data->sum('credit');
+                $data = $data->paginate(2);
+                return response([
+                    'data' => $data,
+                    'sum' => $sum
+                ]);
             }
         } else {
 
@@ -84,15 +134,28 @@ class MasterController extends Controller
                 })
                     ->whereHas('payable')
                     ->with(['wallet', 'payable.account', 'santri', 'operator'])
-                    ->orderBy($fil, $req)->paginate(25);
+                    ->orderBy($fil, $req);
+
+                $sum = $data->sum('payment');
+                $data = $data->paginate(25);
+                return response()->json([
+                    'data' => $data,
+                    'sum' => $sum
+                ]);
                 return $data;
             } else {
                 $data = Debt::whereHas('santri', function ($query) use ($searchQuery) {
                     $query->where('fullname', 'like', "%{$searchQuery}%")
                         ->where('option', 1);
                 })
-                    ->with(['wallet', 'santri', 'operator'])
-                    ->orderBy($fil, $req)->paginate(25);
+                    ->with(['wallet', 'santri', 'operator','account'])
+                    ->orderBy($fil, $req);
+                $sum = $data->sum('amount');
+                $data = $data->paginate(25);
+                return response()->json([
+                    'data' => $data,
+                    'sum' => $sum
+                ]);
                 return $data;
             }
         }
@@ -215,7 +278,7 @@ class MasterController extends Controller
             ->select('fullname', 'nis')
             ->where('option', '1')
             ->with('bill.account')
-            ->withCount(['bill as bill_count' => function ($bill) use ($account){
+            ->withCount(['bill as bill_count' => function ($bill) use ($account) {
                 $bill
                     ->select(DB::raw('count(distinct(month))'))
                     ->whereBetween('month', [request('start'), request('end')])
@@ -259,10 +322,10 @@ class MasterController extends Controller
         $nis = request('santri');
 
 
-        $query = Santri::where('nis',$nis)
+        $query = Santri::where('nis', $nis)
             ->select('fullname', 'nis')
             ->where('option', '1')
-            ->with(['bill' => function ($query){
+            ->with(['bill' => function ($query) {
                 $query->selectRaw('month,nis,sum(amount) as sum_amount,sum(remainder) as sum_remain,count(id) as count')
                     ->whereBetween('month', [request('start'), request('end')])
                     ->where('payment_status', '<', 3)

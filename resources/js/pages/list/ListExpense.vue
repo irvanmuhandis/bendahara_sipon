@@ -5,7 +5,7 @@ import { ref, onMounted, reactive, computed, watch } from 'vue';
 import { Form, Field, useResetForm } from 'vee-validate';
 import * as yup from 'yup';
 import { useToastr } from '../../toastr.js';
-import { debounce } from 'lodash';
+import { debounce, sum } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 import { formatDate, formatMoney, formatClass, formatDiff } from '../../helper.js';
 
@@ -14,6 +14,7 @@ const listData = ref({
     'data': [
     ]
 });
+const sumValue = ref();
 const accounts = ref([]);
 const wallets = ref([]);
 
@@ -33,9 +34,10 @@ const form = ref({
     'account': null,
     'price': '',
     'priceBefore': '',
-    'desc': ''
+    'desc': '',
+    'created_at': ''
 })
-const filter = ref({
+const ordering = ref({
     'created_at': null,
     'account_id': null,
     'wallet_id': null,
@@ -53,6 +55,16 @@ const errors = ref({
     'out': null,
     'desc': null
 });
+const filter = ref({
+    'created_at': null,
+    'account': {
+        'id': null
+    },
+    'wallet': {
+        'wallet_type': null
+    }
+
+});
 
 const bulkDelete = () => {
     console.log(selected.value);
@@ -62,6 +74,9 @@ const bulkDelete = () => {
         }
     })
         .then(response => {
+
+            selectAll.value = null;
+            selected.value = [];
             toastr.success(response.data.message);
             fetchData();
         });
@@ -73,18 +88,18 @@ const confirmDataDeletion = (id) => {
     $('#deleteDataModal').modal('show');
 };
 const sort = (a) => {
-    for (const key in filter.value) {
+    for (const key in ordering.value) {
         if (a != key) {
-            filter.value[key] = null;
+            ordering.value[key] = null;
         }
     }
-    if (filter.value[a] == null) {
-        filter.value[a] = true;
+    if (ordering.value[a] == null) {
+        ordering.value[a] = true;
     } else {
-        filter.value[a] = !filter.value[a];
+        ordering.value[a] = !ordering.value[a];
     }
     fetchData();
-    console.log(filter.value);
+    console.log(ordering.value);
 }
 
 const clearform = () => {
@@ -133,6 +148,7 @@ const editData = (data) => {
     form.value.wallet = data.wallet;
     form.value.account = data.account;
     form.value.desc = data.desc;
+    form.value.created_at = formatDate(data.created_at);
     console.log(form.value);
     $('#editDataModal').modal('show');
 }
@@ -185,7 +201,7 @@ const update = () => {
 
     axios.put(`/api/trans/${form.value.id}`, form.value)
         .then((response) => {
-            toastr.success('Pay created successfully!');
+            toastr.success('Data updated successfully!');
             fetchData();
             $('#conEditDataModal').modal('hide');
         })
@@ -197,14 +213,14 @@ const update = () => {
 
 
 const fetchData = (link = `/api/ledger`) => {
-    var fil = {
+    var orderBy = {
         'key': null,
         'value': null
     };
-    for (const key in filter.value) {
-        if (filter.value[key] != null) {
-            fil.value = filter.value[key] ? 1 : 0;
-            fil.key = key;
+    for (const key in ordering.value) {
+        if (ordering.value[key] != null) {
+            orderBy.value = ordering.value[key] ? 1 : 0;
+            orderBy.key = key;
         }
     }
 
@@ -212,14 +228,18 @@ const fetchData = (link = `/api/ledger`) => {
     if (link != null) {
         axios.get(link, {
             params: {
-                filter: fil.key,
-                value: fil.value,
+                ordering: orderBy.key,
+                value: orderBy.value,
                 mode: !switchMode.value ? 'App\\Models\\Trans' : 'App\\Models\\Bill',
                 query: searchQuery.value,
-                debit: 0
+                debit: 0,
+                created_at: filter.value.created_at,
+                wallet: filter.value.wallet.wallet_type,
+                account: filter.value.account.id
             }
         }).then((response) => {
-            listData.value = response.data;
+            listData.value = response.data.data;
+            sumValue.value = response.data.sum;
             selected.value = [];
             selectAll.value = false;
         })
@@ -309,11 +329,27 @@ const getAccount = async () => {
     }
 }
 const switchmode = () => {
-    for (const key in filter.value) {
-        filter.value[key] = null;
+    for (const key in ordering.value) {
+        ordering.value[key] = null;
     }
     fetchData();
 }
+const resetFilter = () => {
+    filter.value = {
+        'created_at': null,
+        'account': {
+            'id': null
+        },
+        'wallet': {
+            'wallet_type': null
+        }
+    }
+}
+
+watch(filter, debounce(() =>
+    fetchData()
+    , 300), { deep: true });
+
 watch(searchQuery, debounce(() => {
     fetchData();
 }, 300));
@@ -426,6 +462,9 @@ onMounted(() => {
                             Internal</label>
                     </div>
                 </div>
+                <div class="col">
+                    <div class="btn btn-outline-primary float-right" @click="resetFilter">Reset Filter</div>
+                </div>
             </div>
 
             <div class="" v-if="switchMode">
@@ -439,9 +478,9 @@ onMounted(() => {
                         <tr>
                             <th>Tanggal
                                 <span class="float-right" @click="sort('created_at')">
-                                    <i :class="{ 'text-primary': filter.created_at == false }"
+                                    <i :class="{ 'text-primary': ordering.created_at == false }"
                                         class="fas fa-long-arrow-alt-up"></i>
-                                    <i :class="{ 'text-primary': filter.created_at == true }"
+                                    <i :class="{ 'text-primary': ordering.created_at == true }"
                                         class="fas fa-long-arrow-alt-down"></i>
                                 </span>
                             </th>
@@ -480,6 +519,7 @@ onMounted(() => {
                     </tbody>
                 </table>
                 <nav aria-label="Page navigation example">
+                    <div class="float-right text-bold mr-2">Total Pengeluaran : {{ formatMoney(sumValue) }}</div>
                     <ul class="pagination">
                         <li v-if="switchMode" v-for="link in listData.links" :key="link.label"
                             :class="{ 'active': link.active, 'disabled': link.url == null }" class="page-item">
@@ -489,7 +529,7 @@ onMounted(() => {
                 </nav>
             </div>
             <div class="" v-else>
-                <div class="row">
+                <div class="row mb-2">
                     <div class="col-md-3" v-if="selected.length > 0">
                         <button @click="confirmDataDeletion" type="button" class=" w-100 mb-2 btn btn-danger">
                             <i class="fa fa-trash mr-1"></i>
@@ -497,9 +537,41 @@ onMounted(() => {
                         </button>
 
                     </div>
+                    <div class="col-md">
+                        <div class="form-group">
+                            <label for="">Akun</label>
+                            <VueMultiselect  v-model="filter.account" :option-height="9"
+                                :options="accounts" :close-on-select="true" placeholder="Pilih Satu " label="account_name"
+                                track-by="id" :show-labels="false">
+                                <template v-slot:option="{ option }">
+                                    <div>{{ option.account_name }} - {{ option.id }} </div>
+                                </template>
+                            </VueMultiselect>
+                        </div>
+                    </div>
 
-                    <div class="mb-2 col-md">
-                        <div class="input-group w-100 ">
+                    <div class="col-md">
+                        <div class="form-group">
+                            <label>Dompet</label>
+                            <VueMultiselect @click="getWallet" v-model="filter.wallet" :option-height="9"
+                                :options="wallets" :class="{ 'is-invalid': errors.account }" :close-on-select="true"
+                                placeholder="Pilih Satu " label="wallet_name" track-by="id" :show-labels="false">
+                                <template v-slot:option="{ option }">
+                                    <div>{{ option.wallet_name }} - {{ formatMoney(option.sum.saldo) }} </div>
+                                </template>
+                            </VueMultiselect>
+                        </div>
+                    </div>
+
+                    <div class="col-md">
+                        <div class="form-group">
+                            <label>Bulan</label>
+                            <input class="form-control" v-model="filter.created_at" type="month" />
+                        </div>
+                    </div>
+                    <div class="col-md">
+                        <div class="form-group w-100 ">
+                            <label for="">Cari Kata Kunci</label>
                             <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
                         </div>
                     </div>
@@ -512,33 +584,33 @@ onMounted(() => {
                             </th>
                             <th>Tanggal
                                 <span class="float-right" @click="sort('created_at')">
-                                    <i :class="{ 'text-primary': filter.created_at == false }"
+                                    <i :class="{ 'text-primary': ordering.created_at == false }"
                                         class="fas fa-long-arrow-alt-up"></i>
-                                    <i :class="{ 'text-primary': filter.created_at == true }"
+                                    <i :class="{ 'text-primary': ordering.created_at == true }"
                                         class="fas fa-long-arrow-alt-down"></i>
                                 </span>
                             </th>
                             <th>Pengeluaran
                                 <span class="float-right" @click="sort('credit')">
-                                    <i :class="{ 'text-primary': filter.credit == false }"
+                                    <i :class="{ 'text-primary': ordering.credit == false }"
                                         class="fas fa-long-arrow-alt-up"></i>
-                                    <i :class="{ 'text-primary': filter.credit == true }"
+                                    <i :class="{ 'text-primary': ordering.credit == true }"
                                         class="fas fa-long-arrow-alt-down"></i>
                                 </span>
                             </th>
                             <th>Dompet
                                 <span class="float-right" @click="sort('wallet_id')">
-                                    <i :class="{ 'text-primary': filter.wallet_id == false }"
+                                    <i :class="{ 'text-primary': ordering.wallet_id == false }"
                                         class="fas fa-long-arrow-alt-up"></i>
-                                    <i :class="{ 'text-primary': filter.wallet_id == true }"
+                                    <i :class="{ 'text-primary': ordering.wallet_id == true }"
                                         class="fas fa-long-arrow-alt-down"></i>
                                 </span>
                             </th>
                             <th>Akun
                                 <span class="float-right" @click="sort('account_id')">
-                                    <i :class="{ 'text-primary': filter.account_id == false }"
+                                    <i :class="{ 'text-primary': ordering.account_id == false }"
                                         class="fas fa-long-arrow-alt-up"></i>
-                                    <i :class="{ 'text-primary': filter.account_id == true }"
+                                    <i :class="{ 'text-primary': ordering.account_id == true }"
                                         class="fas fa-long-arrow-alt-down"></i>
                                 </span>
                             </th>
@@ -570,6 +642,7 @@ onMounted(() => {
                     </tbody>
                 </table>
                 <nav aria-label="Page navigation example">
+                    <div class="float-right text-bold mr-2">Total Pengeluaran : {{ formatMoney(sumValue) }}</div>
                     <ul class="pagination">
                         <li v-for="link in listData.links" :key="link.label"
                             :class="{ 'active': link.active, 'disabled': link.url == null }" class="page-item">
@@ -622,6 +695,11 @@ onMounted(() => {
                 <div class="modal-body">
                     <h5>Apakah anda yakin ingin merubah data menjadi : </h5>
                     <div class="row">
+                        <div class="col-5">Tanggal</div>
+                        <div v-if="form.created_at != null" class="col"> : {{ form.created_at }}
+                        </div>
+                    </div>
+                    <div class="row">
                         <div class="col-5">Deskripsi </div>
                         <div class="col"> : {{ form.desc }}
                         </div>
@@ -661,6 +739,8 @@ onMounted(() => {
         </div>
     </div>
 
+
+    <!-- Edit Modal -->
     <div class="modal fade" id="editDataModal" data-backdrop="static" tabindex="-1" role="dialog"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
@@ -686,6 +766,21 @@ onMounted(() => {
                                 </div>
 
                             </div>
+                            <div class="col">
+
+                                <div class="form-group">
+                                    <label>Akun</label>
+                                    <VueMultiselect v-model="form.account" :option-height="9" :options="accounts"
+                                        :class="{ 'is-invalid': errorsEdit.account }" :close-on-select="true"
+                                        :selected="form.account" placeholder="Pilih Satu " label="account_name"
+                                        track-by="id" :show-labels="false">
+                                        <template v-slot:option="{ option }">
+                                            <div>{{ option.account_name }} - {{ option.id }} </div>
+                                        </template>
+                                    </VueMultiselect>
+                                    <span class="invalid-feedback">{{ errorsEdit.account }}</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="row">
 
@@ -697,6 +792,15 @@ onMounted(() => {
                                         v-model="form.price" type="number" />
                                     <span class="invalid-feedback">{{ errorsEdit.price }}</span>
                                     <p>{{ formatMoney(form.price) }}</p>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label>Tanggal Transaksi</label>
+                                    <input class="form-custom" :class="{ 'is-invalid': errorsEdit.created_at }"
+                                        v-model="form.created_at" type="date" />
+                                    <span class="invalid-feedback">{{ errorsEdit.created_at }}</span>
+                                    <p class="text-primary ">Tanggal : {{ formatDate(form.created_at) }}</p>
                                 </div>
                             </div>
                         </div>

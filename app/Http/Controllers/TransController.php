@@ -9,6 +9,7 @@ use App\Models\BigBook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cookie;
 
@@ -83,10 +84,13 @@ class TransController extends Controller
         $wall =  Wallet::where('id', '=', request('wallet')['id'])->first();
         $data = $tans->update([
             'desc' => request('desc'),
+            'account_id' => request('account')['id'],
+            'created_at'=> Carbon::parse(request('created_at')),
             'debit' => request('type') == 'debit' ? request('price') : $tans->debit,
             'credit' => request('type') != 'debit' ? request('price') : $tans->credit,
         ]);
         $walls = $wall->update([
+            'created_at'=> Carbon::parse(request('created_at')),
             'debit' => request('type') == 'debit' ? request('price') : $tans->debit,
             'credit' => request('type') != 'debit' ? request('price') : $tans->credit,
         ]);

@@ -266,6 +266,9 @@ const bulkDelete = () => {
     })
         .then(response => {
             toastr.success(response.data.message);
+            selectedWall.value = [];
+            selectAll.value = null;
+            selected.value = [];
             search();
             $('#deleteDataModal').modal('hide');
         });

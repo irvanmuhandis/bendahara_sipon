@@ -65,9 +65,13 @@ class PayController extends Controller
 
     public function indexBill()
     {
-        $fil = request('filter');
+        $fil = request('ordering');
         $req = request('value');
         $searchQuery = request('query');
+
+        $month = request('created_at');
+        $wallet = request('wallet');
+        $account = request('account');
 
         if ($fil == '') {
             $fil = 'id';
@@ -85,8 +89,29 @@ class PayController extends Controller
                     ->where('option', 1);
             })
             ->with(['payable.account', 'payable.santri', 'wallet', 'operator'])
-            ->orderBy($fil, $req)
-            ->paginate(20);
+            ->when(isset($wallet), function ($query) use ($wallet) {
+                $query->whereHas('wallet', function ($queries) use ($wallet) {
+                    return $queries->where('wallet_type', $wallet);
+                });
+            })
+            ->when(isset($month), function ($query) use ($month) {
+                $query->whereHas('payable', function ($queries) use ($month) {
+                    return $queries->where('month', $month);
+                });
+            })
+            ->when(isset($account), function ($query) use ($account) {
+                $query->whereHas('payable.account', function ($queries) use ($account) {
+                    return $queries->where('id', $account);
+                });
+            })
+            ->orderBy($fil, $req);
+
+            $sum = $data->sum('payment');
+            $data = $data->paginate(25);
+            return response()->json([
+                'data' => $data,
+                'sum' => $sum
+            ]);
 
         return $data;
     }
@@ -112,6 +137,7 @@ class PayController extends Controller
         $pay = request('payment');
         $remainder = request('remainder');
         $k = request('wallet');
+
 
 
         $pay_bll = 0;

@@ -62,6 +62,10 @@ class BillController extends Controller
         $searchQuery = request('query');
         $mode = request('mode');
 
+        $month = (string)request('created_at');
+        $account = request('account');
+
+
         if ($fil == '') {
             $fil = 'id';
             $req = 'desc';
@@ -73,9 +77,16 @@ class BillController extends Controller
             }
         }
         $bill = Bill::whereHas('santri', function ($query) use ($searchQuery) {
-            $query->where('fullname', 'like', "%{$searchQuery}%")
-                ->where('option', 1);
-        })
+                $query->where('fullname', 'like', "%{$searchQuery}%")
+                    ->where('option', 1);
+            })
+            ->with(['santri', 'operator', 'account'])
+            ->when($month, function ($query) use ($month) {
+                $query->where('month','=', $month);
+            })
+            ->when($account, function ($query) use ($account) {
+                $query->where('account_id','=', $account);
+            })
             ->when($mode == 'period', function ($query) {
                 $query->where('title', null)
                     ->orWhere('title', "");
@@ -84,7 +95,6 @@ class BillController extends Controller
                 $query->where('month', null)
                     ->orWhere('month', null);
             })
-            ->with(['santri', 'operator', 'account'])
             ->orderBy($fil, $req)
             ->paginate(25);
 
@@ -351,17 +361,17 @@ class BillController extends Controller
         $bill = Bill::where('id', '=', request('id'))->first();
         // dd(request());
         $status = $bill->payment_status;
-        if($status==3){
-            if(request('remain')>0){
+        if ($status == 3) {
+            if (request('remain') > 0) {
                 $status = 2;
             }
-            if(request('remain')==request('price')){
+            if (request('remain') == request('price')) {
                 $status = 1;
             }
         }
         $bill->update([
             'operator_id' => $user['id'],
-            'payment_status'=>$status,
+            'payment_status' => $status,
             'account_id' => request('account')['id'],
             'amount' => request('price'),
             'remainder' => request('remain'),

@@ -8,6 +8,7 @@ import { useToastr } from '../../toastr.js';
 import { debounce } from 'lodash';
 import { Bootstrap4Pagination } from 'laravel-vue-pagination';
 import { formatDate, formatMoney, formatStatus } from '../../helper.js';
+import FilterTable from "../../components/filterTable.vue";
 
 const toastr = useToastr();
 const listBill = ref({
@@ -65,7 +66,7 @@ const types = [{
 }
 ];
 const destroyType = ref(null);
-const filter = ref({
+const ordering = ref({
     'account_id': null,
     'amount': null,
     'nis': null,
@@ -73,7 +74,16 @@ const filter = ref({
     'month': null,
     'created_at': null
 })
+const filter = ref({
+    'created_at': null,
+    'account': {
+        'id': null
+    },
+    'wallet': {
+        'wallet_type': null
+    }
 
+});
 const delPrompt = (values, action) => {
     const modal = document.getElementById("myModal");
 
@@ -104,18 +114,18 @@ const selectAllGroups = () => {
 }
 
 const sort = (a) => {
-    for (const key in filter.value) {
+    for (const key in ordering.value) {
         if (a != key) {
-            filter.value[key] = null;
+            ordering.value[key] = null;
         }
     }
-    if (filter.value[a] == null) {
-        filter.value[a] = true;
+    if (ordering.value[a] == null) {
+        ordering.value[a] = true;
     } else {
-        filter.value[a] = !filter.value[a];
+        ordering.value[a] = !ordering.value[a];
     }
     fetchData();
-    console.log(filter.value);
+    console.log(ordering.value);
 }
 
 const delMass = () => {
@@ -219,6 +229,8 @@ const bulkDelete = () => {
     })
         .then(response => {
             toastr.success(response.data.message);
+            selectAll.value = null;
+            selected.value = [];
             fetchData();
         });
 
@@ -254,30 +266,32 @@ watch(searchQuery, debounce(() => {
 
 const fetchData = (link = `/api/bill`) => {
     isLoading.value = true;
-    var fil = {
+    var orderBy = {
         'key': null,
         'value': null
     };
     if (switchMode.value) {
-        fil['mode'] = 'nonperiod';
+        orderBy['mode'] = 'nonperiod';
     } else {
-        fil['mode'] = 'period';
+        orderBy['mode'] = 'period';
     }
 
 
-    for (const key in filter.value) {
-        if (filter.value[key] != null) {
-            fil.value = filter.value[key] ? 1 : 0;
-            fil.key = key;
+    for (const key in ordering.value) {
+        if (ordering.value[key] != null) {
+            orderBy.value = ordering.value[key] ? 1 : 0;
+            orderBy.key = key;
         }
     }
     if (link != null) {
         axios.get(link, {
             params: {
-                filter: fil.key,
-                value: fil.value,
+                ordering: orderBy.key,
+                value: orderBy.value,
                 query: searchQuery.value,
-                mode: fil.mode
+                mode: orderBy.mode,
+                created_at: filter.value.created_at,
+                account: filter.value.account.id
             }
         }).then((response) => {
             listBill.value = response.data;
@@ -351,7 +365,7 @@ const validate = () => {
         errors.value.price = 'Isi Jumlah Tagihan '
         err += 1;
     }
-    if (form.value.remain == '') {
+    if (form.value.remain == "") {
         errors.value.remain = 'Isi Sisa Tagihan '
         err += 1;
     }
@@ -388,7 +402,21 @@ const update = () => {
         })
 
 };
+const resetFilter = () => {
+    filter.value = {
+        'created_at': null,
+        'account': {
+            'id': null
+        },
+        'wallet': {
+            'wallet_type': null
+        }
+    }
+}
 
+watch(filter, debounce(() =>
+    fetchData()
+    , 300), { deep: true });
 watch(switchMode, debounce(() => {
     fetchData();
 }, 300));
@@ -467,7 +495,7 @@ onMounted(() => {
                                 </div>
                                 <div class="modal-body">
                                     <p>Apakah Kamu Yakin Ingin Menghapus Data {{
-                                        destroyType == null ? "---" : types.filter(item => item.id ==
+                                        destroyType == null ? "---" : types.ordering(item => item.id ==
                                             destroyType).map(item => item.name)[0] }} ?</p>
 
                                 </div>
@@ -485,22 +513,6 @@ onMounted(() => {
                     </button>
                 </router-link>
             </div>
-            <div class="row">
-                <div class="col-md-3" v-if="selected.length > 0">
-                    <button @click="confirmDataDeletion" type="button" class=" w-100 mb-2 btn btn-danger">
-                        <i class="fa fa-trash mr-1"></i>
-                        Hapus {{ selected.length }} Data
-                    </button>
-
-                </div>
-
-                <div class="mb-2 col-md">
-                    <div class="input-group w-100 ">
-                        <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
-                    </div>
-                </div>
-
-            </div>
             <div class="row mb-2">
                 <div class="col">
                     <div class="custom-control custom-switch">
@@ -509,6 +521,49 @@ onMounted(() => {
                             Non Periodik</label>
                     </div>
                 </div>
+
+                <div class="col-auto">
+                    <div class="row">
+                        <div class="col" v-if="selected.length > 0">
+                            <button @click="confirmDataDeletion" type="button" class="w-100 btn btn-danger">
+                                <i class="fa fa-trash mr-1"></i>
+                                Hapus {{ selected.length }} Data
+                            </button>
+                        </div>
+                        <div class="col-auto float-right">
+                            <div class="btn btn-outline-primary float-right" @click="resetFilter">Reset Filter</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-2 mt-3">
+
+                <div class="col-md">
+                    <div class="form-group">
+                        <label for="">Akun</label>
+                        <VueMultiselect  v-model="filter.account" :option-height="9" :options="accounts"
+                            :close-on-select="true" placeholder="Pilih Satu " label="account_name" track-by="id"
+                            :show-labels="false">
+                            <template v-slot:option="{ option }">
+                                <div>{{ option.account_name }} - {{ option.id }} </div>
+                            </template>
+                        </VueMultiselect>
+                    </div>
+                </div>
+
+                <div class="col-md">
+                    <div class="form-group">
+                        <label>Tagihan Bulan</label>
+                        <input class="form-control" v-model="filter.created_at" type="month" />
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="form-group w-100 ">
+                        <label for="">Cari Nama</label>
+                        <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
+                    </div>
+                </div>
+
             </div>
             <table class="table table-bordered hover ">
                 <thead>
@@ -516,52 +571,57 @@ onMounted(() => {
                         <th class="text-center"><input type="checkbox" v-model="selectAll" @change="selectAllGroups" /></th>
                         <th>Dibuat
                             <span class="float-right" @click="sort('created_at')">
-                                <i :class="{ 'text-primary': filter.created_at == false }"
+                                <i :class="{ 'text-primary': ordering.created_at == false }"
                                     class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.created_at == true }"
+                                <i :class="{ 'text-primary': ordering.created_at == true }"
                                     class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
 
                         <th> <span>Nama Akun </span>
                             <span class=" float-right" @click="sort('account_id')">
-                                <i :class="{ 'text-primary': filter.account_id == false }"
+                                <i :class="{ 'text-primary': ordering.account_id == false }"
                                     class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.account_id == true }"
+                                <i :class="{ 'text-primary': ordering.account_id == true }"
                                     class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
                         <th> <span>Santri </span>
                             <span class="float-right" @click="sort('nis')">
-                                <i :class="{ 'text-primary': filter.nis == false }" class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.nis == true }" class="fas fa-long-arrow-alt-down"></i>
+                                <i :class="{ 'text-primary': ordering.nis == false }" class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': ordering.nis == true }" class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
                         <th>Tagihan
                             <span class="float-right" @click="sort('amount')">
-                                <i :class="{ 'text-primary': filter.amount == false }" class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.amount == true }"
+                                <i :class="{ 'text-primary': ordering.amount == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': ordering.amount == true }"
                                     class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
                         <th> <span>Sisa </span>
                             <span class="float-right" @click="sort('remainder')">
-                                <i :class="{ 'text-primary': filter.remainder == false }"
+                                <i :class="{ 'text-primary': ordering.remainder == false }"
                                     class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.remainder == true }"
+                                <i :class="{ 'text-primary': ordering.remainder == true }"
                                     class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
                         <th v-if="!switchMode"> <span>Periode </span>
                             <span class="float-right" @click="sort('month')">
-                                <i :class="{ 'text-primary': filter.month == false }" class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.month == true }" class="fas fa-long-arrow-alt-down"></i>
+                                <i :class="{ 'text-primary': ordering.month == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': ordering.month == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
                         <th v-else> <span>Judul </span>
                             <span class="float-right" @click="sort('title')">
-                                <i :class="{ 'text-primary': filter.title == false }" class="fas fa-long-arrow-alt-up"></i>
-                                <i :class="{ 'text-primary': filter.title == true }" class="fas fa-long-arrow-alt-down"></i>
+                                <i :class="{ 'text-primary': ordering.title == false }"
+                                    class="fas fa-long-arrow-alt-up"></i>
+                                <i :class="{ 'text-primary': ordering.title == true }"
+                                    class="fas fa-long-arrow-alt-down"></i>
                             </span>
                         </th>
                         <th class="text-center">Operator</th>

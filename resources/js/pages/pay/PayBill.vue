@@ -14,7 +14,10 @@ const santris = ref([]);
 const listpays = ref({
     'data': []
 });
+const sumValue = ref();
+
 const wallets = ref([]);
+const accounts = ref([]);
 
 const total = ref(0);
 const searchQuery = ref(null);
@@ -41,26 +44,35 @@ const formValue = ref({
     'wallet': null,
     'payment': null
 });
-const filter = ref({
+const ordering = ref({
     'created_at': null,
     'nis': null,
     'payment': null
 });
+const filter = ref({
+    'created_at': null,
+    'account': {
+        'id': null
+    },
+    'wallet': {
+        'wallet_type': null
+    }
 
+});
 
 const sort = (a) => {
-    for (const key in filter.value) {
+    for (const key in ordering.value) {
         if (a != key) {
-            filter.value[key] = null;
+            ordering.value[key] = null;
         }
     }
-    if (filter.value[a] == null) {
-        filter.value[a] = true;
+    if (ordering.value[a] == null) {
+        ordering.value[a] = true;
     } else {
-        filter.value[a] = !filter.value[a];
+        ordering.value[a] = !ordering.value[a];
     }
     fetchData();
-    console.log(filter.value);
+    console.log(ordering.value);
 }
 
 
@@ -129,25 +141,29 @@ const getSantribill = async (link = `/api/santri/bill/${formValue.value.santri.n
 
 
 const fetchData = (link = `/api/paybill`) => {
-    var fil = {
+    var orderBy = {
         'key': null,
         'value': null
     };
-    for (const key in filter.value) {
-        if (filter.value[key] != null) {
-            fil.value = filter.value[key] ? 1 : 0;
-            fil.key = key;
+    for (const key in ordering.value) {
+        if (ordering.value[key] != null) {
+            orderBy.value = ordering.value[key] ? 1 : 0;
+            orderBy.key = key;
         }
     }
     if (link != null) {
         axios.get(link, {
             params: {
-                filter: fil.key,
-                value: fil.value,
-                query: searchQuery.value
+                ordering: orderBy.key,
+                value: orderBy.value,
+                query: searchQuery.value,
+                created_at: filter.value.created_at,
+                wallet: filter.value.wallet.wallet_type,
+                account: filter.value.account.id
             }
         }).then((response) => {
-            listpays.value = response.data;
+            listpays.value = response.data.data;
+            sumValue.value = response.data.sum;
         })
     }
 
@@ -261,7 +277,7 @@ const bulkDelete = () => {
             fetchData();
             selected.value = [];
             selectedWall.value = [];
-            selectAll.value  = false;
+            selectAll.value = false;
             $('#deleteDataModal').modal('hide');
         });
 };
@@ -299,6 +315,36 @@ const selectedAllData = () => {
     console.log(selectedWall.value);
 }
 
+const getAccount = async () => {
+
+    try {
+        const datas = await axios.get(`/api/account/only`, {
+            params: {
+                type: 2
+            }
+        })
+        accounts.value = datas.data
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+const resetFilter = () => {
+    filter.value = {
+        'created_at': null,
+        'account': {
+            'id': null
+        },
+        'wallet': {
+            'wallet_type': null
+        }
+    }
+}
+
+watch(filter, debounce(() =>
+    fetchData()
+    , 300), { deep: true });
 watch(searchQuery, debounce(() => {
     fetchData();
 }, 300));
@@ -307,6 +353,7 @@ watch(searchQuery, debounce(() => {
 onMounted(() => {
     fetchData();
     getWallet();
+    getAccount();
     getSantri();
 })
 </script>
@@ -336,7 +383,6 @@ onMounted(() => {
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12 ">
-
                     <form @submit="createPay">
                         <div class="row">
                             <div class="col-md-6">
@@ -354,7 +400,7 @@ onMounted(() => {
                                     <div v-else>
 
                                         <div v-for="bill in santribill.data" :key="bill.id">
-                                            <input type="checkbox"  @change="totalize($event, bill.id)"
+                                            <input type="checkbox" @change="totalize($event, bill.id)"
                                                 v-model="formValue.bill" :value="bill.id" />
                                             <label class="ml-2">
                                                 {{ bill.account.account_name }} | {{ bill.month == null ? bill.title :
@@ -454,16 +500,55 @@ onMounted(() => {
 
 
             </div>
+            <hr>
             <div class="row mt-2">
                 <div class="col-md-3" v-if="selected.length > 0">
-                    <button @click="confirmDataDeletion" type="button" class=" w-100 mb-2 btn btn-danger">
+                    <button @click="confirmDataDeletion" type="button" class=" w-100 btn btn-danger">
                         <i class="fa fa-trash mr-1"></i>
                         Hapus {{ selected.length }} Data
                     </button>
 
                 </div>
-                <div class="mb-2 col-md">
-                    <div class="input-group w-100 ">
+                <div class="col">
+                    <div class="btn btn-outline-primary float-right" @click="resetFilter">Reset Filter</div>
+                </div>
+            </div>
+            <div class="row mb-2 mt-3">
+                <div class="col-md">
+                    <div class="form-group">
+                        <label for="">Akun</label>
+                        <VueMultiselect v-model="filter.account" :option-height="9" :options="accounts"
+                            :close-on-select="true" placeholder="Pilih Satu " label="account_name" track-by="id"
+                            :show-labels="false">
+                            <template v-slot:option="{ option }">
+                                <div>{{ option.account_name }} - {{ option.id }} </div>
+                            </template>
+                        </VueMultiselect>
+                    </div>
+                </div>
+
+                <div class="col-md">
+                    <div class="form-group">
+                        <label>Dompet</label>
+                        <VueMultiselect @click="getWallet" v-model="filter.wallet" :option-height="9" :options="wallets"
+                            :class="{ 'is-invalid': errors.account }" :close-on-select="true" placeholder="Pilih Satu "
+                            label="wallet_name" track-by="id" :show-labels="false">
+                            <template v-slot:option="{ option }">
+                                <div>{{ option.wallet_name }} - {{ formatMoney(option.sum.saldo) }} </div>
+                            </template>
+                        </VueMultiselect>
+                    </div>
+                </div>
+
+                <div class="col-md">
+                    <div class="form-group">
+                        <label>Tagihan Bulan</label>
+                        <input class="form-control" v-model="filter.created_at" type="month" />
+                    </div>
+                </div>
+                <div class="col-md">
+                    <div class="form-group w-100 ">
+                        <label for="">Cari Nama</label>
                         <input type="text" v-model="searchQuery" class=" form-control" placeholder="Search..." />
                     </div>
                 </div>
@@ -478,17 +563,17 @@ onMounted(() => {
                                         @change="selectedAllData" /></th>
                                 <th>Tanggal
                                     <span class="float-right" @click="sort('created_at')">
-                                        <i :class="{ 'text-primary': filter.created_at == false }"
+                                        <i :class="{ 'text-primary': ordering.created_at == false }"
                                             class="fas fa-long-arrow-alt-up"></i>
-                                        <i :class="{ 'text-primary': filter.created_at == true }"
+                                        <i :class="{ 'text-primary': ordering.created_at == true }"
                                             class="fas fa-long-arrow-alt-down"></i>
                                     </span>
                                 </th>
                                 <th>Nama
                                     <span class="float-right" @click="sort('nis')">
-                                        <i :class="{ 'text-primary': filter.nis == false }"
+                                        <i :class="{ 'text-primary': ordering.nis == false }"
                                             class="fas fa-long-arrow-alt-up"></i>
-                                        <i :class="{ 'text-primary': filter.nis == true }"
+                                        <i :class="{ 'text-primary': ordering.nis == true }"
                                             class="fas fa-long-arrow-alt-down"></i>
                                     </span>
                                 </th>
@@ -496,9 +581,9 @@ onMounted(() => {
                                 </th>
                                 <th>Bayar
                                     <span class="float-right" @click="sort('payment')">
-                                        <i :class="{ 'text-primary': filter.payment == false }"
+                                        <i :class="{ 'text-primary': ordering.payment == false }"
                                             class="fas fa-long-arrow-alt-up"></i>
-                                        <i :class="{ 'text-primary': filter.payment == true }"
+                                        <i :class="{ 'text-primary': ordering.payment == true }"
                                             class="fas fa-long-arrow-alt-down"></i>
                                     </span>
                                 </th>
@@ -530,6 +615,7 @@ onMounted(() => {
                         </tbody>
                     </table>
                     <nav aria-label="Page navigation example">
+                        <div class="float-right text-bold mr-2">Total : {{ formatMoney(sumValue) }}</div>
                         <ul class="pagination">
                             <li v-for="link in listpays.links" :key="link.label"
                                 :class="{ 'active': link.active, 'disabled': link.url == null }" class="page-item">
