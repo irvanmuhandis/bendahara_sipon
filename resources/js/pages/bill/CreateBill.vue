@@ -229,6 +229,7 @@ const createBill_s = (event) => {
                 .then((response) => {
                     formatted_s.value = null;
                     clearform(errors.value, form.value);
+                    console.log(response.data);
                     if (response.data["exist"].length != 0) {
                         toastr.success(
                             response.data["exist"].length +
