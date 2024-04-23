@@ -120,6 +120,7 @@ class BillController extends Controller
         ])->get('https://sipon.kyaigalangsewu.net/api/v1/user/' . $nis);
         $operator = $response->json()['data'];
         $log = [];
+        $exist = [];
 
         if (request('account')) {
             foreach (request('santri') as $user) {
@@ -193,6 +194,7 @@ class BillController extends Controller
 
                         if ($validate != null) {
                             continue;
+                            array_push($exist, $validate);
                         } else {
                             $bill = Bill::create([
                                 'account_id' => $account['id'],
@@ -210,7 +212,10 @@ class BillController extends Controller
                 }
             }
         }
-        return $log;
+        return response()->json([
+            'data' => $log,
+            'exist' => $exist
+        ]);
     }
 
     public function store_singleRange()
@@ -230,6 +235,7 @@ class BillController extends Controller
         $period_start = request('period_start');
         $period_end = request('period_end');
         $log = [];
+        $exist = [];
 
         if (request('account')) {
             foreach (request('santri') as $user) {
@@ -305,7 +311,7 @@ class BillController extends Controller
                         for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
 
                             if ($account['value'] == "0" || $account['value'] == 0) {
-                                return;
+                                continue;
                             }
 
                             $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
@@ -313,6 +319,7 @@ class BillController extends Controller
 
                             if ($validate != null) {
                                 continue;
+                                array_push($exist, $validate);
                             } else {
                                 $bill = Bill::create([
                                     'account_id' => $account['id'],
@@ -331,7 +338,10 @@ class BillController extends Controller
             }
         }
 
-        return $log;
+        return response()->json([
+            'data' => $log,
+            'exist' => $exist
+        ]);
     }
 
     public function store_nonperiod()
