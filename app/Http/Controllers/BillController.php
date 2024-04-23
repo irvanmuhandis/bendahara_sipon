@@ -77,15 +77,15 @@ class BillController extends Controller
             }
         }
         $bill = Bill::whereHas('santri', function ($query) use ($searchQuery) {
-                $query->where('fullname', 'like', "%{$searchQuery}%")
-                    ->where('option', 1);
-            })
+            $query->where('fullname', 'like', "%{$searchQuery}%")
+                ->where('option', 1);
+        })
             ->with(['santri', 'operator', 'account'])
             ->when($month, function ($query) use ($month) {
-                $query->where('month','=', $month);
+                $query->where('month', '=', $month);
             })
             ->when($account, function ($query) use ($account) {
-                $query->where('account_id','=', $account);
+                $query->where('account_id', '=', $account);
             })
             ->when($mode == 'period', function ($query) {
                 $query->where('title', null)
@@ -97,13 +97,13 @@ class BillController extends Controller
             })
             ->orderBy($fil, $req);
 
-            $sum = $bill->sum('amount');
-            $bill = $bill->paginate(10);
-            return response()->json([
-                'data' => $bill,
-                'sum' => $sum
-            ]);
-}
+        $sum = $bill->sum('amount');
+        $bill = $bill->paginate(10);
+        return response()->json([
+            'data' => $bill,
+            'sum' => $sum
+        ]);
+    }
 
     public function store_single()
     {
@@ -140,30 +140,32 @@ class BillController extends Controller
                     return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
                 }
             }
-        } else {
-            foreach (request('periodic') as $account) {
-                if ($account['value'] != '') {
-                    foreach (request('santri') as $user) {
-                        if ($account['value'] == "0" || $account['value'] == 0) {
-                            continue;
-                        }
-
-                        $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
-                            ->where('month', request('period'))->first();
-
-                        $akun =   $account['name'];
-
-
-                        $monthFormatted = Carbon::parse(request('period'))->format('F Y');
-
-
-                        if ($validate != null) {
-                            return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
-                        }
-                    }
-                }
-            }
         }
+
+        // else {
+        //     foreach (request('periodic') as $account) {
+        //         if ($account['value'] != '') {
+        //             foreach (request('santri') as $user) {
+        //                 if ($account['value'] == "0" || $account['value'] == 0) {
+        //                     continue;
+        //                 }
+
+        //                 $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
+        //                     ->where('month', request('period'))->first();
+
+        //                 $akun =   $account['name'];
+
+
+        //                 $monthFormatted = Carbon::parse(request('period'))->format('F Y');
+
+
+        //                 if ($validate != null) {
+        //                     return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
         if (request('account')) {
             foreach (request('santri') as $user) {
@@ -186,19 +188,24 @@ class BillController extends Controller
                 if ($account['value'] != '') {
                     foreach (request('santri') as $user) {
 
+                        $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
+                            ->where('month', request('period'))->first();
 
+                        if ($validate != null) {
+                            continue;
+                        } else {
+                            $bill = Bill::create([
+                                'account_id' => $account['id'],
+                                'nis' => $user['nis'],
 
-                        $bill = Bill::create([
-                            'account_id' => $account['id'],
-                            'nis' => $user['nis'],
-
-                            'operator_id' => $operator['id'],
-                            'amount' => $account['value'],
-                            'remainder' => $account['value'],
-                            'payment_status' =>  1,
-                            'month' => request('period'),
-                        ]);
-                        array_push($log, $bill);
+                                'operator_id' => $operator['id'],
+                                'amount' => $account['value'],
+                                'remainder' => $account['value'],
+                                'payment_status' =>  1,
+                                'month' => request('period'),
+                            ]);
+                            array_push($log, $bill);
+                        }
                     }
                 }
             }
@@ -244,30 +251,32 @@ class BillController extends Controller
                     }
                 }
             }
-        } else {
-            foreach (request('periodic') as $account) {
-                if ($account['value'] != '') {
-                    foreach (request('santri') as $user) {
-                        for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
-                            if ($account['value'] == "0" || $account['value'] == 0) {
-                                continue;
-                            }
-
-                            $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
-                                ->where('month', $month->format('Y-m'))->first();
-
-
-                            $monthFormatted = $month->format('F Y');
-
-                            $akun =   $account['name'];
-                            if ($validate != null) {
-                                return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
-                            }
-                        }
-                    }
-                }
-            }
         }
+
+        // else {
+        //     foreach (request('periodic') as $account) {
+        //         if ($account['value'] != '') {
+        //             foreach (request('santri') as $user) {
+        //                 for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
+        //                     if ($account['value'] == "0" || $account['value'] == 0) {
+        //                         continue;
+        //                     }
+
+        //                     $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
+        //                         ->where('month', $month->format('Y-m'))->first();
+
+
+        //                     $monthFormatted = $month->format('F Y');
+
+        //                     $akun =   $account['name'];
+        //                     if ($validate != null) {
+        //                         return response()->json(['error' => "Tagihan $akun di bulan $monthFormatted sudah ada !!"], 404);
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
 
 
@@ -295,16 +304,27 @@ class BillController extends Controller
                     foreach (request('santri') as $user) {
                         for ($month = Carbon::parse($period_start); $month->lte(Carbon::parse($period_end)); $month->addMonth()) {
 
-                            $bill = Bill::create([
-                                'account_id' => $account['id'],
-                                'nis' => $user['nis'],
-                                'operator_id' => $operator['id'],
-                                'amount' => $account['value'],
-                                'remainder' => $account['value'],
-                                'payment_status' =>  1,
-                                'month' => $month->format('Y-m'),
-                            ]);
-                            array_push($log, $bill);
+                            if ($account['value'] == "0" || $account['value'] == 0) {
+                                return;
+                            }
+
+                            $validate = Bill::where('nis', $user['nis'])->where('account_id', $account['id'])
+                                ->where('month', $month->format('Y-m'))->first();
+
+                            if ($validate != null) {
+                                continue;
+                            } else {
+                                $bill = Bill::create([
+                                    'account_id' => $account['id'],
+                                    'nis' => $user['nis'],
+                                    'operator_id' => $operator['id'],
+                                    'amount' => $account['value'],
+                                    'remainder' => $account['value'],
+                                    'payment_status' =>  1,
+                                    'month' => $month->format('Y-m'),
+                                ]);
+                                array_push($log, $bill);
+                            }
                         }
                     }
                 }

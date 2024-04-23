@@ -169,8 +169,6 @@ const fetchData = (link = `/api/paybill`) => {
 
 }
 
-
-
 const clearform = () => {
     for (const key in errors.value) {
         errors.value[key] = null;

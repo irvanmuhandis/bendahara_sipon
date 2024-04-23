@@ -495,7 +495,7 @@ onMounted(() => {
                                                 <span class="invalid-feedback">{{ errors.account }}</span>
                                             </div>
                                             <div v-else>
-                                                <div v-for="(data, index) in form.periodic">
+                                                <div v-for="(data, index) in form.periodic" :key=index>
                                                     <label class="text-right text-primary font-weight-normal">{{
                                                         data.name }}</label>
                                                     <input :class="{ 'is-invalid': errors.account }" v-model="data.value"
@@ -658,7 +658,7 @@ onMounted(() => {
                                                 <span class="invalid-feedback">{{ errors.account }}</span>
                                             </div>
                                             <div v-else>
-                                                <div v-for="(data, index) in form.periodic">
+                                                <div v-for="(data, index) in form.periodic" :key="index">
                                                     <label class="text-right text-primary font-weight-normal">{{
                                                         data.name }}</label>
                                                     <input :class="{ 'is-invalid': errors.account }" v-model="data.value"
