@@ -193,8 +193,9 @@ class BillController extends Controller
                             ->where('month', request('period'))->first();
 
                         if ($validate != null) {
-                            continue;
+
                             array_push($exist, $validate);
+                            continue;
                         } else {
                             $bill = Bill::create([
                                 'account_id' => $account['id'],
@@ -318,8 +319,9 @@ class BillController extends Controller
                                 ->where('month', $month->format('Y-m'))->first();
 
                             if ($validate != null) {
-                                continue;
                                 array_push($exist, $validate);
+                                continue;
+
                             } else {
                                 $bill = Bill::create([
                                     'account_id' => $account['id'],
