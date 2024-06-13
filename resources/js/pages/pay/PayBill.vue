@@ -372,7 +372,6 @@ const validate = () => {
 }
 
 const update = () => {
-    editValues.value.operator = 1;
     editValues.value.type = 'App\\Models\\Bill';
     console.log(editValues.value);
     console.log(errors.value);
@@ -587,7 +586,7 @@ onMounted(() => {
                                 <td>{{ formatMoney(pay.payable.remainder) }}</td>
                                 <td>{{ pay.wallet.wallet_name }}</td>
                                 <td>{{ pay.payable.account.account_name }}</td>
-                                <td>{{ pay.operator.name }}</td>
+                                <td>{{ pay.operator.fullname }}</td>
                                 <td>
                                     <a href="#" @click="editData(pay)">
                                         <i class="fa fa-edit mr-2"></i>

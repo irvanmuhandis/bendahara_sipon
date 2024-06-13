@@ -370,7 +370,6 @@ const validate = () => {
 }
 
 const update = () => {
-    form.value.operator = 1;
 
     console.log(form.value);
     console.log(errors.value);
@@ -603,7 +602,7 @@ onMounted(() => {
                         <td v-html="formatMoney(debt.amount)"></td>
                         <td>{{ formatMoney(debt.remainder) }}</td>
 
-                        <td>{{ debt.operator.name }}</td>
+                        <td>{{ debt.operator.fullname }}</td>
                         <td class="text-center">
                             <a href="#" @click="editData(debt)">
                                 <i class="mx-auto fa fa-edit mr-2"></i>

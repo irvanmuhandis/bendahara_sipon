@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Models\Pay;
 use App\Models\Group;
 use App\Models\Account;
+use App\Models\User;
+use App\Models\Santri;
 use App\Models\Periodic;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,7 +35,14 @@ class Bill extends Model
 
     public function operator()
     {
-        return $this->belongsTo(User::class,'operator_id','id');
+            return $this->hasOneThrough(
+            Santri::class,
+            User::class,
+            'id', 
+            'nis', 
+            'operator_id', 
+            'nis_santri' 
+        );;
     }
 
 }
