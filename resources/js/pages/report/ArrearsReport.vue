@@ -829,7 +829,7 @@ onMounted(() => {
                                                 <div class="">Bendahara Pondok Putra</div>
                                                 <img src="/images/ttd_me.png" style=" height: 100px; object-fit: fill;"
                                                     class="img-fluid ">
-                                                <div class=""><u><strong>M.Irvan Muhandis, S.Kom</strong></u>
+                                                <div class=""><u><strong>Kholis Muwaffiq</strong></u>
                                                 </div>
                                             </div>
                                         </div>
