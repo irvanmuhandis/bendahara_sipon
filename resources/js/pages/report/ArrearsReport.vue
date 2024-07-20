@@ -827,7 +827,7 @@ onMounted(() => {
                                             </div>
                                             <div class="col text-center">
                                                 <div class="">Bendahara Pondok Putra</div>
-                                                <img src="/images/ttd_me.png" style=" height: 100px; object-fit: fill;"
+                                                <img src="/images/kholis_ttd.png" style=" height: 100px; object-fit: fill;"
                                                     class="img-fluid ">
                                                 <div class=""><u><strong>Kholis Muwaffiq</strong></u>
                                                 </div>
