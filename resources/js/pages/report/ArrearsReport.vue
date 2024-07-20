@@ -791,7 +791,7 @@ onMounted(() => {
                                                     }) }}</strong>. Kami mohon sekiranya
                                                     Bapak / Ibu dapat segera melunasi tunggakan tersebut. Informasi
                                                     lebih
-                                                    lanjut dapat menghubungi 0857-0151-4915 a.n. Muhammad Irvan Muhandis.
+                                                    lanjut dapat menghubungi +62 838-6610-5097 a.n. Kholis Muwaffiq.
                                                 </div>
                                                 <div class="mb-3 mt-3">
                                                     Demikian pemberitahuan ini kami sampaikan, atas perhatian Bapak
